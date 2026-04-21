@@ -47,6 +47,28 @@ def _extract_quoted_value(text: str, *, start_idx: int) -> tuple[str, int] | Non
     if quote not in {'"', "'"}:
         return None
 
+    # WebLINX occasionally stores quoted utterances as utterance=""..."".
+    # Treat the inner quotes as content rather than an empty string payload.
+    if start_idx + 1 < len(text) and text[start_idx + 1] == quote:
+        value_chars = [quote]
+        idx = start_idx + 2
+        escaped = False
+        while idx < len(text):
+            char = text[idx]
+            if escaped:
+                value_chars.append(char)
+                escaped = False
+            elif char == "\\":
+                value_chars.append(char)
+                escaped = True
+            elif char == quote and idx + 1 < len(text) and text[idx + 1] == quote:
+                value_chars.append(char)
+                return "".join(value_chars), idx + 1
+            else:
+                value_chars.append(char)
+            idx += 1
+        return None
+
     value_chars: list[str] = []
     idx = start_idx + 1
     escaped = False
@@ -90,6 +112,48 @@ def _extract_agent_say_utterance(record: str, *, agent_prefix: str) -> tuple[str
     return prefix, utterance, suffix
 
 
+def _needs_translation(text: str) -> bool:
+    return any(char.isalpha() for char in text)
+
+
+async def _translate_preserving_blank_lines(
+    text: str,
+    *,
+    line_idx: int,
+    adapter: TranslationAdapter,
+    use_cache: bool,
+) -> tuple[str, int, str]:
+    if not text.strip() or not _needs_translation(text):
+        return text, 0, ""
+
+    translated_parts: list[str] = []
+    attempts = 0
+    errors: list[str] = []
+    parts = text.split("\n")
+    idx = 0
+    while idx < len(parts):
+        if not parts[idx].strip():
+            translated_parts.append(parts[idx])
+            idx += 1
+            continue
+
+        end_idx = idx
+        while end_idx < len(parts) and parts[end_idx].strip():
+            end_idx += 1
+
+        segment = "\n".join(parts[idx:end_idx])
+        result = await adapter.translate(segment, use_cache=use_cache)
+        attempts += result.attempts
+        if result.status == "ok" and result.text is not None:
+            translated_parts.extend(result.text.split("\n"))
+        else:
+            translated_parts.extend(parts[idx:end_idx])
+            errors.append(f"line {line_idx}: {result.error}")
+        idx = end_idx
+
+    return "\n".join(translated_parts), attempts, merge_translation_errors(*errors)
+
+
 async def _translate_user_line(
     line: str,
     *,
@@ -102,10 +166,15 @@ async def _translate_user_line(
         return line, 0, ""
 
     content = line[len(user_prefix) :]
-    result = await adapter.translate(content, use_cache=use_cache)
-    if result.status == "ok" and result.text is not None:
-        return f"{user_prefix}{result.text}", result.attempts, ""
-    return line, result.attempts, f"line {line_idx}: {result.error}"
+    translated, attempts, error = await _translate_preserving_blank_lines(
+        content,
+        line_idx=line_idx,
+        adapter=adapter,
+        use_cache=use_cache,
+    )
+    if error:
+        return line, attempts, error
+    return f"{user_prefix}{translated}", attempts, ""
 
 
 async def _translate_agent_say_record(
@@ -121,10 +190,15 @@ async def _translate_agent_say_record(
         return record, 0, ""
 
     prefix, utterance, suffix = parsed
-    result = await adapter.translate(utterance, use_cache=use_cache)
-    if result.status == "ok" and result.text is not None:
-        return f"{prefix}{result.text}{suffix}", result.attempts, ""
-    return record, result.attempts, f"line {line_idx}: {result.error}"
+    translated, attempts, error = await _translate_preserving_blank_lines(
+        utterance,
+        line_idx=line_idx,
+        adapter=adapter,
+        use_cache=use_cache,
+    )
+    if error:
+        return record, attempts, error
+    return f"{prefix}{translated}{suffix}", attempts, ""
 
 
 async def translate_weblinx_query(value: Any, adapter: TranslationAdapter, options: Options, *, use_cache: bool) -> StrategyResult:

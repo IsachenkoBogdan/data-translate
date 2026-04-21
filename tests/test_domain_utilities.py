@@ -216,6 +216,67 @@ def test_weblinx_strategy_translates_multiline_agent_utterance_and_preserves_act
     assert adapter.calls == [('Please find below:\n\t-First item with \\\"quotes\\\"', True)]
 
 
+def test_weblinx_strategy_preserves_blank_separator_lines_after_user_text() -> None:
+    adapter = QueueAdapter([TranslationResult(text="Pouvez-vous ouvrir le calculateur ?", status="ok", attempts=1, error="")])
+    query = (
+        "User: Can you open the calculator?\n"
+        "\n"
+        "Agent: say(speaker=\"navigator\", utterance=\"Sure\")"
+    )
+
+    async def run():
+        return await translate_weblinx_query(query, adapter, {}, use_cache=True)
+
+    result = anyio.run(run)
+    assert result.value == (
+        "User: Pouvez-vous ouvrir le calculateur ?\n"
+        "\n"
+        "Agent: say(speaker=\"navigator\", utterance=\"Sure\")"
+    )
+    assert result.error == ""
+    assert adapter.calls == [("Can you open the calculator?", True)]
+
+
+def test_weblinx_strategy_skips_symbol_only_user_text() -> None:
+    adapter = QueueAdapter([])
+
+    async def run():
+        return await translate_weblinx_query("User: \u20ac\u20ac.", adapter, {}, use_cache=True)
+
+    result = anyio.run(run)
+    assert result.value == "User: \u20ac\u20ac."
+    assert result.error == ""
+    assert adapter.calls == []
+
+
+def test_weblinx_strategy_translates_double_quoted_agent_utterance() -> None:
+    adapter = QueueAdapter(
+        [
+            TranslationResult(
+                text='"Les procureurs fédéraux ont obtenu l’enregistrement."',
+                status="ok",
+                attempts=1,
+                error="",
+            )
+        ]
+    )
+    query = (
+        'Agent: say(speaker="navigator", utterance=""Federal prosecutors obtained the recording."")\n'
+        'Agent: scroll(x=0, y=59)'
+    )
+
+    async def run():
+        return await translate_weblinx_query(query, adapter, {"translate_agent_say_utterance": True}, use_cache=True)
+
+    result = anyio.run(run)
+    assert result.value == (
+        'Agent: say(speaker="navigator", utterance=""Les procureurs fédéraux ont obtenu l’enregistrement."")\n'
+        'Agent: scroll(x=0, y=59)'
+    )
+    assert result.error == ""
+    assert adapter.calls == [('"Federal prosecutors obtained the recording."', True)]
+
+
 def test_languages_and_renderers_helpers() -> None:
     assert language_label("fr") == "French"
     assert language_code("French") == "fr"
