@@ -24,16 +24,15 @@ async def process_jsonl_records(
     on_process_error: ErrorRecordFactory[T] | None = None,
 ) -> list[Record]:
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    pending_tasks = [task for task in tasks if not is_done(task)]
     task_send, task_receive = anyio.create_memory_object_stream[T](max_buffer_size=max(1, int(concurrency) * 2))
     record_send, record_receive = anyio.create_memory_object_stream[Record](max_buffer_size=max(1, int(concurrency) * 2))
-    progress = tqdm(desc=desc)
+    progress = tqdm(total=len(pending_tasks), desc=desc)
     written_records: list[Record] = []
 
     async def enqueue_tasks() -> None:
         async with task_send:
-            for task in tasks:
-                if is_done(task):
-                    continue
+            for task in pending_tasks:
                 await task_send.send(task)
 
     async def worker() -> None:
