@@ -74,6 +74,15 @@ def test_resolve_input_path_handles_raw_and_explicit_translated_path(tmp_path: P
     assert translated_path == translated_root
 
 
+def test_resolve_evaluation_input_paths_allows_source_kind_without_local_path() -> None:
+    config = load_workflow_model("evaluate", dataset_id="faithdial")
+    config.dataset.evaluation.inputs["translation"] = InputDatasetModel(kind="path", path=".")
+
+    input_paths = DATASET_RESOLVER.resolve_evaluation_input_paths(config)
+
+    assert input_paths["source"] is None
+
+
 def test_resolve_input_path_builds_translated_run_path_from_run_name(tmp_path: Path) -> None:
     config = load_workflow_model("evaluate", dataset_id="faithdial")
     translated_root = tmp_path / "translated" / "deepl"
@@ -103,18 +112,19 @@ def test_resolve_input_path_rejects_missing_explicit_path(tmp_path: Path) -> Non
 
 def test_load_evaluation_inputs_reads_all_aliases(tmp_path: Path) -> None:
     config = load_workflow_model("evaluate", dataset_id="faithdial")
-    source_root = tmp_path / "source"
     translation_root = tmp_path / "translation"
-    source_root.mkdir()
     translation_root.mkdir()
-    config.dataset.evaluation.inputs["source"] = InputDatasetModel(kind="path", path=str(source_root))
     config.dataset.evaluation.inputs["translation"] = InputDatasetModel(kind="path", path=str(translation_root))
 
-    with patch("data_translate.services.datasets.load_from_disk", side_effect=["src", "tr"]) as load_from_disk_mock:
+    with (
+        patch.object(DATASET_RESOLVER, "load_source", return_value="src") as load_source_mock,
+        patch("data_translate.services.datasets.load_from_disk", return_value="tr") as load_from_disk_mock,
+    ):
         datasets = DATASET_RESOLVER.load_evaluation_inputs(config)
 
     assert datasets == {"source": "src", "translation": "tr"}
-    assert load_from_disk_mock.call_count == 2
+    load_source_mock.assert_called_once()
+    load_from_disk_mock.assert_called_once_with(str(translation_root))
 
 
 def test_validate_evaluation_inputs_detects_manifest_target_and_run_mismatch(tmp_path: Path) -> None:

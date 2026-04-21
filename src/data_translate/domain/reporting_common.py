@@ -21,7 +21,7 @@ def float_value(row: dict[str, Any], key: str) -> float | None:
     return float(value) if isinstance(value, int | float) else None
 
 
-def score_stats(values: list[int]) -> dict[str, Any]:
+def score_stats(values: list[float]) -> dict[str, Any]:
     return {
         "n": len(values),
         "mean_score": round(sum(values) / len(values), 3) if values else None,

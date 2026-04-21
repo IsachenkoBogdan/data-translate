@@ -21,7 +21,7 @@ from data_translate.domain.translation_markers import build_marked_text, parse_m
 from data_translate.domain.translation_state import init_state, materialize_split
 from data_translate.domain.translation_strategies.dialog import translate_dialog_turns_content
 from data_translate.domain.translation_strategies.text import translate_text, translate_text_list
-from data_translate.domain.translation_strategies.weblinx import translate_weblinx_query
+from data_translate.domain.translation_strategies.weblinx import _split_records, translate_weblinx_query
 from data_translate.engine.jsonl import append_jsonl, load_jsonl, load_jsonl_index, write_jsonl
 
 
@@ -115,17 +115,105 @@ def test_translation_strategies_cover_text_dialog_and_weblinx() -> None:
     assert weblinx_result.value == "User: bonjour\nclick(button)"
 
 
-def test_weblinx_strategy_rejects_agent_utterance_mode() -> None:
+def test_weblinx_strategy_translates_agent_utterance_mode() -> None:
     async def run() -> None:
-        await translate_weblinx_query(
-            "Agent: hello",
-            QueueAdapter([]),
+        return await translate_weblinx_query(
+            'Agent: say(speaker="navigator", utterance="Please wait")',
+            QueueAdapter([TranslationResult(text="Veuillez patienter", status="ok", attempts=1, error="")]),
             {"translate_agent_say_utterance": True},
             use_cache=True,
         )
 
-    with pytest.raises(NotImplementedError):
-        anyio.run(run)
+    result = anyio.run(run)
+    assert result.value == 'Agent: say(speaker="navigator", utterance="Veuillez patienter")'
+    assert result.error == ""
+    assert result.attempts == 1
+
+
+def test_weblinx_split_records_groups_multiline_user_and_agent_blocks() -> None:
+    query = (
+        'User: to  Everyone:\n'
+        '\tHi\n'
+        'Agent: say(speaker="navigator", utterance="Please find below:\n'
+        '\t-First item")\n'
+        'User: Open the last option.\n'
+        'Agent: click(x=1, y=2)'
+    )
+
+    assert _split_records(query, user_prefix="User: ", agent_prefix="Agent: ") == [
+        'User: to  Everyone:\n\tHi',
+        'Agent: say(speaker="navigator", utterance="Please find below:\n\t-First item")',
+        'User: Open the last option.',
+        'Agent: click(x=1, y=2)',
+    ]
+
+
+def test_weblinx_strategy_translates_full_multiline_user_block_and_preserves_agent_block() -> None:
+    adapter = QueueAdapter(
+        [
+            TranslationResult(text="a Tous:\n\tSalut", status="ok", attempts=1, error=""),
+            TranslationResult(text='Ouvre la derniere option "Can punishments be weakened?"', status="ok", attempts=1, error=""),
+        ]
+    )
+
+    query = (
+        'User: to  Everyone:\n'
+        '\tHi\n'
+        'Agent: say(speaker="navigator", utterance="Please find below:\n'
+        '\t-First item")\n'
+        'User: Open the last option "Can punishments be weakened?"\n'
+        'Agent: hover(x=1, y=2)\n'
+        'Agent: tabremove(target=3)'
+    )
+
+    async def run():
+        return await translate_weblinx_query(query, adapter, {}, use_cache=True)
+
+    result = anyio.run(run)
+    assert result.value == (
+        'User: a Tous:\n'
+        '\tSalut\n'
+        'Agent: say(speaker="navigator", utterance="Please find below:\n'
+        '\t-First item")\n'
+        'User: Ouvre la derniere option "Can punishments be weakened?"\n'
+        'Agent: hover(x=1, y=2)\n'
+        'Agent: tabremove(target=3)'
+    )
+    assert result.error == ""
+    assert adapter.calls == [
+        ("to  Everyone:\n\tHi", True),
+        ('Open the last option "Can punishments be weakened?"', True),
+    ]
+
+
+def test_weblinx_strategy_translates_multiline_agent_utterance_and_preserves_action_shape() -> None:
+    adapter = QueueAdapter(
+        [
+            TranslationResult(
+                text="Veuillez trouver ci-dessous:\n\t-Premier element avec \\\"guillemets\\\"",
+                status="ok",
+                attempts=1,
+                error="",
+            )
+        ]
+    )
+    query = (
+        'Agent: say(speaker="navigator", utterance="Please find below:\n'
+        '\t-First item with \\\"quotes\\\"")\n'
+        "Agent: click(x=1, y=2)"
+    )
+
+    async def run():
+        return await translate_weblinx_query(query, adapter, {"translate_agent_say_utterance": True}, use_cache=True)
+
+    result = anyio.run(run)
+    assert result.value == (
+        'Agent: say(speaker="navigator", utterance="Veuillez trouver ci-dessous:\n'
+        '\t-Premier element avec \\\"guillemets\\\"")\n'
+        "Agent: click(x=1, y=2)"
+    )
+    assert result.error == ""
+    assert adapter.calls == [('Please find below:\n\t-First item with \\\"quotes\\\"', True)]
 
 
 def test_languages_and_renderers_helpers() -> None:

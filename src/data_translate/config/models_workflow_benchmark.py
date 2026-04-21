@@ -11,7 +11,7 @@ class BenchmarkSpecModel(BaseModel):
     years: list[int | str] = Field(default_factory=list)
     sample_size_per_language_pair: int = Field(ge=0)
     sample_size_total: int = Field(ge=0)
-    sampling_score_thresholds_0_10: list[float] = Field(default_factory=list)
+    sampling_score_thresholds: list[float] = Field(default_factory=list)
     seed: int
     source_column: str = Field(min_length=1)
     translation_column: str = Field(min_length=1)
@@ -25,7 +25,7 @@ class BenchmarkSpecModel(BaseModel):
     human_score_max: float
     human_higher_is_better: bool
     bin_labels: list[str] = Field(min_length=1)
-    bin_thresholds_0_10: list[float] = Field(default_factory=list)
+    bin_thresholds: list[float] = Field(default_factory=list)
     max_source_chars: int = Field(ge=0)
     max_translation_chars: int = Field(ge=0)
 
@@ -33,8 +33,8 @@ class BenchmarkSpecModel(BaseModel):
 
     @model_validator(mode="after")
     def validate_bins(self) -> "BenchmarkSpecModel":
-        if len(self.bin_labels) != len(self.bin_thresholds_0_10) + 1:
-            raise ValueError("bin_labels must contain len(bin_thresholds_0_10) + 1 items")
-        if self.sampling_score_thresholds_0_10 != sorted(float(item) for item in self.sampling_score_thresholds_0_10):
-            raise ValueError("sampling_score_thresholds_0_10 must be sorted in ascending order")
+        if len(self.bin_labels) != len(self.bin_thresholds) + 1:
+            raise ValueError("bin_labels must contain len(bin_thresholds) + 1 items")
+        if self.sampling_score_thresholds != sorted(float(item) for item in self.sampling_score_thresholds):
+            raise ValueError("sampling_score_thresholds must be sorted in ascending order")
         return self

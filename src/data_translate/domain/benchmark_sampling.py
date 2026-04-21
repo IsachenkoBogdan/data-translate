@@ -5,7 +5,7 @@ from typing import Any
 
 from data_translate.config.models_workflow_benchmark import BenchmarkSpecModel
 from data_translate.domain.languages import extract_language_pair
-from data_translate.domain.scoring import bin_score, normalize_score
+from data_translate.domain.scoring import bin_score
 
 
 RowSample = dict[str, Any]
@@ -64,13 +64,7 @@ def _annotate_candidate(
     candidate["_lp"] = lp
     if score_thresholds:
         raw_score = float(candidate[benchmark.human_score_column])
-        candidate["_human_score_0_10"] = normalize_score(
-            raw_score,
-            benchmark.human_score_min,
-            benchmark.human_score_max,
-            benchmark.human_higher_is_better,
-        )
-        candidate["_score_bin"] = bin_score(float(candidate["_human_score_0_10"]), score_thresholds)
+        candidate["_score_bin"] = bin_score(raw_score, score_thresholds)
     return candidate
 
 
@@ -132,7 +126,7 @@ def _sample_total_rows(
 
 def sample_benchmark_rows(dataset: Any, benchmark: BenchmarkSpecModel) -> list[RowSample]:
     candidates_by_lp: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    score_thresholds = [float(item) for item in benchmark.sampling_score_thresholds_0_10]
+    score_thresholds = [float(item) for item in benchmark.sampling_score_thresholds]
     filters = build_benchmark_filters(benchmark)
     for idx, row in enumerate(dataset):
         row = dict(row)

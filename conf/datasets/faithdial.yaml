@@ -1,10 +1,8 @@
 dataset_id: faithdial
 source:
-  disk_path: data/raw/DeepPavlov_FaithDial_ru
   hf_dataset_id: DeepPavlov/FaithDial-ru
   hf_revision: ed49d9732196e96d5291e11cfa416083b8ff699e
 artifacts:
-  raw_path: data/raw/DeepPavlov_FaithDial_ru
   translated_basename: DeepPavlov_FaithDial
 translation:
   source_lang: en
@@ -33,7 +31,7 @@ evaluation:
   seed: 42
   inputs:
     source:
-      kind: raw
+      kind: source
     translation:
       kind: translated
   sampling:

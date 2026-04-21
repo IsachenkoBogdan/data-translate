@@ -1,10 +1,8 @@
 dataset_id: weblinx
 source:
-  disk_path: data/raw/DeepPavlov_WebLINX_ru
   hf_dataset_id: DeepPavlov/WebLINX-ru
   hf_revision: fdc93113fd2d43ee6aae0fd59a53ebd7bc201287
 artifacts:
-  raw_path: data/raw/DeepPavlov_WebLINX_ru
   translated_basename: DeepPavlov_WebLINX
 translation:
   source_lang: en
@@ -19,7 +17,7 @@ translation:
       strategy: weblinx_query
       cache: true
       options:
-        translate_agent_say_utterance: false
+        translate_agent_say_utterance: true
 evaluation:
   source_lang: English
   target_lang: French
@@ -28,7 +26,7 @@ evaluation:
   seed: 42
   inputs:
     source:
-      kind: raw
+      kind: source
     translation:
       kind: translated
   sampling:

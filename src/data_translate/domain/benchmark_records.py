@@ -5,7 +5,7 @@ from data_translate.config.models_workflow import BenchmarkWorkflowConfigModel
 from data_translate.domain.judging import TranslationJudge
 from data_translate.domain.judge_records_common import join_sample_id, optional_value, with_score_data
 from data_translate.domain.languages import extract_language_pair, language_names
-from data_translate.domain.scoring import bin_score, normalize_score
+from data_translate.domain.scoring import bin_score
 
 
 BenchmarkTask = tuple[str, dict[str, Any]]
@@ -38,7 +38,6 @@ def build_benchmark_error_record(
         "translation": "",
         "reference": "",
         "human_score_raw": None,
-        "human_score_0_10": None,
         "human_bin": None,
         "llm_bin": None,
         "llm_score": None,
@@ -86,13 +85,7 @@ def make_benchmark_record_processor(
         translation_text = str(row.get(config.benchmark.translation_column, ""))
         reference_text = str(optional_value(row, config.benchmark.reference_column, ""))
         raw_human_score = float(row[config.benchmark.human_score_column])
-        human_score_0_10 = normalize_score(
-            raw_human_score,
-            config.benchmark.human_score_min,
-            config.benchmark.human_score_max,
-            config.benchmark.human_higher_is_better,
-        )
-        human_bin = bin_score(human_score_0_10, thresholds, labels)
+        human_bin = bin_score(raw_human_score, thresholds, labels)
         score_data = await judges[model].score(
             source_text=source_text,
             translation_text=translation_text,
@@ -102,7 +95,7 @@ def make_benchmark_record_processor(
             reference_text=reference_text,
             score_key="llm_score",
         )
-        llm_bin = bin_score(score_data["llm_score"], thresholds, labels)
+        llm_bin = bin_score(float(score_data["llm_score"]), thresholds, labels) if score_data["llm_score"] is not None else None
         return with_score_data({
             "sample_id": sample_id,
             "dataset": config.benchmark.dataset,
@@ -118,7 +111,6 @@ def make_benchmark_record_processor(
             "translation": translation_text,
             "reference": reference_text,
             "human_score_raw": raw_human_score,
-            "human_score_0_10": round(human_score_0_10, 4),
             "human_bin": human_bin,
             "llm_bin": llm_bin,
         }, score_data)

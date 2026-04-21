@@ -5,7 +5,9 @@ from typing import Any, Literal, cast
 ValueFormat = Literal["text", "text_list", "dialog_turns", "raw"]
 
 
-ACTION_RE = re.compile(r"\b(?:say|click|load|text_input|scroll|change|paste|copy|tabcreate|tabswitch)\(")
+ACTION_RE = re.compile(
+    r"\b(?:say|click|load|text_input|scroll|change|paste|copy|tabcreate|tabswitch|submit|hover|tabremove)\("
+)
 
 
 def _scalar_text(value: Any) -> str:

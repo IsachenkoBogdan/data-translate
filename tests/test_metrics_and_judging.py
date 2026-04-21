@@ -35,6 +35,7 @@ class FakeJudgeAdapter:
 def test_scoring_and_reporting_helpers() -> None:
     assert normalize_score(75, 0, 100, True) == 7.5
     assert normalize_score(75, 0, 100, False) == 2.5
+    assert normalize_score(75, 0, 100, True, scale=100.0) == 75.0
     assert bin_score(7.5, [6.0, 8.0], ["bad", "ok", "good"]) == "ok"
     assert bin_score(None, [6.0]) is None
     with pytest.raises(ValueError, match="different"):
@@ -122,15 +123,15 @@ def test_evaluation_sampling_and_reporting() -> None:
 
 
 def test_judging_parsing_and_translation_judge() -> None:
-    assert clamp_score(12) == 10
-    assert parse_score_response('{"score": 8, "comment": "good"}') == (8, "good", "json")
-    assert parse_score_response("```json\n{\"score\": 6, \"comment\": \"ok\"}\n```") == (6, "ok", "json")
-    regex_score = parse_score_response("score: 7\nreason: ok")
-    assert regex_score[0] == 7
+    assert clamp_score(120) == 100.0
+    assert parse_score_response('{"score": 80, "comment": "good"}') == (80.0, "good", "json")
+    assert parse_score_response("```json\n{\"score\": 60, \"comment\": \"ok\"}\n```") == (60.0, "ok", "json")
+    regex_score = parse_score_response("score: 72.5\nreason: ok")
+    assert regex_score[0] == 72.5
     assert parse_score_response("nonsense")[2] == "parse_error"
 
     success = success_response(
-        content='{"score": 9, "comment": "great"}',
+        content='{"score": 92, "comment": "great"}',
         attempts=2,
         usage={"prompt_tokens": 10, "completion_tokens": 5},
         cost=0.1,
@@ -157,7 +158,7 @@ def test_judging_parsing_and_translation_judge() -> None:
         )
 
     result = anyio.run(run_success)
-    assert result["score"] == 9
+    assert result["score"] == 92.0
     assert result["status"] == "ok"
 
     failure_judge = TranslationJudge(
@@ -229,7 +230,7 @@ def test_benchmark_sampling_and_reporting() -> None:
             "years": [2024],
             "sample_size_per_language_pair": 1,
             "sample_size_total": 0,
-            "sampling_score_thresholds_0_10": [5.0],
+            "sampling_score_thresholds": [50.0],
             "seed": 42,
             "source_column": "src",
             "translation_column": "mt",
@@ -243,7 +244,7 @@ def test_benchmark_sampling_and_reporting() -> None:
             "human_score_max": 100.0,
             "human_higher_is_better": True,
             "bin_labels": ["bad", "good"],
-            "bin_thresholds_0_10": [5.0],
+            "bin_thresholds": [50.0],
             "max_source_chars": 50,
             "max_translation_chars": 50,
         }
@@ -258,12 +259,37 @@ def test_benchmark_sampling_and_reporting() -> None:
     assert samples[0]["_lp"] == "en-ru"
 
     rows = [
-        {"model": "m1", "status": "ok", "llm_score": 7.0, "human_score_0_10": 8.0, "human_bin": "good", "llm_bin": "good", "lp": "en-ru"},
-        {"model": "m1", "status": "ok", "llm_score": 3.0, "human_score_0_10": 2.0, "human_bin": "bad", "llm_bin": "bad", "lp": "en-ru"},
-        {"model": "m1", "status": "error", "llm_score": None, "human_score_0_10": None, "human_bin": None, "llm_bin": None, "lp": "en-ru"},
+        {
+            "model": "m1",
+            "status": "ok",
+            "llm_score": 80.0,
+            "human_score_raw": 80.0,
+            "human_bin": "good",
+            "llm_bin": "good",
+            "lp": "en-ru",
+        },
+        {
+            "model": "m1",
+            "status": "ok",
+            "llm_score": 20.0,
+            "human_score_raw": 20.0,
+            "human_bin": "bad",
+            "llm_bin": "bad",
+            "lp": "en-ru",
+        },
+        {
+            "model": "m1",
+            "status": "error",
+            "llm_score": None,
+            "human_score_raw": None,
+            "human_bin": None,
+            "llm_bin": None,
+            "lp": "en-ru",
+        },
     ]
     summary = benchmark_summary(rows, ["bad", "good"])
     assert summary["models"]["m1"]["ok_rows"] == 2
+    assert summary["models"]["m1"]["mean_human_score"] == 50.0
     assert "by_language_pair" in summary["models"]["m1"]
 
 
@@ -279,7 +305,7 @@ def test_benchmark_sampling_total_mode_and_filter_rejections() -> None:
             "years": [],
             "sample_size_per_language_pair": 0,
             "sample_size_total": 2,
-            "sampling_score_thresholds_0_10": [],
+            "sampling_score_thresholds": [],
             "seed": 7,
             "source_column": "src",
             "translation_column": "mt",
@@ -293,7 +319,7 @@ def test_benchmark_sampling_total_mode_and_filter_rejections() -> None:
             "human_score_max": 100.0,
             "human_higher_is_better": True,
             "bin_labels": ["bad", "good"],
-            "bin_thresholds_0_10": [5.0],
+            "bin_thresholds": [50.0],
             "max_source_chars": 5,
             "max_translation_chars": 5,
         }

@@ -1,4 +1,6 @@
 run_name: translation_judge
+runtime:
+  requests_per_minute: 30
 benchmark:
   dataset: zouharvi/wmt-human-all
   dataset_config: default
@@ -6,17 +8,24 @@ benchmark:
   models:
     - openai/gpt-3.5-turbo
     - openai/gpt-oss-120b
+    - openai/gpt-5-mini
+    - openai/gpt-5.4-nano
+    - openai/gpt-5.4-mini
+    - openai/gpt-4.1-mini
     - openai/gpt-4.1-nano
     - openai/gpt-4o-mini
-    - openai/gpt-5.4-mini
   language_pairs:
     - en-ru
     - en-es
   domains: []
   years: []
-  sample_size_per_language_pair: 25
+  sample_size_per_language_pair: 500
   sample_size_total: 0
-  sampling_score_thresholds_0_10: []
+  sampling_score_thresholds:
+    - 20.0
+    - 40.0
+    - 60.0
+    - 80.0
   seed: 42
   source_column: src
   translation_column: mt
@@ -30,11 +39,15 @@ benchmark:
   human_score_max: 100.0
   human_higher_is_better: true
   bin_labels:
-    - bad
-    - ok
-    - good
-  bin_thresholds_0_10:
-    - 6.0
-    - 8.0
+    - "0_20"
+    - "20_40"
+    - "40_60"
+    - "60_80"
+    - "80_100"
+  bin_thresholds:
+    - 20.0
+    - 40.0
+    - 60.0
+    - 80.0
   max_source_chars: 2500
   max_translation_chars: 2500

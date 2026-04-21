@@ -1,10 +1,8 @@
 dataset_id: airdialog
 source:
-  disk_path: data/raw/DeepPavlov_air_dialogue
   hf_dataset_id: DeepPavlov/air_dialogue
   hf_revision: a4f4c8b8faa986c25b2b3bf424d07e88e3ff619d
 artifacts:
-  raw_path: data/raw/DeepPavlov_air_dialogue
   translated_basename: DeepPavlov_air_dialogue
 translation:
   source_lang: en
@@ -28,7 +26,7 @@ evaluation:
   seed: 42
   inputs:
     source:
-      kind: raw
+      kind: source
     translation:
       kind: translated
   sampling:

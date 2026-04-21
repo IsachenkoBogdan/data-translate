@@ -6,15 +6,15 @@ from data_translate.domain.usage_reporting import usage_summary
 
 
 def evaluation_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
-    by_field: dict[str, list[int]] = defaultdict(list)
-    by_split: dict[str, list[int]] = defaultdict(list)
-    by_group: dict[str, list[int]] = defaultdict(list)
+    by_field: dict[str, list[float]] = defaultdict(list)
+    by_split: dict[str, list[float]] = defaultdict(list)
+    by_group: dict[str, list[float]] = defaultdict(list)
     group_dataset_counts: dict[str, int] = {}
 
     for row in rows:
         if row.get("score") is None:
             continue
-        score = int(row["score"])
+        score = float(row["score"])
         by_field[str(row["field"])].append(score)
         by_split[str(row["split"])].append(score)
         group_value = str(row.get("sample_group_value", ""))
@@ -22,7 +22,7 @@ def evaluation_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
             by_group[group_value].append(score)
             group_dataset_counts[group_value] = int(row.get("sample_group_count", 0))
 
-    all_scores = [int(row["score"]) for row in rows if row.get("score") is not None]
+    all_scores = [float(row["score"]) for row in rows if row.get("score") is not None]
     by_group_stats = {
         group: {**score_stats(values), "dataset_n": group_dataset_counts.get(group, 0)}
         for group, values in sorted(by_group.items())

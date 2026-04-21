@@ -46,6 +46,8 @@ class DatasetResolver:
     def resolve_input_path(self, config: EvaluateWorkflowConfigModel, ref: InputDatasetModel) -> Path:
         if ref.kind == "path":
             path = Path(ref.path)
+        elif ref.kind == "source":
+            raise ValueError("source input kind does not resolve to a local path")
         elif ref.kind == "raw":
             path = config.dataset.artifacts.raw_path or config.dataset.source.disk_path
             if not path:
@@ -75,23 +77,36 @@ class DatasetResolver:
             raise FileNotFoundError(f"input dataset path not found: {path}")
         return path
 
-    def resolve_evaluation_input_paths(self, config: EvaluateWorkflowConfigModel) -> dict[str, Path]:
+    def resolve_evaluation_input_paths(self, config: EvaluateWorkflowConfigModel) -> dict[str, Path | None]:
         evaluation = config.dataset.evaluation
         if evaluation is None:
             raise ValueError("evaluate workflow requires dataset.evaluation")
         return {
-            alias: self.resolve_input_path(config, ref)
+            alias: (None if ref.kind == "source" else self.resolve_input_path(config, ref))
             for alias, ref in evaluation.inputs.items()
         }
 
     def load_evaluation_inputs(self, config: EvaluateWorkflowConfigModel) -> dict[str, DatasetDict]:
-        return self.load_evaluation_inputs_from_paths(self.resolve_evaluation_input_paths(config))
+        return self.load_evaluation_inputs_from_paths(config, self.resolve_evaluation_input_paths(config))
 
-    def load_evaluation_inputs_from_paths(self, input_paths: dict[str, Path]) -> dict[str, DatasetDict]:
-        return {
-            alias: load_from_disk(str(path))
-            for alias, path in input_paths.items()
-        }
+    def load_evaluation_inputs_from_paths(
+        self,
+        config: EvaluateWorkflowConfigModel,
+        input_paths: dict[str, Path | None],
+    ) -> dict[str, DatasetDict]:
+        evaluation = config.dataset.evaluation
+        if evaluation is None:
+            raise ValueError("evaluate workflow requires dataset.evaluation")
+        datasets: dict[str, DatasetDict] = {}
+        for alias, path in input_paths.items():
+            ref = evaluation.inputs[alias]
+            if ref.kind == "source":
+                datasets[alias] = self.load_source(config.dataset.source)
+            else:
+                if path is None:
+                    raise ValueError(f"input path is not configured for alias {alias!r}")
+                datasets[alias] = load_from_disk(str(path))
+        return datasets
 
 
 DATASET_RESOLVER = DatasetResolver()

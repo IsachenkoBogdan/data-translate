@@ -30,13 +30,13 @@ def cohen_kappa(human_bins: list[str], llm_bins: list[str], labels: list[str], *
 
 
 def benchmark_stats(rows: list[dict[str, Any]], labels: list[str]) -> dict[str, Any]:
-    human_scores = [float(row["human_score_0_10"]) for row in rows]
+    human_scores = [float(row["human_score_raw"]) for row in rows]
     llm_scores = [float(row["llm_score"]) for row in rows]
     human_bins = [str(row["human_bin"]) for row in rows]
     llm_bins = [str(row["llm_bin"]) for row in rows]
     return {
         "n": len(rows),
-        "mean_human_score_0_10": rounded(mean(human_scores)),
+        "mean_human_score": rounded(mean(human_scores)),
         "mean_llm_score": rounded(mean(llm_scores)),
         "pearson": rounded(pearson(human_scores, llm_scores)),
         "spearman": rounded(spearman(human_scores, llm_scores)),
@@ -71,7 +71,7 @@ def benchmark_summary(rows: list[dict[str, Any]], labels: list[str]) -> dict[str
         "usage": usage_summary(rows),
         "models": model_stats,
         "notes": [
-            "Human scores are normalized to 0-10 before correlations and binning.",
-            "Cohen's kappa uses discrete bins from bin_thresholds_0_10; also report Spearman/Pearson because MT human scores are numeric.",
+            "Human raw scores and judge scores are compared on a 0-100 scale for correlations.",
+            "Cohen's kappa uses discrete bins derived directly from benchmark bin thresholds on the 0-100 scale.",
         ],
     }

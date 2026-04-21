@@ -87,7 +87,7 @@ def build_evaluate_judge_spec(config: EvaluateWorkflowConfigModel, adapter: LLMC
         raise ValueError("evaluate workflow requires dataset.evaluation")
 
     input_paths = DATASET_RESOLVER.resolve_evaluation_input_paths(config)
-    datasets = DATASET_RESOLVER.load_evaluation_inputs_from_paths(input_paths)
+    datasets = DATASET_RESOLVER.load_evaluation_inputs_from_paths(config, input_paths)
     validate_evaluation_inputs(config, datasets, input_paths)
     samples = sample_evaluation_rows(datasets, evaluation)
     done = _done_keys(config.artifacts.records_path, with_model=False)
@@ -96,7 +96,7 @@ def build_evaluate_judge_spec(config: EvaluateWorkflowConfigModel, adapter: LLMC
     process_item = make_evaluation_record_processor(
         config=config,
         datasets=datasets,
-        resolved_paths={alias: str(path) for alias, path in input_paths.items()},
+        resolved_paths={alias: ("" if path is None else str(path)) for alias, path in input_paths.items()},
         judge=judge,
     )
 
@@ -138,7 +138,7 @@ def build_benchmark_judge_spec(config: BenchmarkWorkflowConfigModel, adapter: LL
         for model in config.benchmark.models
     }
     labels = [str(label) for label in config.benchmark.bin_labels]
-    thresholds = [float(item) for item in config.benchmark.bin_thresholds_0_10]
+    thresholds = [float(item) for item in config.benchmark.bin_thresholds]
     tasks = build_benchmark_tasks(config, samples)
     process_item = make_benchmark_record_processor(
         config=config,

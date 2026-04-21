@@ -5,8 +5,8 @@ from typing import Any
 from data_translate.adapters.llm_base import LLMChatAdapter
 
 
-def clamp_score(value: int | float) -> int:
-    return max(0, min(10, int(value)))
+def clamp_score(value: int | float) -> float:
+    return max(0.0, min(100.0, float(value)))
 
 
 def _strip_code_fences(content: str) -> str:
@@ -33,7 +33,7 @@ def _first_json_object(content: str) -> dict[str, Any] | None:
     return None
 
 
-def _json_score_payload(content: str) -> tuple[int | None, str, str]:
+def _json_score_payload(content: str) -> tuple[float | None, str, str]:
     data = _first_json_object(content)
     if data is None:
         return None, "", ""
@@ -43,14 +43,14 @@ def _json_score_payload(content: str) -> tuple[int | None, str, str]:
     return clamp_score(score), str(data.get("comment", "")), "json"
 
 
-def _regex_score_payload(content: str) -> tuple[int | None, str, str]:
-    score_match = re.search(r"score[\"\s:]+(\d+)", content, re.IGNORECASE)
+def _regex_score_payload(content: str) -> tuple[float | None, str, str]:
+    score_match = re.search(r"score[\"\s:]+(\d+(?:\.\d+)?)", content, re.IGNORECASE)
     if not score_match:
         return None, "", ""
-    return clamp_score(int(score_match.group(1))), content[:200], "regex_score"
+    return clamp_score(float(score_match.group(1))), content[:200], "regex_score"
 
 
-def parse_score_response(content: str) -> tuple[int | None, str, str]:
+def parse_score_response(content: str) -> tuple[float | None, str, str]:
     content = _strip_code_fences(content)
     for parser in (_json_score_payload, _regex_score_payload):
         score, comment, parse_status = parser(content)

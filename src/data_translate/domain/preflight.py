@@ -42,8 +42,10 @@ def _validate_input_manifest(
     config: EvaluateWorkflowConfigModel,
     alias: str,
     ref: InputDatasetModel,
-    path: Path,
+    path: Path | None,
 ) -> None:
+    if path is None:
+        return
     manifest = read_manifest(path)
     if manifest is None:
         return
@@ -73,7 +75,7 @@ def _validate_input_manifest(
 def validate_evaluation_inputs(
     config: EvaluateWorkflowConfigModel,
     datasets: dict[str, DatasetDict],
-    input_paths: dict[str, Path],
+    input_paths: dict[str, Path | None],
 ) -> None:
     evaluation = config.dataset.evaluation
     if evaluation is None:
