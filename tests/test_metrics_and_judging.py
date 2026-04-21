@@ -4,7 +4,9 @@ import anyio
 import pytest
 from datasets import Dataset, DatasetDict
 
+from data_translate.adapters.litellm_adapter import LiteLLMAdapter
 from data_translate.adapters.llm_response import LLMResponse, error_response, extract_finish_reason, extract_usage, success_response
+from data_translate.config.settings import get_environment_settings
 from data_translate.config.loader import load_workflow_model
 from data_translate.config.models_workflow_benchmark import BenchmarkSpecModel
 from data_translate.domain.benchmark_reporting import benchmark_summary
@@ -216,6 +218,52 @@ def test_llm_response_helpers_cover_payload_dict_paths() -> None:
     assert usage["prompt_tokens"] == 2
     assert cost == 0.4
     assert extract_finish_reason(Response()) == "length"
+
+
+def test_litellm_adapter_skips_temperature_for_gpt5_models(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    get_environment_settings.cache_clear()
+    captured: dict[str, object] = {}
+
+    async def fake_acompletion(**kwargs):
+        captured.update(kwargs)
+
+        class Message:
+            content = '{"score": 80, "comment": "ok"}'
+
+        class Choice:
+            message = Message()
+            finish_reason = "stop"
+
+        class Response:
+            choices = [Choice()]
+            usage = {"prompt_tokens": 1, "completion_tokens": 1}
+
+        return Response()
+
+    monkeypatch.setattr("data_translate.adapters.litellm_adapter.acompletion", fake_acompletion)
+    monkeypatch.setattr("data_translate.adapters.litellm_adapter.completion_cost", lambda **kwargs: 0.1)
+
+    adapter = LiteLLMAdapter(
+        provider="openrouter",
+        api_key_env="OPENROUTER_API_KEY",
+        base_url="https://openrouter.ai/api/v1",
+        max_retries=0,
+        retry_sleep=0.0,
+        requests_per_minute=0,
+    )
+
+    async def run() -> None:
+        await adapter.chat(
+            model="openai/gpt-5-mini",
+            system_prompt="sys",
+            user_prompt="user",
+            temperature=0.0,
+            max_tokens=64,
+        )
+
+    anyio.run(run)
+    assert "temperature" not in captured
 
 
 def test_benchmark_sampling_and_reporting() -> None:

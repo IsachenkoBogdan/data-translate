@@ -36,6 +36,10 @@ class LiteLLMAdapter:
     def _resolved_model(self, model: str) -> str:
         return model if "/" in model else f"{self.provider}/{model}"
 
+    def _supports_temperature(self, resolved_model: str) -> bool:
+        model_name = resolved_model.split("/", 1)[-1].lower()
+        return not model_name.startswith("gpt-5")
+
     async def chat(
         self,
         *,
@@ -50,19 +54,21 @@ class LiteLLMAdapter:
         resolved_model = self._resolved_model(model)
 
         async def create_completion() -> object:
+            request_kwargs = {
+                "model": resolved_model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "max_completion_tokens": max_tokens,
+                "api_key": self.api_key,
+                "base_url": self.base_url or None,
+                "extra_headers": self.extra_headers or None,
+            }
+            if self._supports_temperature(resolved_model):
+                request_kwargs["temperature"] = temperature
             return await self.rate_limiter.run(
-                lambda: acompletion(
-                    model=resolved_model,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt},
-                    ],
-                    temperature=temperature,
-                    max_completion_tokens=max_tokens,
-                    api_key=self.api_key,
-                    base_url=self.base_url or None,
-                    extra_headers=self.extra_headers or None,
-                )
+                lambda: acompletion(**request_kwargs)
             )
 
         outcome = await run_with_retry(create_completion, policy=self.retry_policy)
