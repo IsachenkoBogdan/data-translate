@@ -1,0 +1,40 @@
+dataset_id: daily_dialog
+source:
+  hf_dataset_id: DeepPavlov/daily_dialog
+  hf_revision: 12f30df52a776875c2e334d9d051fa67afd15756
+artifacts:
+  translated_basename: DeepPavlov_daily_dialog
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  rules:
+    - source: dialog
+      target: dialog_fr
+      strategy: text_list
+      cache: true
+      options: {}
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: everyday dialogue
+  split: all
+  seed: 42
+  inputs:
+    source:
+      kind: source
+    translation:
+      kind: translated
+  sampling:
+    strategy: per_split_random
+    dataset: source
+    samples_per_split: 50
+  field_pairs:
+    - name: dialog_fr
+      source_dataset: source
+      source_field: dialog
+      source_format: text_list
+      translation_dataset: translation
+      translation_field: dialog_fr
+      translation_format: text_list

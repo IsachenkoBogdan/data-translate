@@ -2,6 +2,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from data_translate.config.models_dataset_source import SourceSpecModel
 from data_translate.config.models_runtime import RunPolicyOverrideModel
 
 
@@ -11,6 +12,14 @@ class TranslationRuleModel(BaseModel):
     strategy: str = Field(min_length=1)
     cache: bool = True
     options: dict[str, Any] = Field(default_factory=dict)
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class PassthroughSplitModel(BaseModel):
+    source: SourceSpecModel
+    source_split: str = Field(min_length=1)
+    output_split: str = Field(min_length=1)
 
     model_config = ConfigDict(extra="forbid")
 
@@ -62,6 +71,7 @@ class TranslationSpecModel(BaseModel):
     cache_namespace: str = ""
     backend: TranslationBackendModel = Field(default_factory=GoogleTranslationBackendModel)
     rules: list[TranslationRuleModel] = Field(min_length=1)
+    passthrough_splits: list[PassthroughSplitModel] = Field(default_factory=list)
     runtime_overrides: RunPolicyOverrideModel = Field(default_factory=RunPolicyOverrideModel)
 
     model_config = ConfigDict(extra="forbid")

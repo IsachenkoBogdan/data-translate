@@ -294,6 +294,37 @@ def test_run_translate_workflow_stops_before_writing_dataset_when_errors_not_all
     adapter.close.assert_called_once_with()
 
 
+def test_run_translate_workflow_attaches_passthrough_splits(tmp_path: Path) -> None:
+    config = load_workflow_model("translate", dataset_id="statcan-dialogue-dataset-retrieval")
+    config.artifacts.materialized_output_path = str(tmp_path / "translated")
+    config.artifacts.checkpoint_dir = str(tmp_path / "checkpoints")
+    config.artifacts.records_path = str(tmp_path / "records.jsonl")
+    config.artifacts.summary_path = str(tmp_path / "summary.json")
+
+    source_dataset = DatasetDict({"train": Dataset.from_dict({"query": ['[{"role":"user","content":"hello"}]']})})
+    translated_dataset = DatasetDict({"train": Dataset.from_dict({"query": ['[{"role":"user","content":"hello"}]'], "query_fr": ['[{"role":"user","content":"hello","content_fr":"bonjour"}]']})})
+    passthrough_dataset = DatasetDict({"french": Dataset.from_dict({"doc_id": ["D1"], "title": ["Titre"], "doc": ["Texte"]})})
+    adapter = Mock()
+
+    with (
+        patch("data_translate.services.translation.load_source_dataset", side_effect=[source_dataset, passthrough_dataset]),
+        patch("data_translate.services.translation.validate_translate_inputs"),
+        patch("data_translate.services.translation.build_translation_adapter", return_value=adapter),
+        patch(
+            "data_translate.services.translation.translate_dataset_splits",
+            new=AsyncMock(return_value=TranslationRunResult(dataset=translated_dataset, failed_splits=[])),
+        ),
+    ):
+        summary = anyio.run(run_translate_workflow, config, Mock())
+
+    output_path = Path(config.artifacts.materialized_output_path)
+    saved = DatasetDict.load_from_disk(str(output_path))
+    assert summary["failed_splits"] == []
+    assert set(saved.keys()) == {"train", "corpus"}
+    assert saved["corpus"]["doc_id"] == ["D1"]
+    adapter.close.assert_called_once_with()
+
+
 def test_run_translate_workflow_requires_translation_spec() -> None:
     config = SimpleNamespace(dataset=SimpleNamespace(translation=None))
 

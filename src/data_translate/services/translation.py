@@ -2,9 +2,10 @@ from pathlib import Path
 from typing import Any
 
 import structlog
+from datasets import DatasetDict
 
 from data_translate.adapters.translation_factory import build_translation_adapter
-from data_translate.config.models_dataset_translation import TranslationSpecModel
+from data_translate.config.models_dataset_translation import PassthroughSplitModel, TranslationSpecModel
 from data_translate.config.models_workflow import TranslateWorkflowConfigModel
 from data_translate.domain.preflight import validate_translate_inputs
 from data_translate.domain.translation_checkpoints import build_translate_records
@@ -42,6 +43,30 @@ def build_translate_summary(
         "manifest_path": str(manifest_path),
         "failed_splits": failed_splits,
     }
+
+
+def _attach_passthrough_splits(
+    translated: DatasetDict,
+    *,
+    passthrough_splits: list[PassthroughSplitModel],
+) -> tuple[DatasetDict, dict[str, dict[str, object]]]:
+    if not passthrough_splits:
+        return translated, {}
+
+    attached: dict[str, dict[str, object]] = {}
+    merged = DatasetDict({split: split_dataset for split, split_dataset in translated.items()})
+    for passthrough in passthrough_splits:
+        extra_dataset = load_source_dataset(passthrough.source)
+        if passthrough.source_split not in extra_dataset:
+            raise ValueError(
+                f"passthrough split {passthrough.source_split!r} not found in source {passthrough.source.hf_dataset_id or passthrough.source.disk_path}"
+            )
+        merged[passthrough.output_split] = extra_dataset[passthrough.source_split]
+        attached[passthrough.output_split] = {
+            "source": passthrough.source.model_dump(mode="python"),
+            "source_split": passthrough.source_split,
+        }
+    return merged, attached
 
 
 async def run_translate_workflow(
@@ -87,6 +112,11 @@ async def run_translate_workflow(
                 f"Failed rows by split: {failed}."
             )
 
+        translated, attached_splits = _attach_passthrough_splits(
+            translated,
+            passthrough_splits=translation.passthrough_splits,
+        )
+
         output_path.parent.mkdir(parents=True, exist_ok=True)
         translated.save_to_disk(str(output_path))
         manifest = build_manifest_payload(
@@ -102,6 +132,7 @@ async def run_translate_workflow(
                 "translation": translation.model_dump(mode="python"),
                 "runtime": config.runtime.model_dump(mode="python"),
                 "splits": {split: len(translated[split]) for split in translated},
+                "passthrough_splits": attached_splits,
             },
         )
         manifest_path = write_manifest(output_path, manifest)

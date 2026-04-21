@@ -1,0 +1,27 @@
+dataset_id: statcan-dialogue-dataset-retrieval
+source:
+  hf_dataset_id: McGill-NLP/statcan-dialogue-dataset-retrieval
+  hf_config: queries_english
+  hf_revision: 0d96018203e70af2f774b2d42fd72bb8f8612cc2
+artifacts:
+  translated_basename: McGill_NLP_statcan_dialogue_dataset_retrieval_queries
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  passthrough_splits:
+    - source:
+        hf_dataset_id: McGill-NLP/statcan-dialogue-dataset-retrieval
+        hf_config: corpus
+        hf_revision: 0d96018203e70af2f774b2d42fd72bb8f8612cc2
+      source_split: french
+      output_split: corpus
+  rules:
+    - source: query
+      target: query_fr
+      strategy: serialized_dialog_turns_content
+      cache: true
+      options:
+        content_field: content
+        target_content_field: content_fr

@@ -84,6 +84,41 @@ def test_translate_row_collects_outputs_and_attempts() -> None:
     assert record["error"] == ""
 
 
+def test_serialized_dialog_turns_content_adds_content_fr() -> None:
+    rule = TranslationRuleModel(
+        source="query",
+        target="query_fr",
+        strategy="serialized_dialog_turns_content",
+        options={"content_field": "content", "target_content_field": "content_fr"},
+    )
+    row = {
+        "query": (
+            '[{"role":"user","content":"hello"},{"role":"operator","content":"how can I help?"}]'
+        )
+    }
+
+    async def run() -> dict[str, object]:
+        return await translate_row(3, row, [rule], DummyAdapter())
+
+    record = anyio.run(run)
+    assert record["status"] == "ok"
+    assert record["attempts"] == 1
+    assert (
+        record["query_fr"]
+        == '[{"role": "user", "content": "hello", "content_fr": "fr:hello"}, {"role": "operator", "content": "how can I help?", "content_fr": "fr:how can I help?"}]'
+    )
+
+
+def test_serialized_dialog_turns_content_requires_json_string() -> None:
+    rule = TranslationRuleModel(source="query", target="query_fr", strategy="serialized_dialog_turns_content")
+
+    async def run() -> None:
+        await translate_row(0, {"query": [{"role": "user", "content": "hello"}]}, [rule], DummyAdapter())
+
+    with pytest.raises(ValueError, match="must be a string"):
+        anyio.run(run)
+
+
 def test_translate_by_rule_rejects_unknown_strategy() -> None:
     rule = TranslationRuleModel.model_construct(source="text", strategy="missing")
 
