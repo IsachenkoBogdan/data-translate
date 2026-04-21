@@ -65,6 +65,14 @@ Notes:
 - evaluation is a separate workflow; it does not run automatically after translation
 - OpenRouter is supported for judge models via `conf/llm/translation_judge.yaml`
 
+Next improvements:
+- add `mt-metrics-eval` as an external calibration benchmark for judge quality on standard MT human-eval data
+- keep WMT-style benchmark judging, but validate it with a small in-domain bilingual audit for dialogue translation quality
+- add dialogue-specific automatic checks for critical fields: entities, slot values, numbers, dates, URLs, action labels, and speaker roles
+- move judge prompting further toward rubric-based direct assessment for dialogue turns, with dialogue history used as supporting context rather than scoring whole dialogues in one pass
+- report judge quality per language pair and per quality band, not only as one global correlation
+- treat DSPy prompt optimization as a later experiment, after a small human-labeled in-domain dev set exists
+
 Config layout:
 - `conf/datasets` dataset specs
 - `conf/workflows` workflow defaults
