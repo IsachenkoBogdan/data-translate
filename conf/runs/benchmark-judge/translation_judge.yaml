@@ -1,7 +1,7 @@
 run_name: translation_judge
 runtime:
-  requests_per_minute: 30
-  max_completion_tokens: 400
+  requests_per_minute: 300
+  max_completion_tokens: 1200
 benchmark:
   dataset: zouharvi/wmt-human-all
   dataset_config: default
