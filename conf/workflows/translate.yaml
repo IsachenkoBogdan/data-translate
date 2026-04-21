@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+  - _self_
+  - /runtime: translation_default
+  - optional /datasets@_global_: null
+  - optional /runs/translate@_global_: null
+
+workflow: translate
+run_name: default

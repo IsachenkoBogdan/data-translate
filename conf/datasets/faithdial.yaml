@@ -1,0 +1,57 @@
+dataset_id: faithdial
+source:
+  disk_path: data/raw/DeepPavlov_FaithDial_ru
+  hf_dataset_id: DeepPavlov/FaithDial-ru
+  hf_revision: ed49d9732196e96d5291e11cfa416083b8ff699e
+artifacts:
+  raw_path: data/raw/DeepPavlov_FaithDial_ru
+  translated_basename: DeepPavlov_FaithDial
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  drop_columns:
+    - history_ru
+    - knowledge_ru
+  rules:
+    - source: history
+      target: history_fr
+      strategy: text_list
+      cache: true
+      options: {}
+    - source: knowledge
+      target: knowledge_fr
+      strategy: text
+      cache: true
+      options: {}
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: knowledge-grounded dialogue
+  split: all
+  seed: 42
+  inputs:
+    source:
+      kind: raw
+    translation:
+      kind: translated
+  sampling:
+    strategy: per_split_random
+    dataset: source
+    samples_per_split: 50
+  field_pairs:
+    - name: history_fr
+      source_dataset: source
+      source_field: history
+      source_format: text_list
+      translation_dataset: translation
+      translation_field: history_fr
+      translation_format: text_list
+    - name: knowledge_fr
+      source_dataset: source
+      source_field: knowledge
+      source_format: text
+      translation_dataset: translation
+      translation_field: knowledge_fr
+      translation_format: text

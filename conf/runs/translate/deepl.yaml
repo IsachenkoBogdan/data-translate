@@ -1,0 +1,5 @@
+run_name: deepl
+translation:
+  backend:
+    provider: deepl
+    api_key_env: DEEPL_API_KEY

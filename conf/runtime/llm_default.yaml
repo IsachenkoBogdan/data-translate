@@ -1,0 +1,6 @@
+# @package runtime
+concurrency: 48
+max_retries: 3
+retry_sleep: 5.0
+requests_per_minute: 60
+max_completion_tokens: 200

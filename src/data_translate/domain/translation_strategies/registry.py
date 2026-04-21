@@ -1,0 +1,26 @@
+from data_translate.domain.translation_strategies.dialog import (
+    translate_dialog_turns_content,
+    validate_dialog_turns_content_input,
+)
+from data_translate.domain.translation_strategies.text import (
+    translate_text,
+    translate_text_list,
+    validate_text_input,
+    validate_text_list_input,
+)
+from data_translate.domain.translation_strategies.weblinx import translate_weblinx_query, validate_weblinx_query_input
+
+
+STRATEGIES = {
+    "text": translate_text,
+    "text_list": translate_text_list,
+    "dialog_turns_content": translate_dialog_turns_content,
+    "weblinx_query": translate_weblinx_query,
+}
+
+INPUT_VALIDATORS = {
+    "text": validate_text_input,
+    "text_list": validate_text_list_input,
+    "dialog_turns_content": validate_dialog_turns_content_input,
+    "weblinx_query": validate_weblinx_query_input,
+}

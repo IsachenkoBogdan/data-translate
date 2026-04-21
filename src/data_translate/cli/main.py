@@ -1,0 +1,47 @@
+import json
+
+import structlog
+
+from data_translate.cli.parser import build_parser
+from data_translate.cli.registry import run_workflow
+from data_translate.config.loader import load_workflow_model
+
+
+def configure_logging() -> None:
+    structlog.configure(
+        wrapper_class=structlog.make_filtering_bound_logger(20),
+        processors=[
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.add_log_level,
+            structlog.processors.dict_tracebacks,
+            structlog.processors.JSONRenderer(ensure_ascii=False),
+        ],
+    )
+
+
+def main() -> None:
+    configure_logging()
+    args = build_parser().parse_args()
+    if args.command == "config-show":
+        config = load_workflow_model(
+            args.workflow,
+            config_root=args.config_root,
+            dataset_id=args.dataset or None,
+            run_name=args.run or None,
+            overrides=args.overrides,
+        )
+        payload = config.model_dump(mode="python")
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return
+    config = load_workflow_model(
+        args.command,
+        config_root=args.config_root,
+        dataset_id=args.dataset or None,
+        run_name=args.run or None,
+        overrides=args.overrides,
+    )
+    run_workflow(config)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,56 @@
+dataset_id: globalwoz
+source:
+  hf_dataset_id: DeepPavlov/MultiWOZ-2.1
+  hf_revision: 052076ba5f938b8da40937c8723aea7187349d13
+artifacts:
+  external_root: data/external/globalwoz
+  translated_basename: globalwoz_candidates
+  results_scope: globalwoz
+reformat:
+  missing_policy: skip_dialogues
+  target_lang: fr
+  candidates:
+    FF: FF/F&F_fr.json
+  rules:
+    source_dialogue_id_field: dialogue_id
+    source_text_field: text
+    source_history_field: history
+    target_text_field: text
+    target_history_field: history
+    external_log_field: log
+    external_turn_text_field: text
+    turns_per_row: 2
+    user_turn_offset: 0
+    history_role_cycle:
+      - user
+      - assistant
+    history_content_field: content
+    history_role_field: role
+    dialogue_id_strip_prefixes:
+      - F&F_fr-
+    variant_field: reformat_variant
+    backup_fields:
+      text: source_text
+      history: source_history
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: task-oriented dialogue; slot values, placeholders, ids, and entity names may be localized in candidate reformats
+  split: all
+  seed: 42
+  inputs:
+    translation:
+      kind: path
+      path: ''
+  sampling:
+    strategy: per_split_random
+    dataset: translation
+    samples_per_split: 50
+  field_pairs:
+    - name: text
+      source_dataset: translation
+      source_field: source_text
+      source_format: text
+      translation_dataset: translation
+      translation_field: text
+      translation_format: text

@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - _self_
+  - /runtime: llm_default
+  - /llm: translation_judge
+  - /prompts: translation_eval_v1
+  - optional /runs/benchmark-judge@_global_: null
+
+workflow: benchmark-judge
+run_name: default
+benchmark: {}

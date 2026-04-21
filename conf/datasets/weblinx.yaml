@@ -1,0 +1,45 @@
+dataset_id: weblinx
+source:
+  disk_path: data/raw/DeepPavlov_WebLINX_ru
+  hf_dataset_id: DeepPavlov/WebLINX-ru
+  hf_revision: fdc93113fd2d43ee6aae0fd59a53ebd7bc201287
+artifacts:
+  raw_path: data/raw/DeepPavlov_WebLINX_ru
+  translated_basename: DeepPavlov_WebLINX
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  drop_columns:
+    - query_ru
+  rules:
+    - source: query
+      target: query_fr
+      strategy: weblinx_query
+      cache: true
+      options:
+        translate_agent_say_utterance: false
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: web navigation query; action calls, URLs, code-like expressions, ids, xpaths, and DOM snippets should remain unchanged
+  split: all
+  seed: 42
+  inputs:
+    source:
+      kind: raw
+    translation:
+      kind: translated
+  sampling:
+    strategy: per_split_random
+    dataset: source
+    samples_per_split: 20
+  field_pairs:
+    - name: query_fr
+      source_dataset: source
+      source_field: query
+      source_format: text
+      translation_dataset: translation
+      translation_field: query_fr
+      translation_format: text

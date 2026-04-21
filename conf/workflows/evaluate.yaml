@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - _self_
+  - /runtime: llm_default
+  - /llm: translation_judge
+  - /prompts: translation_eval_v1
+  - optional /datasets@_global_: null
+  - optional /runs/evaluate@_global_: null
+
+workflow: evaluate
+run_name: default

@@ -1,0 +1,8 @@
+# @package _global_
+defaults:
+  - _self_
+  - optional /datasets@_global_: null
+  - optional /runs/inspect-source@_global_: null
+
+workflow: inspect-source
+run_name: default

@@ -1,0 +1,6 @@
+run_name: yandex
+translation:
+  backend:
+    provider: yandex
+    api_key_env: YANDEX_API_KEY
+    folder_id_env: YANDEX_FOLDER_ID

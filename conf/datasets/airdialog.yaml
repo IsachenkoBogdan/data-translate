@@ -1,0 +1,46 @@
+dataset_id: airdialog
+source:
+  disk_path: data/raw/DeepPavlov_air_dialogue
+  hf_dataset_id: DeepPavlov/air_dialogue
+  hf_revision: a4f4c8b8faa986c25b2b3bf424d07e88e3ff619d
+artifacts:
+  raw_path: data/raw/DeepPavlov_air_dialogue
+  translated_basename: DeepPavlov_air_dialogue
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  runtime_overrides:
+    max_retries: 5
+    retry_sleep: 1.0
+  rules:
+    - source: text
+      target: text
+      strategy: dialog_turns_content
+      cache: false
+      options: {}
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: aviation
+  split: all
+  seed: 42
+  inputs:
+    source:
+      kind: raw
+    translation:
+      kind: translated
+  sampling:
+    strategy: stratified_by_field
+    dataset: source
+    field: label
+    samples_per_value: 25
+  field_pairs:
+    - name: text
+      source_dataset: source
+      source_field: text
+      source_format: dialog_turns
+      translation_dataset: translation
+      translation_field: text
+      translation_format: dialog_turns

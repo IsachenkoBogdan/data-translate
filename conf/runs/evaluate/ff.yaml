@@ -1,0 +1,8 @@
+run_name: ff
+evaluation:
+  target_lang: French
+  domain: task-oriented dialogue; slot values, placeholders, ids, and entity names may be localized in candidate reformats
+  inputs:
+    translation:
+      kind: path
+      path: data/translated/fr/globalwoz_candidates/ff/FF

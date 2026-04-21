@@ -1,0 +1,9 @@
+# @package llm
+provider: openai
+api_key_env: OPENAI_API_KEY
+base_url: ''
+model: gpt-4o-mini
+temperature: 0.0
+site_url: ''
+app_name: Data Translate
+extra_headers: {}
