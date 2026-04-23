@@ -44,7 +44,7 @@ async def translate_items_with_fallback(items: list[str], adapter: TranslationAd
     for idx, item in enumerate(items):
         result = await adapter.translate(item, use_cache=use_cache)
         attempts += result.attempts
-        if result.status == "ok" and result.text is not None:
+        if result.status in {"ok", "empty"} and result.text is not None:
             translated_items.append(result.text)
         else:
             translated_items.append(item)
@@ -70,4 +70,6 @@ async def translate_sequence(
         adapter,
         use_cache=use_cache,
     )
-    return fallback_items, attempts + fallback_attempts, merge_translation_errors(error, *fallback_errors)
+    if fallback_errors:
+        return fallback_items, attempts + fallback_attempts, merge_translation_errors(error, *fallback_errors)
+    return fallback_items, attempts + fallback_attempts, ""

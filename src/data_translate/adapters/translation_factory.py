@@ -35,6 +35,7 @@ def build_translation_adapter(
         return GoogleTranslateAdapter(
             source_lang=language_code(source_lang),
             target_lang=language_code(target_lang),
+            timeout_seconds=backend.timeout_seconds,
             max_retries=runtime.max_retries,
             retry_sleep=runtime.retry_sleep,
             thread_limit=runtime.concurrency,

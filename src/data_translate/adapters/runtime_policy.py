@@ -4,7 +4,7 @@ from typing import Generic, TypeVar
 
 import anyio
 from aiolimiter import AsyncLimiter
-from tenacity import AsyncRetrying, RetryError, stop_after_attempt, wait_fixed
+from tenacity import AsyncRetrying, RetryError, stop_after_attempt, wait_exponential_jitter, wait_fixed
 
 
 T = TypeVar("T")
@@ -33,10 +33,19 @@ async def run_with_retry(
     policy: RetryPolicy,
 ) -> RetryOutcome[T]:
     attempts = 0
+    wait_strategy = (
+        wait_fixed(0)
+        if float(policy.retry_sleep) <= 0
+        else wait_exponential_jitter(
+            initial=float(policy.retry_sleep),
+            max=max(float(policy.retry_sleep) * 8.0, float(policy.retry_sleep)),
+            jitter=float(policy.retry_sleep),
+        )
+    )
     try:
         async for attempt in AsyncRetrying(
             stop=stop_after_attempt(int(policy.max_retries) + 1),
-            wait=wait_fixed(float(policy.retry_sleep)),
+            wait=wait_strategy,
             reraise=False,
         ):
             with attempt:

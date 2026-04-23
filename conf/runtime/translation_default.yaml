@@ -4,4 +4,4 @@ batch_size: 1000
 concurrency: 48
 allow_errors: false
 max_retries: 3
-retry_sleep: 5.0
+retry_sleep: 0.5

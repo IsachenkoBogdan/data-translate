@@ -19,8 +19,6 @@ class DatasetResolver:
         kwargs = {"path": source.hf_dataset_id}
         if source.hf_config:
             kwargs["name"] = source.hf_config
-        if source.hf_revision:
-            kwargs["revision"] = source.hf_revision
         if source.trust_remote_code:
             kwargs["trust_remote_code"] = True
         return load_dataset(**kwargs)

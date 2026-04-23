@@ -182,6 +182,7 @@ def test_provider_adapters_and_factories(tmp_path) -> None:
     google = GoogleTranslateAdapter(
         source_lang="en",
         target_lang="fr",
+        timeout_seconds=1.0,
         max_retries=1,
         retry_sleep=0,
         thread_limit=1,
@@ -194,6 +195,25 @@ def test_provider_adapters_and_factories(tmp_path) -> None:
     assert result.text == "bonjour"
     google.close()
 
+    google_timeout = GoogleTranslateAdapter(
+        source_lang="en",
+        target_lang="fr",
+        timeout_seconds=7.0,
+        max_retries=1,
+        retry_sleep=0,
+        thread_limit=1,
+        cache_dir=str(tmp_path / "g-timeout"),
+    )
+    with patch("data_translate.adapters.google_translate.google_requests.get") as get_mock:
+        response = Mock()
+        response.status_code = 200
+        response.text = '<div class="t0">bonjour</div>'
+        response.close.return_value = None
+        get_mock.return_value = response
+        assert google_timeout._translate_sync("hello") == "bonjour"
+        assert get_mock.call_args.kwargs["timeout"] == 7.0
+    google_timeout.close()
+
     runtime = load_workflow_model("translate", dataset_id="faithdial").runtime
     with patch("data_translate.adapters.translation_factory.GoogleTranslateAdapter", return_value="google") as google_builder:
         assert build_translation_adapter(
@@ -204,6 +224,7 @@ def test_provider_adapters_and_factories(tmp_path) -> None:
             cache_dir="cache",
         ) == "google"
         google_builder.assert_called_once()
+        assert google_builder.call_args.kwargs["timeout_seconds"] == 5.0
     with patch("data_translate.adapters.translation_factory.DeepLTranslateAdapter", return_value="deepl"):
         assert build_translation_adapter(
             source_lang="English",

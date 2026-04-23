@@ -1,7 +1,6 @@
 dataset_id: globalwoz
 source:
   hf_dataset_id: DeepPavlov/MultiWOZ-2.1
-  hf_revision: 052076ba5f938b8da40937c8723aea7187349d13
 artifacts:
   external_root: data/external/globalwoz
   translated_basename: globalwoz_candidates

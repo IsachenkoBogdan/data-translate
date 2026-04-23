@@ -1,7 +1,6 @@
 dataset_id: weblinx
 source:
   hf_dataset_id: DeepPavlov/WebLINX-ru
-  hf_revision: fdc93113fd2d43ee6aae0fd59a53ebd7bc201287
 artifacts:
   translated_basename: DeepPavlov_WebLINX
 translation:

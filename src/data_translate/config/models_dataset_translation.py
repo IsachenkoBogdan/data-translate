@@ -26,6 +26,7 @@ class PassthroughSplitModel(BaseModel):
 
 class GoogleTranslationBackendModel(BaseModel):
     provider: Literal["google"] = "google"
+    timeout_seconds: float = Field(default=5.0, gt=0)
 
     model_config = ConfigDict(extra="forbid")
 

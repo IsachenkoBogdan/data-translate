@@ -22,7 +22,6 @@ def test_dataset_resolver_passes_hf_config_and_trust_remote_code() -> None:
     load_dataset_mock.assert_called_once_with(
         path="DeepPavlov/FaithDial-ru",
         name="default",
-        revision="main",
         trust_remote_code=True,
     )
 

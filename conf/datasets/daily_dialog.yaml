@@ -1,7 +1,6 @@
 dataset_id: daily_dialog
 source:
   hf_dataset_id: DeepPavlov/daily_dialog
-  hf_revision: 12f30df52a776875c2e334d9d051fa67afd15756
 artifacts:
   translated_basename: DeepPavlov_daily_dialog
 translation:

@@ -1,7 +1,6 @@
 dataset_id: airdialog
 source:
   hf_dataset_id: DeepPavlov/air_dialogue
-  hf_revision: a4f4c8b8faa986c25b2b3bf424d07e88e3ff619d
 artifacts:
   translated_basename: DeepPavlov_air_dialogue
 translation:
@@ -9,9 +8,6 @@ translation:
   target_lang: fr
   backend:
     provider: google
-  runtime_overrides:
-    max_retries: 5
-    retry_sleep: 1.0
   rules:
     - source: text
       target: text

@@ -1,7 +1,6 @@
 dataset_id: faithdial
 source:
   hf_dataset_id: DeepPavlov/FaithDial-ru
-  hf_revision: ed49d9732196e96d5291e11cfa416083b8ff699e
 artifacts:
   translated_basename: DeepPavlov_FaithDial
 translation:

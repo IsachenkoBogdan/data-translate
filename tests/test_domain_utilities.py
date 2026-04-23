@@ -80,6 +80,24 @@ def test_translate_sequence_falls_back_to_item_level_translation() -> None:
     assert "item 1: provider failed" in error
 
 
+def test_translate_sequence_clears_marked_parse_error_after_clean_fallback() -> None:
+    adapter = QueueAdapter(
+        [
+            TranslationResult(text="@@0@@ bonjour\n@@1@@ ", status="ok", attempts=1, error=""),
+            TranslationResult(text="bonjour", status="ok", attempts=1, error=""),
+            TranslationResult(text="  ", status="empty", attempts=0, error=""),
+        ]
+    )
+
+    async def run():
+        return await translate_sequence(["hello", "  "], adapter, use_cache=True)
+
+    translated, attempts, error = anyio.run(run)
+    assert translated == ["bonjour", "  "]
+    assert attempts == 2
+    assert error == ""
+
+
 def test_translation_strategies_cover_text_dialog_and_weblinx() -> None:
     async def run():
         text_result = await translate_text(
