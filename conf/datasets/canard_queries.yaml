@@ -1,0 +1,83 @@
+dataset_id: canard_queries
+source:
+  hf_dataset_id: DeepPavlov/canard
+  hf_config: queries
+artifacts:
+  translated_basename: DeepPavlov_canard_queries
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  passthrough_splits:
+    - source:
+        disk_path: data/translated/fr/DeepPavlov_canard_corpus/default
+        source_kind: disk
+      source_split: train
+      output_split: corpus_train
+    - source:
+        disk_path: data/translated/fr/DeepPavlov_canard_corpus/default
+        source_kind: disk
+      source_split: validation
+      output_split: corpus_validation
+    - source:
+        disk_path: data/translated/fr/DeepPavlov_canard_corpus/default
+        source_kind: disk
+      source_split: test
+      output_split: corpus_test
+    - source:
+        hf_dataset_id: DeepPavlov/canard
+        hf_config: qrels
+      source_split: train
+      output_split: qrels_train
+    - source:
+        hf_dataset_id: DeepPavlov/canard
+        hf_config: qrels
+      source_split: validation
+      output_split: qrels_validation
+    - source:
+        hf_dataset_id: DeepPavlov/canard
+        hf_config: qrels
+      source_split: test
+      output_split: qrels_test
+  rules:
+    - source: text
+      target: text_fr
+      strategy: text
+      cache: true
+      options: {}
+    - source: history
+      target: history_fr
+      strategy: text
+      cache: true
+      options: {}
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: conversational question rewriting
+  split: all
+  seed: 42
+  inputs:
+    source:
+      kind: source
+    translation:
+      kind: translated
+  sampling:
+    strategy: per_split_random
+    dataset: source
+    samples_per_split: 50
+  field_pairs:
+    - name: text_fr
+      source_dataset: source
+      source_field: text
+      source_format: text
+      translation_dataset: translation
+      translation_field: text_fr
+      translation_format: text
+    - name: history_fr
+      source_dataset: source
+      source_field: history
+      source_format: text
+      translation_dataset: translation
+      translation_field: history_fr
+      translation_format: text

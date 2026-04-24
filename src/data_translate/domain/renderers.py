@@ -1,13 +1,9 @@
-import re
 from typing import Any, Literal, cast
+
+from data_translate.domain.text_processing.protectors import action_sequence
 
 
 ValueFormat = Literal["text", "text_list", "dialog_turns", "raw"]
-
-
-ACTION_RE = re.compile(
-    r"\b(?:say|click|load|text_input|scroll|change|paste|copy|tabcreate|tabswitch|submit|hover|tabremove)\("
-)
 
 
 def _scalar_text(value: Any) -> str:
@@ -45,7 +41,3 @@ def render_value(value: Any, formatter: str) -> str:
     if key not in FORMATTERS:
         raise ValueError(f"unknown formatter: {formatter}")
     return FORMATTERS[key](value)
-
-
-def action_sequence(text: str) -> list[str]:
-    return ACTION_RE.findall(text)

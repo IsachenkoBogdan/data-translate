@@ -1,0 +1,42 @@
+dataset_id: canard_corpus
+source:
+  hf_dataset_id: DeepPavlov/canard
+  hf_config: corpus
+artifacts:
+  translated_basename: DeepPavlov_canard_corpus
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  rules:
+    - source: text
+      target: text_fr
+      strategy: text
+      cache: true
+      options:
+        guards:
+          - kind: no_letters
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: conversational question rewriting passage
+  split: all
+  seed: 42
+  inputs:
+    source:
+      kind: source
+    translation:
+      kind: translated
+  sampling:
+    strategy: per_split_random
+    dataset: source
+    samples_per_split: 50
+  field_pairs:
+    - name: text_fr
+      source_dataset: source
+      source_field: text
+      source_format: text
+      translation_dataset: translation
+      translation_field: text_fr
+      translation_format: text

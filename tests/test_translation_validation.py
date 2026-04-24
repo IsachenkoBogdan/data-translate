@@ -84,6 +84,24 @@ def test_translate_row_collects_outputs_and_attempts() -> None:
     assert record["error"] == ""
 
 
+def test_translate_by_rule_applies_configured_guard_before_strategy() -> None:
+    rule = TranslationRuleModel(
+        source="text",
+        target="text_fr",
+        strategy="text",
+        options={"guards": [{"kind": "no_letters"}]},
+    )
+    adapter = DummyAdapter()
+
+    async def run() -> dict[str, object]:
+        return await translate_row(0, {"text": "1978."}, [rule], adapter)
+
+    record = anyio.run(run)
+    assert record["text_fr"] == "1978."
+    assert record["attempts"] == 0
+    assert record["status"] == "ok"
+
+
 def test_serialized_dialog_turns_content_adds_content_fr() -> None:
     rule = TranslationRuleModel(
         source="query",

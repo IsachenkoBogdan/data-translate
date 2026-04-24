@@ -1,0 +1,52 @@
+dataset_id: mantis
+source:
+  hf_dataset_id: DeepPavlov/Mantis
+artifacts:
+  translated_basename: DeepPavlov_Mantis
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  rules:
+    - source: dialog
+      target: dialog_fr
+      strategy: dialog_turns_content
+      cache: true
+      options:
+        content_field: message
+    - source: title
+      target: title_fr
+      strategy: text
+      cache: true
+      options: {}
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: technical support dialogue
+  split: all
+  seed: 42
+  inputs:
+    source:
+      kind: source
+    translation:
+      kind: translated
+  sampling:
+    strategy: per_split_random
+    dataset: source
+    samples_per_split: 50
+  field_pairs:
+    - name: dialog_fr
+      source_dataset: source
+      source_field: dialog
+      source_format: raw
+      translation_dataset: translation
+      translation_field: dialog_fr
+      translation_format: raw
+    - name: title_fr
+      source_dataset: source
+      source_field: title
+      source_format: text
+      translation_dataset: translation
+      translation_field: title_fr
+      translation_format: text

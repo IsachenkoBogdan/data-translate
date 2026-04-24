@@ -1,0 +1,64 @@
+dataset_id: clarqa_single_turn
+source:
+  hf_dataset_id: DeepPavlov/clarqa
+  hf_config: single_turn
+artifacts:
+  translated_basename: DeepPavlov_clarqa_single_turn
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  rules:
+    - source: context
+      target: context_fr
+      strategy: text
+      cache: true
+      options: {}
+    - source: entity1
+      target: entity1_fr
+      strategy: structured_entity
+      cache: true
+      options: {}
+    - source: entity2
+      target: entity2_fr
+      strategy: structured_entity
+      cache: true
+      options: {}
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: clarification question answering
+  split: all
+  seed: 42
+  inputs:
+    source:
+      kind: source
+    translation:
+      kind: translated
+  sampling:
+    strategy: per_split_random
+    dataset: source
+    samples_per_split: 50
+  field_pairs:
+    - name: context_fr
+      source_dataset: source
+      source_field: context
+      source_format: text
+      translation_dataset: translation
+      translation_field: context_fr
+      translation_format: text
+    - name: entity1_fr
+      source_dataset: source
+      source_field: entity1
+      source_format: text
+      translation_dataset: translation
+      translation_field: entity1_fr
+      translation_format: text
+    - name: entity2_fr
+      source_dataset: source
+      source_field: entity2
+      source_format: text
+      translation_dataset: translation
+      translation_field: entity2_fr
+      translation_format: text

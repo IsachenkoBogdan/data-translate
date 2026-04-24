@@ -10,6 +10,9 @@ from data_translate.adapters.translation_base import TranslationResult
 from data_translate.config.models_dataset_translation import TranslationRuleModel
 from data_translate.domain.languages import extract_language_pair, language_code, language_label, language_names
 from data_translate.domain.renderers import action_sequence, dialog_turns, numbered_list, render_value
+from data_translate.domain.text_processing.guards import should_skip_translation
+from data_translate.domain.text_processing.chunking import chunk_text
+from data_translate.domain.text_processing.parsers import extract_quoted_value, split_structured_entity
 from data_translate.domain.translation_checkpoints import (
     build_translate_records,
     pending_rows_for_range,
@@ -20,6 +23,7 @@ from data_translate.domain.translation_common import merge_translation_errors, r
 from data_translate.domain.translation_markers import build_marked_text, parse_marked_translation
 from data_translate.domain.translation_state import init_state, materialize_split
 from data_translate.domain.translation_strategies.dialog import translate_dialog_turns_content
+from data_translate.domain.translation_strategies.structured import translate_structured_entity
 from data_translate.domain.translation_strategies.text import translate_text, translate_text_list
 from data_translate.domain.translation_strategies.weblinx import _split_records, translate_weblinx_query
 from data_translate.engine.jsonl import append_jsonl, load_jsonl, load_jsonl_index, write_jsonl
@@ -131,6 +135,80 @@ def test_translation_strategies_cover_text_dialog_and_weblinx() -> None:
     assert text_list_result.value == ["bonjour", "salut"]
     assert dialog_result.value == [{"role": "user", "content": "bonjour"}]
     assert weblinx_result.value == "User: bonjour\nclick(button)"
+
+
+def test_text_processing_guards_support_no_letters_and_fullmatch_regex() -> None:
+    assert should_skip_translation("1978.", {"guards": [{"kind": "no_letters"}]}) is True
+    assert should_skip_translation("English text.", {"guards": [{"kind": "no_letters"}]}) is False
+    assert should_skip_translation("DOC-123", {"guards": [{"kind": "fullmatch_regex", "pattern": r"DOC-\d+"}]}) is True
+
+
+def test_text_processing_parsers_cover_structured_entities_and_quoted_values() -> None:
+    assert split_structured_entity("Name <S> tags <S> description", " <S> ") == ("Name", "tags", "description")
+    assert extract_quoted_value('utterance="hello \\"world\\""', start_idx=len("utterance=")) == (
+        'hello \\"world\\"',
+        26,
+    )
+
+
+def test_text_processing_chunks_long_text_on_word_boundaries() -> None:
+    chunks = chunk_text("alpha beta gamma delta", max_chars=11)
+    assert chunks == ["alpha beta ", "gamma delta"]
+    assert all(len(chunk) <= 11 for chunk in chunks)
+    assert "".join(chunks) == "alpha beta gamma delta"
+
+
+def test_structured_entity_translates_description_but_preserves_name_tags_and_separators() -> None:
+    adapter = QueueAdapter([TranslationResult(text="description francaise", status="ok", attempts=1, error="")])
+    value = (
+        "Chester Newell Righter <S> organization.founder organization.member people.person <S> "
+        "English biography."
+    )
+
+    async def run():
+        return await translate_structured_entity(value, adapter, {}, use_cache=True)
+
+    result = anyio.run(run)
+    assert result.value == (
+        "Chester Newell Righter <S> organization.founder organization.member people.person <S> "
+        "description francaise"
+    )
+    assert result.attempts == 1
+    assert result.error == ""
+    assert adapter.calls == [("English biography.", True)]
+
+
+def test_structured_entity_preserves_empty_description_marker_without_translation_call() -> None:
+    adapter = QueueAdapter([])
+    value = "Chester Newell Righter <S> organization.founder organization.member people.person <S> "
+
+    async def run():
+        return await translate_structured_entity(value, adapter, {}, use_cache=True)
+
+    result = anyio.run(run)
+    assert result.value == value
+    assert result.attempts == 0
+    assert result.error == ""
+    assert adapter.calls == []
+
+
+def test_structured_entity_translates_long_description_in_chunks() -> None:
+    adapter = QueueAdapter(
+        [
+            TranslationResult(text="fr:alpha beta", status="ok", attempts=1, error=""),
+            TranslationResult(text="fr: gamma", status="ok", attempts=1, error=""),
+        ]
+    )
+    value = "Name <S> tags <S> alpha beta gamma"
+
+    async def run():
+        return await translate_structured_entity(value, adapter, {"max_chunk_chars": 10}, use_cache=True)
+
+    result = anyio.run(run)
+    assert result.value == "Name <S> tags <S> fr:alpha betafr: gamma"
+    assert result.attempts == 2
+    assert result.error == ""
+    assert adapter.calls == [("alpha beta", True), (" gamma", True)]
 
 
 def test_weblinx_strategy_translates_agent_utterance_mode() -> None:

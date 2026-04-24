@@ -1,0 +1,52 @@
+dataset_id: wizard_of_wikipedia_corpus
+source:
+  hf_dataset_id: DeepPavlov/wizard_of_wikipedia
+  hf_config: corpus
+artifacts:
+  translated_basename: DeepPavlov_wizard_of_wikipedia_corpus
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  rules:
+    - source: title
+      target: title_fr
+      strategy: text
+      cache: true
+      options: {}
+    - source: text
+      target: text_fr
+      strategy: text
+      cache: true
+      options: {}
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: knowledge-grounded dialogue retrieval corpus
+  split: all
+  seed: 42
+  inputs:
+    source:
+      kind: source
+    translation:
+      kind: translated
+  sampling:
+    strategy: per_split_random
+    dataset: source
+    samples_per_split: 50
+  field_pairs:
+    - name: title_fr
+      source_dataset: source
+      source_field: title
+      source_format: text
+      translation_dataset: translation
+      translation_field: title_fr
+      translation_format: text
+    - name: text_fr
+      source_dataset: source
+      source_field: text
+      source_format: text
+      translation_dataset: translation
+      translation_field: text_fr
+      translation_format: text
