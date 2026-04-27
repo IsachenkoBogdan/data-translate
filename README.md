@@ -69,6 +69,7 @@ Next improvements:
 - add `mt-metrics-eval` as an external calibration benchmark for judge quality on standard MT human-eval data
 - keep WMT-style benchmark judging, but validate it with a small in-domain bilingual audit for dialogue translation quality
 - add dialogue-specific automatic checks for critical fields: entities, slot values, numbers, dates, URLs, action labels, and speaker roles
+- add optional second-stage LLM verification for unchanged-translation warnings: the cheap checker should only collect suspicious candidates, while the LLM decides whether the text is meaningful untranslated English and returns a structured suggested French replacement
 - move judge prompting further toward rubric-based direct assessment for dialogue turns, with dialogue history used as supporting context rather than scoring whole dialogues in one pass
 - report judge quality per language pair and per quality band, not only as one global correlation
 - treat DSPy prompt optimization as a later experiment, after a small human-labeled in-domain dev set exists

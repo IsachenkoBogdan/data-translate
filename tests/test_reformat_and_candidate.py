@@ -156,6 +156,7 @@ def test_materialize_reformatted_split_handles_chunk_boundaries() -> None:
 
 def test_run_candidate_workflow_and_processors(tmp_path: Path) -> None:
     config = load_workflow_model("reformat", dataset_id="globalwoz", run_name="ff")
+    config.artifacts.materialized_output_path = str(tmp_path / "translated")
     source = _source_dataset()
     rules = config.dataset.reformat
     candidate_path = tmp_path / "candidate.json"

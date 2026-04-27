@@ -1,4 +1,4 @@
-.PHONY: help test config-show translate evaluate reformat inspect-source benchmark-judge \
+.PHONY: help test config-show translate evaluate reformat inspect-source benchmark-judge check-translation \
 	translate-airdialog translate-faithdial translate-weblinx \
 	evaluate-airdialog evaluate-faithdial evaluate-weblinx \
 	inspect-globalwoz reformat-globalwoz evaluate-globalwoz benchmark-judge-default
@@ -10,9 +10,11 @@ DATASET ?=
 RUN ?=
 WORKFLOW ?=
 SET ?=
+MAX_ROWS_PER_SPLIT ?=
 
 dataset_arg = $(if $(strip $(DATASET)),--dataset $(DATASET),)
 run_arg = $(if $(strip $(RUN)),--run $(RUN),)
+max_rows_arg = $(if $(strip $(MAX_ROWS_PER_SPLIT)),--max-rows-per-split $(MAX_ROWS_PER_SPLIT),)
 set_args = $(foreach item,$(SET),--set $(item))
 
 help:
@@ -21,6 +23,7 @@ help:
 	'  make test' \
 	'  make translate DATASET=faithdial' \
 	'  make evaluate DATASET=faithdial' \
+	'  make check-translation DATASET=faithdial' \
 	'  make inspect-source DATASET=globalwoz RUN=ff' \
 	'  make reformat DATASET=globalwoz RUN=ff' \
 	'  make benchmark-judge RUN=translation_judge' \
@@ -35,6 +38,7 @@ help:
 	'Optional variables:' \
 	'  DATASET=<dataset_id>' \
 	'  RUN=<run_preset>' \
+	'  MAX_ROWS_PER_SPLIT=<row_limit_for_check_translation>' \
 	'  SET="runtime.concurrency=8 evaluation.seed=7"' \
 	'  CONFIG_ROOT=conf'
 
@@ -63,3 +67,7 @@ inspect-source:
 
 benchmark-judge:
 	$(CLI) benchmark-judge $(dataset_arg) $(run_arg) --config-root $(CONFIG_ROOT) $(set_args)
+
+check-translation:
+	@test -n "$(DATASET)" || (echo "DATASET is required, e.g. make check-translation DATASET=faithdial" && exit 1)
+	$(CLI) check-translation --dataset $(DATASET) $(run_arg) --config-root $(CONFIG_ROOT) $(max_rows_arg) $(set_args)

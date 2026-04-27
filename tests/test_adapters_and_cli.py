@@ -317,6 +317,9 @@ def test_settings_and_cli_entrypoints(monkeypatch, capsys) -> None:
     parser = build_parser()
     args = parser.parse_args(["translate", "--dataset", "faithdial"])
     assert args.command == "translate"
+    args = parser.parse_args(["check-translation", "--dataset", "faithdial"])
+    assert args.command == "check-translation"
+    assert args.dataset == "faithdial"
     args = parser.parse_args(["config-show", "--workflow", "translate"])
     assert args.command == "config-show"
 
@@ -351,3 +354,21 @@ def test_settings_and_cli_entrypoints(monkeypatch, capsys) -> None:
         )
         cli_main()
     assert '"workflow": "translate"' in capsys.readouterr().out
+
+    with patch("data_translate.cli.main.build_parser") as parser_builder, patch(
+        "data_translate.cli.main.run_translation_quality_check",
+        return_value={"checked_rows": 1, "error_count": 0, "warning_count": 0, "issues": []},
+    ) as check_mock:
+        parser_builder.return_value.parse_args.return_value = SimpleNamespace(
+            command="check-translation",
+            config_root="conf",
+            dataset="faithdial",
+            path="",
+            run="",
+            overrides=[],
+            max_issues=50,
+            max_rows_per_split=0,
+        )
+        cli_main()
+    check_mock.assert_called_once()
+    assert "check-translation" in capsys.readouterr().out

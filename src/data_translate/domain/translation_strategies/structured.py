@@ -7,7 +7,9 @@ from data_translate.domain.translation_common import Options, StrategyResult, me
 
 
 DEFAULT_ENTITY_SEPARATOR = " <S> "
-DEFAULT_MAX_CHUNK_CHARS = 4500
+# Google Translate is called through GET by deep-translator, so encoded text can
+# exceed practical URL limits before the provider's nominal 5000-char limit.
+DEFAULT_MAX_CHUNK_CHARS = 2500
 
 
 def validate_structured_entity_input(value: Any, options: Options, *, field_name: str) -> str:

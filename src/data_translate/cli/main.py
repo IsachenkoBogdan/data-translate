@@ -1,10 +1,12 @@
 import json
+import sys
 
 import structlog
 
 from data_translate.cli.parser import build_parser
 from data_translate.cli.registry import run_workflow
 from data_translate.config.loader import load_workflow_model
+from data_translate.services.translation_quality import format_quality_summary, run_translation_quality_check
 
 
 def configure_logging() -> None:
@@ -32,6 +34,20 @@ def main() -> None:
         )
         payload = config.model_dump(mode="python")
         print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return
+    if args.command == "check-translation":
+        payload = run_translation_quality_check(
+            dataset_id=args.dataset or "",
+            path=args.path or "",
+            run_name=args.run or "",
+            config_root=args.config_root,
+            overrides=args.overrides,
+            max_issues=args.max_issues,
+            max_rows_per_split=args.max_rows_per_split,
+        )
+        print(format_quality_summary(payload))
+        if int(payload["error_count"]) > 0:
+            sys.exit(1)
         return
     config = load_workflow_model(
         args.command,

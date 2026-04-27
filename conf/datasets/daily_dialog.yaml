@@ -13,7 +13,9 @@ translation:
       target: dialog_fr
       strategy: text_list
       cache: true
-      options: {}
+      options:
+        retry_unchanged: true
+        unchanged_min_letters: 12
 evaluation:
   source_lang: English
   target_lang: French
