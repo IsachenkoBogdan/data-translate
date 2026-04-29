@@ -23,6 +23,7 @@ uv run data-translate translate --dataset faithdial
 uv run data-translate evaluate --dataset faithdial
 uv run data-translate reformat --dataset globalwoz --run ff
 uv run data-translate inspect-source --dataset globalwoz --run ff
+uv run data-translate check-translation --dataset faithdial
 uv run data-translate benchmark-judge --run translation_judge
 ```
 
@@ -34,6 +35,7 @@ make translate DATASET=faithdial
 make evaluate DATASET=weblinx
 make reformat DATASET=globalwoz RUN=ff
 make inspect-source DATASET=globalwoz RUN=ff
+make check-translation DATASET=faithdial
 make benchmark-judge RUN=translation_judge
 ```
 
@@ -50,25 +52,28 @@ Common flow:
 
 ```bash
 make translate DATASET=faithdial
+make check-translation DATASET=faithdial
 make evaluate DATASET=faithdial
 
 make translate DATASET=weblinx
+make check-translation DATASET=weblinx
 make evaluate DATASET=weblinx
 
 make reformat DATASET=globalwoz RUN=ff
+make check-translation DATASET=globalwoz RUN=ff
 make evaluate DATASET=globalwoz RUN=ff
 ```
 
 Notes:
 - datasets are loaded from Hugging Face when configured with `source.hf_dataset_id`
 - `globalwoz` is the main external-source exception and uses `reformat` instead of `translate`
+- `check-translation` is a pre-upload sanity workflow for schema, row counts, list lengths, empty translations, unchanged English-like text, and WebLINX action preservation
 - evaluation is a separate workflow; it does not run automatically after translation
 - OpenRouter is supported for judge models via `conf/llm/translation_judge.yaml`
 
 Next improvements:
 - add `mt-metrics-eval` as an external calibration benchmark for judge quality on standard MT human-eval data
 - keep WMT-style benchmark judging, but validate it with a small in-domain bilingual audit for dialogue translation quality
-- add dialogue-specific automatic checks for critical fields: entities, slot values, numbers, dates, URLs, action labels, and speaker roles
 - add optional second-stage LLM verification for unchanged-translation warnings: the cheap checker should only collect suspicious candidates, while the LLM decides whether the text is meaningful untranslated English and returns a structured suggested French replacement
 - move judge prompting further toward rubric-based direct assessment for dialogue turns, with dialogue history used as supporting context rather than scoring whole dialogues in one pass
 - report judge quality per language pair and per quality band, not only as one global correlation

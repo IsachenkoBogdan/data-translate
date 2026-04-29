@@ -4,6 +4,7 @@ This project has a small number of workflows. Most users only need these:
 
 - `translate`: load a source dataset and write a translated dataset
 - `evaluate`: score a translated dataset with an LLM judge
+- `check-translation`: run simple pre-upload sanity checks on translated artifacts
 - `reformat`: convert an external candidate translation into project schema
 - `inspect-source`: inspect source-to-external coverage before `reformat`
 - `benchmark-judge`: run judge experiments that are not tied to one dataset
@@ -14,6 +15,7 @@ FaithDial:
 
 ```bash
 make translate DATASET=faithdial
+make check-translation DATASET=faithdial
 make evaluate DATASET=faithdial
 ```
 
@@ -21,6 +23,7 @@ WebLINX:
 
 ```bash
 make translate DATASET=weblinx SET="runtime.concurrency=8"
+make check-translation DATASET=weblinx
 make evaluate DATASET=weblinx
 ```
 
@@ -28,6 +31,7 @@ AirDialog:
 
 ```bash
 make translate DATASET=airdialog
+make check-translation DATASET=airdialog MAX_ROWS_PER_SPLIT=1000
 make evaluate DATASET=airdialog
 ```
 
@@ -36,8 +40,36 @@ GlobalWoZ:
 ```bash
 make inspect-source DATASET=globalwoz RUN=ff
 make reformat DATASET=globalwoz RUN=ff
+make check-translation DATASET=globalwoz RUN=ff MAX_ROWS_PER_SPLIT=1000
 make evaluate DATASET=globalwoz RUN=ff
 ```
+
+## Translation Sanity Checks
+
+Run `check-translation` after translation or reformatting and before uploading a dataset:
+
+```bash
+make check-translation DATASET=faithdial
+make check-translation DATASET=weblinx
+make check-translation DATASET=globalwoz RUN=ff
+```
+
+For large datasets, use a row limit for a quick smoke check:
+
+```bash
+make check-translation DATASET=airdialog MAX_ROWS_PER_SPLIT=1000
+```
+
+The checker validates:
+
+- source and translated split/row counts
+- required translated columns from dataset config
+- list and dialogue turn lengths
+- empty translations for non-empty source text
+- unchanged English-looking text in French fields
+- WebLINX action sequence preservation
+
+It writes summaries to `results/<dataset>/check-translation/<run>/summary.json` and exits with code `1` when it finds errors. Warnings, such as suspicious unchanged text, are reported but do not fail the command.
 
 ## How config is resolved
 
