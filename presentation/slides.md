@@ -25,8 +25,8 @@ fonts:
 
 <div class="hero-stats">
   <div class="metric-card">
-    <div class="metric-value">25</div>
-    <div class="metric-label">задач в общем наборе DialogMTEB</div>
+    <div class="metric-value">24</div>
+    <div class="metric-label">набора данных и задач в командном объеме</div>
   </div>
   <div class="metric-card">
     <div class="metric-value">RU + FR</div>
@@ -226,8 +226,8 @@ fonts:
 </div>
 
 <div class="status-row mt-6">
-  <div><b>Русский:</b> 10 наборов переведены или подготовлены к проверке</div>
-  <div><b>Французский:</b> 8 наборов загружены, 4 в работе</div>
+  <div><b>Командный пул:</b> 24 набора данных и задач в разных форматах DialogMTEB</div>
+  <div><b>Публикация:</b> русские и французские переводы лежат в организации DeepPavlov</div>
   <div><b>Цель:</b> единый многоязычный протокол оценки</div>
 </div>
 
@@ -254,10 +254,19 @@ fonts:
   <div><b>Формат MTEB</b><span>готовность к оценке</span></div>
 </div>
 
-<div class="rubric-row mt-8">
-  <div>Точность и полнота смысла</div>
-  <div>Грамматика и орфография</div>
-  <div>Естественность диалога</div>
+<div class="translation-detail-grid mt-7">
+  <div>
+    <b>Что переводилось</b>
+    <span>корпуса, вопросы, ответы, реплики и диалоговый контекст<br>в разных типах задач DialogMTEB</span>
+  </div>
+  <div>
+    <b>Что сохранялось</b>
+    <span>идентификаторы, разбиения, связи релевантности<br>и формат входа для последующей оценки</span>
+  </div>
+  <div>
+    <b>Как проверялось</b>
+    <span>повторы запросов, выборочная проверка и оценка<br>языковой моделью по трем критериям</span>
+  </div>
 </div>
 
 <!--
@@ -269,12 +278,12 @@ fonts:
 
 <div class="kicker">Проверка качества перевода</div>
 
-# Оценка языковой моделью: промпт и результат
+# Оценка языковой моделью: запрос и результат
 
-<div class="evidence-grid mt-5">
+<div class="evidence-grid mt-4">
   <div class="shot-card">
-    <h3>Промпт оценки</h3>
-    <img src="./assets/polina_llm_judge.png" alt="Промпт оценки качества перевода языковой моделью">
+    <h3>Запрос к модели</h3>
+    <img src="./assets/polina_llm_judge.png" alt="Запрос оценки качества перевода языковой моделью">
   </div>
   <div class="shot-card">
     <h3>Пример результата</h3>
@@ -282,15 +291,16 @@ fonts:
   </div>
 </div>
 
-<div class="rubric-row mt-5">
-  <div>точность и полнота смысла</div>
-  <div>грамматика и орфография</div>
-  <div>естественность диалога</div>
+<div class="judge-method-grid mt-4">
+  <div><b>Вход</b><span>оригинал, перевод, язык и домен задачи</span></div>
+  <div><b>Шкала</b><span>оценка от 0 до 10 для каждого примера</span></div>
+  <div><b>Критерии</b><span>смысл, грамматика, естественность диалога</span></div>
+  <div><b>Выход</b><span>балл и короткий комментарий о слабых местах</span></div>
 </div>
 
 <!--
 Полина. 40-45 секунд.
-Акцент: качество проверялось отдельной процедурой, а не только фактом успешного перевода.
+Акцент: качество проверялось отдельной процедурой, а не только фактом успешного перевода. Проверка не заменяет ручной аудит, но быстро показывает, где перевод теряет смысл, звучит неестественно или требует дополнительной двуязычной проверки.
 -->
 
 ---
@@ -308,7 +318,7 @@ fonts:
   <i>-></i>
   <div>check-translation<br><small>статические проверки</small></div>
   <i>-></i>
-  <div>выгрузка parquet<br><small>data/hf_exports</small></div>
+  <div>табличная выгрузка<br><small>data/hf_exports</small></div>
   <i>-></i>
   <div>Hugging Face<br><small>DeepPavlov/..._fr</small></div>
 </div>
@@ -370,46 +380,38 @@ fonts:
 
 <div class="kicker">Результаты и публикация</div>
 
-# Опубликованы переводы и воспроизводимый код
+# Переводы на русский и французский лежат в DeepPavlov
 
-<div class="results-layout mt-4">
-  <table class="result-table">
-    <thead>
-      <tr>
-        <th>Французский набор</th>
-        <th>Строк</th>
-        <th>Статус</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td><a href="https://huggingface.co/datasets/DeepPavlov/air_dialog_fr">air_dialog_fr</a></td><td>402037</td><td>загружен</td></tr>
-      <tr><td><a href="https://huggingface.co/datasets/DeepPavlov/daily_dialog_fr">daily_dialog_fr</a></td><td>102979</td><td>загружен</td></tr>
-      <tr><td><a href="https://huggingface.co/datasets/DeepPavlov/canard_fr">canard_fr</a></td><td>77250</td><td>загружен</td></tr>
-      <tr><td><a href="https://huggingface.co/datasets/DeepPavlov/multiwoz_fr">multiwoz_fr</a></td><td>71410</td><td>загружен</td></tr>
-      <tr><td><a href="https://huggingface.co/datasets/DeepPavlov/clarqa_fr">clarqa_fr</a></td><td>34390</td><td>загружен</td></tr>
-      <tr><td><a href="https://huggingface.co/datasets/DeepPavlov/weblinx_fr">weblinx_fr</a></td><td>19657</td><td>загружен</td></tr>
-      <tr><td><a href="https://huggingface.co/datasets/DeepPavlov/statcan_dialog_fr">statcan_dialog_fr</a></td><td>11358</td><td>загружен</td></tr>
-      <tr><td><a href="https://huggingface.co/datasets/DeepPavlov/faithdial_fr">faithdial_fr</a></td><td>3539</td><td>загружен</td></tr>
-    </tbody>
-  </table>
-  <div class="artifact-stack">
-    <div class="card">
-      <h3>Русские переводы</h3>
-      <p>TopiOCQA · CANARD · ClarQA · Abg-CoQA · Coral · DialogSum · TREC iKAT 2023 · MANtIS · QReCC · WoW</p>
-    </div>
-    <div class="card">
-      <h3>Французский конвейер</h3>
-      <p><a href="https://github.com/IsachenkoBogdan/data-translate">IsachenkoBogdan/data-translate</a><br>код, настройки, проверки и загрузка в Hugging Face</p>
-    </div>
+<div class="org-callout mt-4">
+  <div>
+    <b>Hugging Face · организация DeepPavlov</b>
+    <span>командные переводы публикуются в одном месте: русские и французские версии помечаются суффиксами <span class="suffix">_ru</span> и <span class="suffix">_fr</span>, код и настройки лежат в открытых репозиториях</span>
+  </div>
+  <a href="https://huggingface.co/DeepPavlov">huggingface.co/DeepPavlov</a>
+</div>
+
+<div class="coverage-board mt-4">
+  <div class="coverage-card">
+    <h3>Намерения и классификация</h3>
+    <p>atis_intents · banking77 · vira-intent · CLINC150 · HWU64 · MTOPIntent · MASSIVE</p>
+  </div>
+  <div class="coverage-card">
+    <h3>Диалоговые сценарии</h3>
+    <p>X-RiSAWOZ · DailyDialog · FaithDial · Multi2WOZ · air-dialogue</p>
+  </div>
+  <div class="coverage-card">
+    <h3>Поиск и ранжирование</h3>
+    <p>statcan-dialogue-dataset-retrieval · WebLINX · CANARD · MANtIS · WoW · QReCC · Coral · TREC iKAT 2023</p>
+  </div>
+  <div class="coverage-card">
+    <h3>Вопросы-ответы и суммаризация</h3>
+    <p>ClarQA · TopiOCQA · Abg-CoQA · DialogSum</p>
   </div>
 </div>
 
-<div class="footnote mt-3">
-Во французском направлении в работе остаются MANtIS, WoW, Abg-CoQA и Coral.
-</div>
-
 <!--
-Полина начинает с русских переводов, Богдан продолжает по французским загрузкам. 50 секунд.
+Полина и Богдан. 50 секунд.
+Сказать: это общий командный результат; русские и французские артефакты опубликованы в DeepPavlov, а не в личных репозиториях. Это важно как проверяемый артефакт проекта: результаты доступны не в локальных папках, а в общей организации вместе с кодом, настройками перевода и описанием статуса работ.
 -->
 
 ---
@@ -431,7 +433,7 @@ fonts:
   <div class="card accent">
     <h3>Следующие шаги</h3>
     <ul>
-      <li>дозавершить MANtIS, WoW, Abg-CoQA и Coral</li>
+      <li>дозавершить оставшиеся языковые версии MANtIS, WoW, Abg-CoQA и Coral</li>
       <li>добавить ручную двуязычную проверку на небольшой выборке</li>
       <li>запустить многоязычную оценку DialogMTEB</li>
       <li>расширить конвейер на новые языки</li>
