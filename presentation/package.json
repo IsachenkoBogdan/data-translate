@@ -1,0 +1,17 @@
+{
+  "name": "dialogmteb-project-practice-presentation",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "slidev slides.md --open",
+    "build": "slidev build slides.md --out dist",
+    "export": "slidev export slides.md --output DialogMTEB_project_practice.pdf",
+    "export:pptx": "slidev export slides.md --format pptx --output DialogMTEB_project_practice.pptx"
+  },
+  "devDependencies": {
+    "@slidev/cli": "^52.16.0",
+    "@slidev/theme-default": "^0.25.0",
+    "playwright-chromium": "^1.60.0"
+  }
+}
