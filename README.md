@@ -10,6 +10,7 @@
 
 Основные публичные артефакты:
 - код и воспроизводимый pipeline: этот репозиторий
+- текстовое описание проекта для Talent Track: [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md)
 - загруженные французские датасеты: Hugging Face repos из таблицы статуса ниже
 - презентация и видео-питч: отдельные артефакты для Talent Track
 
@@ -34,6 +35,7 @@
 - `src/data_translate`
 
 Документация:
+- [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md)
 - [docs/usage.md](docs/usage.md)
 - [docs/reference.md](docs/reference.md)
 - [docs/extending.md](docs/extending.md)
