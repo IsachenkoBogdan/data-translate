@@ -1,12 +1,12 @@
-# Examples
+# Примеры
 
-This page shows practical config patterns you can copy and adapt.
+На этой странице собраны практические шаблоны настроек. Их можно копировать и адаптировать под новый набор данных.
 
-## 1. Simple scalar text dataset
+## 1. Одно текстовое поле
 
-Use this when each row has one plain text field.
+Используйте этот вариант, когда в каждой строке есть одно обычное текстовое поле.
 
-Example source row:
+Пример исходной строки:
 
 ```json
 {
@@ -15,7 +15,7 @@ Example source row:
 }
 ```
 
-Dataset config:
+Настройка:
 
 ```yaml
 dataset_id: my_text_dataset
@@ -59,411 +59,238 @@ evaluation:
       translation_format: text
 ```
 
-Run:
+Запуск:
 
 ```bash
 make translate DATASET=my_text_dataset
+make check-translation DATASET=my_text_dataset
 make evaluate DATASET=my_text_dataset
 ```
 
-## 2. List-of-utterances dataset
+## 2. Список реплик
 
-Use this when one field is a list of text items and order matters.
+Используйте `text_list`, когда поле содержит список строк.
 
-Example source row:
+Пример:
 
 ```json
 {
-  "dialogue_id": "abc",
   "history": [
-    "Hi",
-    "Can you help me book a flight?"
-  ],
-  "knowledge": "Flights are available on weekdays."
+    "Hi, I need help with my booking.",
+    "Sure, what is your booking reference?"
+  ]
 }
 ```
 
-Dataset config:
+Настройка:
 
 ```yaml
-dataset_id: my_list_dataset
-source:
-  hf_dataset_id: org/my_list_dataset
-artifacts:
-  translated_basename: org_my_list_dataset
 translation:
-  source_lang: en
-  target_lang: fr
-  backend:
-    provider: google
   rules:
     - source: history
       target: history_fr
       strategy: text_list
       cache: true
-    - source: knowledge
-      target: knowledge_fr
-      strategy: text
-      cache: true
 evaluation:
-  source_lang: English
-  target_lang: French
-  domain: knowledge-grounded dialogue
-  split: all
-  seed: 42
-  inputs:
-    source:
-      kind: source
-    translation:
-      kind: translated
-  sampling:
-    strategy: per_split_random
-    dataset: source
-    samples_per_split: 50
   field_pairs:
     - name: history_fr
       source_dataset: source
       source_field: history
-      source_format: text_list
+      source_format: list
       translation_dataset: translation
       translation_field: history_fr
-      translation_format: text_list
-    - name: knowledge_fr
-      source_dataset: source
-      source_field: knowledge
-      source_format: text
-      translation_dataset: translation
-      translation_field: knowledge_fr
-      translation_format: text
+      translation_format: list
 ```
 
-This is the same pattern as `faithdial`.
+`check-translation` дополнительно проверит, что длина исходного и переведенного списков совпадает.
 
-## 3. Dialog turns dataset
+## 3. Диалоговые ходы с ролями
 
-Use this when the row contains a list of turn objects and only turn content should be translated.
+Используйте `dialog_turns_content`, когда нужно переводить только текст реплики, сохранив роль участника.
 
-Example source row:
+Пример:
 
 ```json
 {
-  "conversation_id": "1",
   "text": [
-    {"role": "user", "content": "I need a flight from Boston to Denver."},
-    {"role": "assistant", "content": "What date would you like to travel?"}
-  ],
-  "label": "book"
+    {"role": "user", "content": "I need a flight to Paris."},
+    {"role": "agent", "content": "What date do you prefer?"}
+  ]
 }
 ```
 
-Dataset config:
+Настройка:
 
 ```yaml
-dataset_id: my_dialog_dataset
-source:
-  hf_dataset_id: org/my_dialog_dataset
-artifacts:
-  translated_basename: org_my_dialog_dataset
 translation:
-  source_lang: en
-  target_lang: fr
-  backend:
-    provider: google
   rules:
     - source: text
       target: text
       strategy: dialog_turns_content
-      cache: false
-evaluation:
-  source_lang: English
-  target_lang: French
-  domain: task-oriented dialogue
-  split: all
-  seed: 42
-  inputs:
-    source:
-      kind: source
-    translation:
-      kind: translated
-  sampling:
-    strategy: stratified_by_field
-    dataset: source
-    field: label
-    samples_per_value: 25
-  field_pairs:
-    - name: text
-      source_dataset: source
-      source_field: text
-      source_format: dialog_turns
-      translation_dataset: translation
-      translation_field: text
-      translation_format: dialog_turns
+      cache: true
 ```
 
-This is the same pattern as `airdialog`.
+Результат сохраняет `role`, а `content` заменяет на перевод.
 
-## 4. WebLINX-like structured query dataset
+## 4. Вложенные поля по путям
 
-Use this when a single text field mixes natural language with action syntax and only the natural-language parts should be translated.
+Используйте `nested_text_fields`, когда переводить нужно не всю структуру, а только конкретные пути.
 
-Example source row:
+Пример:
 
-```text
-User: Find the cheapest flight
-Agent: say(speaker="navigator", utterance="Please wait")
-Agent: click(x=120, y=44)
+```json
+{
+  "turn": {
+    "question": "Who wrote the book?",
+    "answers": [
+      {"answer": "Jane Austen", "id": "a1"}
+    ]
+  }
+}
 ```
 
-Dataset config:
+Настройка:
 
 ```yaml
-dataset_id: my_weblinx_like_dataset
-source:
-  hf_dataset_id: org/my_weblinx_like_dataset
-artifacts:
-  translated_basename: org_my_weblinx_like_dataset
 translation:
-  source_lang: en
-  target_lang: fr
-  backend:
-    provider: google
+  rules:
+    - source: turn
+      target: turn_fr
+      strategy: nested_text_fields
+      options:
+        paths:
+          - question
+          - answers[].answer
+```
+
+Идентификаторы и другие поля вне указанных путей останутся без изменений.
+
+## 5. Перевод всех текстовых значений во вложенной ячейке
+
+Используйте `deep_map_texts`, когда структура сложная и заранее перечислять все текстовые пути неудобно.
+
+Пример:
+
+```json
+{
+  "history_turns": [
+    {
+      "id": "t1",
+      "question": "What did the user ask?",
+      "answers": ["A refund", "A delivery date"]
+    }
+  ]
+}
+```
+
+Настройка:
+
+```yaml
+translation:
+  rules:
+    - source: history_turns
+      target: history_turns
+      strategy: deep_map_texts
+      options:
+        exclude_keys:
+          - id
+```
+
+Стратегия проходит по вложенной структуре, переводит строковые значения и сохраняет исходный тип контейнеров. Ключи из `exclude_keys` не переводятся.
+
+## 6. WebLINX с действиями
+
+Используйте `weblinx_query`, когда текст смешан со служебными вызовами действий.
+
+Пример:
+
+```text
+User: find the cheapest ticket
+Agent: click(node="button.search")
+Agent: say(utterance="Here are the cheapest options.")
+```
+
+Настройка:
+
+```yaml
+translation:
   rules:
     - source: query
       target: query_fr
       strategy: weblinx_query
-      cache: true
       options:
         translate_agent_say_utterance: true
-evaluation:
-  source_lang: English
-  target_lang: French
-  domain: web navigation query; action calls, URLs, code-like expressions, ids, xpaths, and DOM snippets should remain unchanged
-  split: all
-  seed: 42
-  inputs:
-    source:
-      kind: source
-    translation:
-      kind: translated
-  sampling:
-    strategy: per_split_random
-    dataset: source
-    samples_per_split: 20
-  field_pairs:
-    - name: query_fr
-      source_dataset: source
-      source_field: query
-      source_format: text
-      translation_dataset: translation
-      translation_field: query_fr
-      translation_format: text
 ```
 
-Use this only when the structure is close enough to current `weblinx_query` logic. If the action grammar is different, add a new strategy.
+Стратегия сохраняет порядок действий и служебный синтаксис. Это важно, потому что такие поля используются не только как текст, но и как трасса выполнения.
 
-## 5. External candidate + reformat dataset
+## 7. Внешний готовый перевод
 
-Use this when you already have a candidate translation file and need to align it back to source rows.
+Используйте `reformat`, если перевод уже получен другим способом и его нужно выровнять с исходной схемой.
 
-Source-of-truth:
-- HF source dataset
-
-Candidate:
-- local external file under `data/external/...`
-
-Dataset config:
+Пример:
 
 ```yaml
-dataset_id: my_external_candidate
+dataset_id: globalwoz
 source:
-  hf_dataset_id: org/my_source_dataset
+  hf_dataset_id: DeepPavlov/MultiWOZ-2.1
 artifacts:
-  external_root: data/external/my_external_candidate
-  translated_basename: my_external_candidates
-  results_scope: my_external_candidate
+  external_root: data/external/globalwoz
+  translated_basename: globalwoz_candidates
 reformat:
-  missing_policy: skip_dialogues
-  target_lang: fr
   candidates:
-    vendor_a: vendor_a/output.json
-  rules:
-    source_dialogue_id_field: dialogue_id
-    source_text_field: text
-    source_history_field: history
-    target_text_field: text
-    target_history_field: history
-    external_log_field: log
-    external_turn_text_field: text
-    turns_per_row: 2
-    user_turn_offset: 0
-    history_role_cycle:
-      - user
-      - assistant
-    history_content_field: content
-    history_role_field: role
-    variant_field: reformat_variant
-    backup_fields:
-      text: source_text
-      history: source_history
-evaluation:
-  source_lang: English
-  target_lang: French
-  domain: task-oriented dialogue
-  split: all
-  seed: 42
-  inputs:
-    translation:
-      kind: path
-      path: ""
-  sampling:
-    strategy: per_split_random
-    dataset: translation
-    samples_per_split: 50
-  field_pairs:
-    - name: text
-      source_dataset: translation
-      source_field: source_text
-      source_format: text
-      translation_dataset: translation
-      translation_field: text
-      translation_format: text
+    FF: FF/F&F_fr.json
 ```
 
-Run:
+Запуск:
 
 ```bash
-make inspect-source DATASET=my_external_candidate RUN=vendor_a
-make reformat DATASET=my_external_candidate RUN=vendor_a
-make evaluate DATASET=my_external_candidate RUN=vendor_a
+make inspect-source DATASET=globalwoz RUN=ff
+make reformat DATASET=globalwoz RUN=ff
+make check-translation DATASET=globalwoz RUN=ff
 ```
 
-This is the same pattern as `globalwoz`.
+## 8. Правило загрузки в Hugging Face
 
-## 6. Custom translation backend run preset
+После перевода добавьте файл `conf/uploads/<upload_id>.yaml`.
 
-Use a run preset when the dataset stays the same but translator changes.
-
-Example `conf/runs/translate/deepl_fast.yaml`:
-
-```yaml
-run_name: deepl_fast
-runtime:
-  concurrency: 8
-  max_retries: 5
-  retry_sleep: 1.0
-translation:
-  backend:
-    provider: deepl
-    api_key_env: DEEPL_API_KEY
-```
-
-Run:
-
-```bash
-make translate DATASET=faithdial RUN=deepl_fast
-```
-
-## 7. Custom judge model run preset
-
-Use a run preset when evaluation model and runtime should be reusable.
-
-Example `conf/runs/evaluate/gpt54mini.yaml`:
-
-```yaml
-run_name: gpt54mini
-llm:
-  provider: openrouter
-  api_key_env: OPENROUTER_API_KEY
-  base_url: https://openrouter.ai/api/v1
-  model: openai/gpt-5.4-mini
-runtime:
-  requests_per_minute: 30
-  max_completion_tokens: 300
-```
-
-Run:
-
-```bash
-make evaluate DATASET=faithdial RUN=gpt54mini
-```
-
-## 8. One-off override instead of a preset
-
-Use this when the change is experimental and not worth a new file.
-
-```bash
-uv run data-translate evaluate \
-  --dataset weblinx \
-  --set llm.model=openai/gpt-5.4-mini \
-  --set runtime.requests_per_minute=30
-```
-
-## 9. Sanity-check before long runs
-
-Always inspect the merged config before expensive runs:
-
-```bash
-make config-show WORKFLOW=translate DATASET=my_dialog_dataset
-make config-show WORKFLOW=evaluate DATASET=my_dialog_dataset RUN=gpt54mini
-```
-
-If the merged config is wrong, fix config first. Do not debug a 5-hour run from guesswork.
-
-## 10. Export and upload to Hugging Face
-
-Use this after `translate` / `reformat` and `check-translation` have passed.
-
-Example upload config for a dataset where `text_fr` should become the exported `text` column:
+Пример для одного parquet-поднабора:
 
 ```yaml
 upload_id: my_text_dataset_fr
-dataset_id: my_text_dataset
-language: fr
-hub:
+target:
   repo_id: DeepPavlov/my_text_dataset_fr
-  type: dataset
-  visibility: public
-  mode: create_or_update
+  private: false
 source:
-  path: data/translated/fr/org_my_text_dataset/default
-export:
-  local_dir: data/hf_exports/my_text_dataset_fr
-  layout: single_config
-  config_name: default
-  data_dir: data
-  splits:
-    train: train
-    validation: validation
-    test: test
-  transforms:
-    - name: replace_columns
-      columns:
-        text: text_fr
-    - name: drop_columns
-      columns:
-        - text_fr
-    - name: select_columns
-      columns:
-        - id
-        - text
+  artifact_path: data/translated/my_text_dataset
+exports:
+  - name: data
+    split: train
+    columns:
+      text: text_fr
+validation:
+  min_rows: 1
 ```
 
-Dry-run export:
+Пробный экспорт:
 
 ```bash
 uv run data-translate upload-datasets --upload my_text_dataset_fr --config-root conf
 ```
 
-Push to Hugging Face:
+Загрузка:
 
 ```bash
-hf auth whoami
 uv run data-translate upload-datasets --upload my_text_dataset_fr --config-root conf --push --yes
 ```
 
-For all configured uploads:
+## 9. Быстрая проверка перед публикацией
+
+Перед загрузкой полезно выполнить короткий цикл:
 
 ```bash
-uv run data-translate upload-datasets --all --config-root conf
-uv run data-translate upload-datasets --all --config-root conf --push --yes
+make check-translation DATASET=my_text_dataset MAX_ROWS_PER_SPLIT=1000
+uv run data-translate upload-datasets --upload my_text_dataset_fr --config-root conf
 ```
+
+Если отчет чистый и parquet-файлы выглядят правильно, можно запускать команду с `--push --yes`.

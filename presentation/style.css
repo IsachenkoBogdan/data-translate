@@ -239,7 +239,7 @@
   align-items: stretch;
 }
 
-.task-preview,
+.task-example,
 .task-type-grid > div {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -247,22 +247,56 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.20);
 }
 
-.task-preview {
-  padding: 0.72rem;
+.task-example {
+  padding: 1rem;
+  display: grid;
+  gap: 0.72rem;
+  align-content: start;
 }
 
-.task-preview img {
-  width: 100%;
-  height: 332px;
-  object-fit: cover;
-  object-position: top;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: white;
+.bubble {
+  border-radius: 8px;
+  padding: 0.82rem 0.95rem;
+  line-height: 1.3;
+  font-weight: 800;
 }
 
-.task-preview p {
-  margin-top: 0.65rem;
+.bubble.user {
+  color: white;
+  background: linear-gradient(135deg, #2563eb, #22d3ee);
+}
+
+.bubble.bot {
+  width: 82%;
+  color: #dbe4f0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.intent-box {
+  border-radius: 8px;
+  border: 2px solid rgba(52, 211, 153, 0.72);
+  background: rgba(52, 211, 153, 0.12);
+  padding: 0.9rem 1rem;
+}
+
+.intent-box span {
+  display: block;
+  color: #86efac;
+  font-weight: 900;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.intent-box b {
+  display: block;
+  margin-top: 0.25rem;
+  color: #dcfce7;
+  font-size: 1.12rem;
+}
+
+.task-example p {
+  margin-top: 0.2rem;
   color: var(--muted);
   font-size: 0.82rem;
   line-height: 1.35;
@@ -335,6 +369,153 @@
   text-align: center;
   font-weight: 800;
   color: #cffafe;
+}
+
+.photo-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 170px);
+  justify-content: center;
+  gap: 1.6rem;
+}
+
+.person-photo {
+  height: 112px;
+  border-radius: 8px;
+  border: 1px solid rgba(34, 211, 238, 0.38);
+  background: rgba(255, 255, 255, 0.045);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-weight: 900;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.22);
+}
+
+.person-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 34%;
+  border-radius: 8px;
+}
+
+.person-photo span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.35rem 0.45rem;
+  color: white;
+  text-align: center;
+  font-size: 0.82rem;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.68));
+}
+
+.translation-flow,
+.judge-output {
+  display: flex;
+  align-items: stretch;
+  gap: 0.52rem;
+}
+
+.translation-flow div,
+.judge-output div {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  background: #151e2d;
+  padding: 0.9rem;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
+}
+
+.translation-flow b,
+.judge-output b {
+  display: block;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.translation-flow span,
+.judge-output p {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.3;
+}
+
+.translation-flow i,
+.judge-output i {
+  color: var(--cyan);
+  font-style: normal;
+  font-weight: 900;
+  align-self: center;
+}
+
+.judge-grid,
+.case-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.shot-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+  padding: 0.72rem;
+  min-height: 315px;
+  overflow: hidden;
+}
+
+.shot-card h3 {
+  margin: 0 0 0.55rem 0;
+}
+
+.shot-card img {
+  width: 100%;
+  height: 262px;
+  object-fit: cover;
+  object-position: top left;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0f172a;
+}
+
+.judge-card,
+.case-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+  padding: 1.05rem;
+  min-height: 170px;
+}
+
+.judge-card p,
+.case-card p {
+  color: #dbe4f0;
+  font-size: 0.95rem;
+  line-height: 1.42;
+}
+
+.case-card {
+  border-left: 4px solid var(--cyan);
+}
+
+.case-card span {
+  color: var(--cyan);
+  font-weight: 900;
+  font-size: 0.8rem;
 }
 
 .pipeline,

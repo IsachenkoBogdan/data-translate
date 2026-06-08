@@ -1,17 +1,17 @@
 # data-translate
 
-`data-translate` - локальный пакет для перевода диалоговых датасетов, проверки качества перевода, подготовки parquet-выгрузок для Hugging Face Hub и запуска оценочных экспериментов.
+`data-translate` - локальный пакет для перевода диалоговых наборов данных, проверки качества перевода, подготовки выгрузок в формате parquet для Hugging Face Hub и запуска оценочных экспериментов.
 
 ## Артефакт проектной практики
 
-Этот репозиторий является одним из технических артефактов проектной практики по DialogMTEB. DialogMTEB - направление бенчмарков для оценки text embedding моделей на диалоговых задачах: классификации, retrieval, reranking, pair classification и semantic matching. Практическая цель работы - расширить бенчмарк за пределы английского языка, подготовив переведенные диалоговые датасеты с сохранением исходных схем, меток, разбиений и совместимости с оценкой.
+Этот репозиторий является одним из технических артефактов проектной практики по DialogMTEB. DialogMTEB - направление наборов оценки для моделей векторных представлений текста на диалоговых задачах: классификации, поиске, повторном ранжировании, парной классификации и оценке смысловой близости. Практическая цель работы - расширить набор оценки за пределы английского языка, подготовив переведенные диалоговые наборы данных с сохранением исходных схем, меток, разбиений и совместимости с оценкой.
 
-Этот репозиторий закрывает французскую часть проекта: воспроизводимые конфиги перевода, переиспользуемые стратегии перевода, проверки качества, parquet export и автоматизацию загрузки в Hugging Face Hub. Сопутствующий репозиторий [interpparietes/DialogMTEB](https://github.com/interpparietes/DialogMTEB) закрывает notebook-based эксперименты и русскоязычную часть проекта.
+Этот репозиторий закрывает французскую часть проекта: воспроизводимые настройки перевода, переиспользуемые стратегии перевода, проверки качества, экспорт в parquet и автоматизацию загрузки в Hugging Face Hub. Сопутствующий репозиторий [interpparietes/DialogMTEB](https://github.com/interpparietes/DialogMTEB) закрывает интерактивные исследовательские сценарии и русскоязычную часть проекта.
 
 Основные публичные артефакты:
-- код и воспроизводимый pipeline: этот репозиторий
+- код и воспроизводимый конвейер перевода: этот репозиторий
 - текстовое описание проекта для Talent Track: [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md)
-- загруженные французские датасеты: Hugging Face repos из таблицы статуса ниже
+- загруженные французские наборы данных: репозитории Hugging Face из таблицы статуса ниже
 - презентация и видео-питч: отдельные артефакты для Talent Track
 
 ## Команда и распределение задач
@@ -20,16 +20,16 @@
 
 | Участник | Степень участия | Зоны ответственности | Основные артефакты |
 | --- | --- | --- | --- |
-| Кремнева Полина | 50% | Русскоязычная часть проекта; перевод датасетов с английского на русский; notebook-based эксперименты; LLM-оценка качества перевода и промпты для проверки | [interpparietes/DialogMTEB](https://github.com/interpparietes/DialogMTEB), русские переводы и материалы оценки |
-| Богдан Исаченко | 50% | Франкоязычная часть проекта; унифицированная инфраструктура перевода; CLI, конфиги датасетов, стратегии перевода, sanity checks, parquet export и загрузка в Hugging Face | этот репозиторий, `conf/datasets`, `conf/uploads`, `check-translation`, `upload-datasets`, французские HF-датасеты |
+| Кремнева Полина | 50% | Русскоязычная часть проекта; перевод наборов данных с английского на русский; интерактивные исследовательские сценарии; оценка качества перевода с помощью языковой модели и промпты для проверки | [interpparietes/DialogMTEB](https://github.com/interpparietes/DialogMTEB), русские переводы и материалы оценки |
+| Богдан Исаченко | 50% | Франкоязычная часть проекта; унифицированная инфраструктура перевода; команды, настройки наборов данных, стратегии перевода, статические проверки, экспорт в parquet и загрузка в Hugging Face | этот репозиторий, `conf/datasets`, `conf/uploads`, `check-translation`, `upload-datasets`, французские наборы Hugging Face |
 
-Для защиты рекомендуется отразить это же разделение в презентации отдельным слайдом: Полина показывает русскоязычный перевод и LLM-as-a-judge оценку, Богдан показывает французский pipeline, контроль качества, загрузку датасетов и воспроизводимость.
+Для защиты рекомендуется отразить это же разделение в презентации отдельным слайдом: Полина показывает русскоязычный перевод и оценку языковой моделью, Богдан показывает французский конвейер перевода, контроль качества, загрузку наборов данных и воспроизводимость.
 
-Текущий scope:
-- перевод диалоговых датасетов на французский без изменения task schema
-- инспекция и reformat внешних candidate translations
-- экспорт переведенных артефактов в parquet layout, используемый Hugging Face org `DeepPavlov`
-- запуск LLM-based оценки и benchmark judging
+Текущий объем работ:
+- перевод диалоговых наборов данных на французский без изменения схемы задач
+- инспекция и приведение к единому формату готовых внешних переводов
+- экспорт переведенных результатов в структуру parquet, используемую организацией Hugging Face `DeepPavlov`
+- запуск оценки с помощью языковой модели и оценочных экспериментов
 
 Основной пакет:
 - `src/data_translate`
@@ -41,7 +41,7 @@
 - [docs/extending.md](docs/extending.md)
 - [docs/examples.md](docs/examples.md)
 
-CLI:
+Команды пакета:
 
 ```bash
 uv run data-translate translate --dataset faithdial
@@ -76,7 +76,7 @@ make config-show WORKFLOW=translate DATASET=airdialog
 make upload-datasets
 ```
 
-Типовой workflow:
+Типовой сценарий:
 
 ```bash
 make translate DATASET=faithdial
@@ -96,50 +96,50 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 ```
 
 Примечания:
-- датасеты загружаются с Hugging Face, если в конфиге задан `source.hf_dataset_id`
+- наборы данных загружаются с Hugging Face, если в настройках задан `source.hf_dataset_id`
 - `globalwoz` - основное исключение с внешним источником перевода; для него используется `reformat`, а не `translate`
-- `check-translation` - sanity check перед загрузкой: схема, число строк, длины списков, пустые переводы, подозрительный непереведенный английский текст и сохранение WebLINX action sequence
-- технические значения вроде URLs, имен файлов, attachments, путей, emails и hash-like ids игнорируются в unchanged warnings
+- `check-translation` - проверка перед загрузкой: схема, число строк, длины списков, пустые переводы, подозрительный непереведенный английский текст и сохранение последовательностей действий WebLINX
+- технические значения вроде ссылок, имен файлов, вложений, путей, почтовых адресов и похожих на хеши идентификаторов игнорируются в предупреждениях о неизмененном тексте
 - `upload-datasets` читает `conf/uploads/*.yaml`, экспортирует локальные переводы в parquet под `data/hf_exports` и загружает в Hugging Face только с `--push --yes`
-- evaluation - отдельный workflow; он не запускается автоматически после перевода
-- OpenRouter поддерживается для judge models через `conf/llm/translation_judge.yaml`
+- оценка качества - отдельный сценарий; она не запускается автоматически после перевода
+- OpenRouter поддерживается для моделей-оценщиков через `conf/llm/translation_judge.yaml`
 
-Статус датасетов:
+Статус наборов данных:
 
-| Исходный датасет | Локальный dataset id | French Hub repo | Статус |
+| Исходный набор данных | Локальный идентификатор | Французский репозиторий Hugging Face | Статус |
 | --- | --- | --- | --- |
 | DailyDialog Manually Labelled Multi-turn Dialogue Dataset | `daily_dialog` | [DeepPavlov/daily_dialog_fr](https://huggingface.co/datasets/DeepPavlov/daily_dialog_fr) | Переведен и загружен |
 | statcan-dialogue-dataset-retrieval | `statcan-dialogue-dataset-retrieval` | [DeepPavlov/statcan_dialog_fr](https://huggingface.co/datasets/DeepPavlov/statcan_dialog_fr) | Переведен и загружен |
 | WebLINX | `weblinx` | [DeepPavlov/weblinx_fr](https://huggingface.co/datasets/DeepPavlov/weblinx_fr) | Переведен и загружен |
-| FaithDial | `faithdial` | [DeepPavlov/faithdial_fr](https://huggingface.co/datasets/DeepPavlov/faithdial_fr) | Переведен и загружен; текущий artifact содержит `history_fr` и `knowledge_fr` |
+| FaithDial | `faithdial` | [DeepPavlov/faithdial_fr](https://huggingface.co/datasets/DeepPavlov/faithdial_fr) | Переведен и загружен; текущий результат содержит `history_fr` и `knowledge_fr` |
 | Multi2WOZ / MultiWOZ | `globalwoz` | [DeepPavlov/multiwoz_fr](https://huggingface.co/datasets/DeepPavlov/multiwoz_fr) | Переведен и загружен |
 | air-dialogue | `airdialog` | [DeepPavlov/air_dialog_fr](https://huggingface.co/datasets/DeepPavlov/air_dialog_fr) | Переведен и загружен |
 | CANARD | `canard_queries` | [DeepPavlov/canard_fr](https://huggingface.co/datasets/DeepPavlov/canard_fr) | Переведен и загружен |
 | ClarQA | `clarqa_multi_turn`, `clarqa_single_turn` | [DeepPavlov/clarqa_fr](https://huggingface.co/datasets/DeepPavlov/clarqa_fr) | Переведен и загружен |
 | MANtIS | `mantis` | Планируется | Перевод в процессе; будет загружен после завершения и проверок |
 | Wizard of Wikipedia / WoW | `wizard_of_wikipedia` | Планируется | Перевод в процессе; будет загружен после завершения и проверок |
-| Abg-CoQA | `coqa_abg` | Планируется | Перевод в процессе; config подготовлен, upload после завершения и проверок |
-| Coral | `coral_*` | Планируется | Перевод в процессе; configs подготовлены, upload после завершения и проверок |
+| Abg-CoQA | `coqa_abg` | Планируется | Перевод в процессе; настройки подготовлены, загрузка после завершения и проверок |
+| Coral | `coral_*` | Планируется | Перевод в процессе; настройки подготовлены, загрузка после завершения и проверок |
 
 План дальнейших улучшений:
-- добавить `mt-metrics-eval` как внешний calibration benchmark для оценки judge quality на стандартных MT human-eval данных
-- оставить WMT-style benchmark judging, но валидировать его небольшим in-domain bilingual audit для качества перевода диалогов
-- добавить опциональную LLM-проверку второго уровня для unchanged-translation warnings: дешевый checker собирает подозрительные кандидаты, а LLM решает, является ли текст осмысленным непереведенным английским, и возвращает структурированную French replacement
-- сдвинуть judge prompting к rubric-based direct assessment для dialogue turns, используя dialogue history как контекст, а не оценивая весь диалог одним запросом
-- репортить judge quality по language pair и quality band, а не только одной глобальной корреляцией
-- рассматривать DSPy prompt optimization как отдельный поздний эксперимент после появления небольшого human-labeled in-domain dev set
+- добавить `mt-metrics-eval` как внешний набор для калибровки качества моделей-оценщиков на стандартных данных машинного перевода с человеческими оценками
+- сохранить оценочные эксперименты в стиле WMT, но валидировать их небольшой двуязычной проверкой внутри домена диалогов
+- добавить опциональную проверку второго уровня с помощью языковой модели: быстрый проверяющий модуль собирает подозрительные кандидаты, а модель решает, является ли текст действительно непереведенным английским, и возвращает структурированную замену на французском
+- перейти к оценке реплик по рубрике, используя историю диалога как контекст
+- показывать качество модели-оценщика по языковой паре и диапазону качества, а не только одной глобальной корреляцией
+- рассматривать оптимизацию промптов через DSPy как отдельный поздний эксперимент после появления небольшой размеченной выборки внутри домена
 
-Структура конфигов:
-- `conf/datasets` dataset specs
-- `conf/uploads` Hugging Face parquet export/upload specs
-- `conf/workflows` workflow defaults
-- `conf/runs` run presets
-- `conf/llm`, `conf/runtime`, `conf/prompts` runtime и judging settings
+Структура настроек:
+- `conf/datasets` описания наборов данных
+- `conf/uploads` правила экспорта в parquet и загрузки в Hugging Face
+- `conf/workflows` значения по умолчанию для сценариев
+- `conf/runs` наборы параметров запусков
+- `conf/llm`, `conf/runtime`, `conf/prompts` настройки среды выполнения и оценки
 
 Структура кода:
-- `src/data_translate/config` typed config models и builders
-- `src/data_translate/workflows` workflow entrypoints
-- `src/data_translate/services` orchestration services
-- `src/data_translate/domain` core translation/eval logic
-- `src/data_translate/adapters` translation и LLM adapters
-- `src/data_translate/engine` artifacts, reports, manifests, checkpoints
+- `src/data_translate/config` типизированные модели настроек и сборщики
+- `src/data_translate/workflows` точки входа сценариев
+- `src/data_translate/services` сервисы координации
+- `src/data_translate/domain` основная логика перевода и оценки
+- `src/data_translate/adapters` адаптеры перевода и языковых моделей
+- `src/data_translate/engine` результаты запусков, отчеты, манифесты и контрольные точки

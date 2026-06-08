@@ -1,16 +1,16 @@
-# Usage
+# Использование
 
-This project has a small number of workflows. Most users only need these:
+В проекте есть несколько основных сценариев. В большинстве случаев достаточно этих команд:
 
-- `translate`: load a source dataset and write a translated dataset
-- `evaluate`: score a translated dataset with an LLM judge
-- `check-translation`: run simple pre-upload sanity checks on translated artifacts
-- `reformat`: convert an external candidate translation into project schema
-- `inspect-source`: inspect source-to-external coverage before `reformat`
-- `upload-datasets`: export translated artifacts to Hugging Face parquet layout and optionally upload them
-- `benchmark-judge`: run judge experiments that are not tied to one dataset
+- `translate`: загрузить исходный набор данных и записать перевод;
+- `evaluate`: оценить перевод с помощью языковой модели;
+- `check-translation`: выполнить проверки перед загрузкой;
+- `reformat`: привести внешний готовый перевод к схеме проекта;
+- `inspect-source`: проверить покрытие исходных данных перед `reformat`;
+- `upload-datasets`: экспортировать переводы в parquet и при необходимости загрузить их в Hugging Face;
+- `benchmark-judge`: запустить отдельные эксперименты для моделей-оценщиков.
 
-## Typical runs
+## Типовые запуски
 
 FaithDial:
 
@@ -45,16 +45,16 @@ make check-translation DATASET=globalwoz RUN=ff MAX_ROWS_PER_SPLIT=1000
 make evaluate DATASET=globalwoz RUN=ff
 ```
 
-Prepare Hub parquet export:
+Подготовка parquet-выгрузки для Hugging Face:
 
 ```bash
 make upload-datasets UPLOAD=daily_dialog_fr
 make upload-datasets
 ```
 
-## Translation Sanity Checks
+## Проверка перевода
 
-Run `check-translation` after translation or reformatting and before uploading a dataset:
+`check-translation` нужно запускать после перевода или `reformat` и до загрузки набора данных:
 
 ```bash
 make check-translation DATASET=faithdial
@@ -62,100 +62,98 @@ make check-translation DATASET=weblinx
 make check-translation DATASET=globalwoz RUN=ff
 ```
 
-For large datasets, use a row limit for a quick smoke check:
+Для больших наборов данных можно сначала выполнить быструю проверку на ограниченном числе строк:
 
 ```bash
 make check-translation DATASET=airdialog MAX_ROWS_PER_SPLIT=1000
 ```
 
-The checker validates:
+Проверка смотрит:
 
-- source and translated split/row counts
-- required translated columns from dataset config
-- list and dialogue turn lengths
-- empty translations for non-empty source text
-- unchanged English-looking text in French fields
-- WebLINX action sequence preservation
+- совпадение разбиений и числа строк в исходном и переведенном варианте;
+- наличие обязательных переведенных колонок из настроек набора данных;
+- длины списков и диалоговых ходов;
+- пустые переводы при непустом исходном тексте;
+- подозрительно неизмененный английский текст во французских полях;
+- сохранение последовательностей действий WebLINX.
 
-It intentionally suppresses unchanged-value warnings for technical strings that should remain stable: URLs, file names, attachments, paths, emails, and hash-like ids.
+Технические строки, которые должны оставаться стабильными, не считаются ошибками: ссылки, имена файлов, вложения, пути, почтовые адреса и похожие на хеши идентификаторы.
 
-It writes summaries to `results/<dataset>/check-translation/<run>/summary.json` and exits with code `1` when it finds errors. Warnings, such as suspicious unchanged text, are reported but do not fail the command.
+Отчет сохраняется в `results/<dataset>/check-translation/<run>/summary.json`. Команда завершится с кодом `1`, если найдены ошибки. Предупреждения, например подозрительно неизмененный текст, показываются в отчете, но сами по себе не ломают запуск.
 
-## Hugging Face Upload Exports
+## Загрузка в Hugging Face
 
-The local translated artifacts under `data/translated/...` are `datasets.save_to_disk` Arrow directories. Do not upload those directories directly to Hugging Face. The DeepPavlov org uses parquet files and, for some datasets, multiple configs represented by subdirectories such as `corpus/`, `queries/`, and `qrels/`.
+Локальные переводы в `data/translated/...` сохранены как Arrow-директории `datasets.save_to_disk`. Их не нужно загружать в Hugging Face напрямую. Организация DeepPavlov использует parquet-файлы, а для некоторых наборов данных еще и несколько поднаборов вроде `corpus/`, `queries/` и `qrels/`.
 
-Upload specs live in `conf/uploads/*.yaml`. They describe:
+Правила загрузки лежат в `conf/uploads/*.yaml`. Они описывают:
 
-- one local translated artifact path via `source`, or several paths via `sources`
-- target Hub repo id
-- exported parquet layout
-- split mapping
-- column transforms, such as `dialog <- dialog_fr`
-- validation expectations
+- один путь к локальному переводу через `source` или несколько путей через `sources`;
+- целевой репозиторий Hugging Face;
+- структуру parquet-выгрузки;
+- сопоставление разбиений;
+- преобразования колонок, например `dialog <- dialog_fr`;
+- ожидаемые проверки перед публикацией.
 
-Dry-run export for one dataset:
+Пробный экспорт одного набора данных:
 
 ```bash
 uv run data-translate upload-datasets --upload daily_dialog_fr --config-root conf
 ```
 
-Dry-run export for all configured uploads:
+Пробный экспорт всех настроенных загрузок:
 
 ```bash
 uv run data-translate upload-datasets --all --config-root conf
 ```
 
-The command writes exports under `data/hf_exports/<upload_id>` and prints a summary. It does not touch Hugging Face unless `--push --yes` is passed.
+Команда пишет результат в `data/hf_exports/<upload_id>` и печатает краткий отчет. Она не загружает данные в Hugging Face, пока не переданы `--push --yes`.
 
-Upload one dataset:
+Загрузить один набор данных:
 
 ```bash
 uv run data-translate upload-datasets --upload daily_dialog_fr --config-root conf --push --yes
 ```
 
-Upload all configured datasets:
+Загрузить все настроенные наборы:
 
 ```bash
 uv run data-translate upload-datasets --all --config-root conf --push --yes
 ```
 
-Before pushing, verify authentication:
+Перед загрузкой проверьте авторизацию:
 
 ```bash
 hf auth whoami
 ```
 
-Current upload configs:
+Текущие правила загрузки:
 
-- `daily_dialog_fr`: updates `DeepPavlov/daily_dialog_fr`; replaces the currently misaligned Hub parquet files with the cleaned local translation
-- `air_dialog_fr`: creates/updates `DeepPavlov/air_dialog_fr`
-- `canard_fr`: creates/updates `DeepPavlov/canard_fr` with `corpus`, `queries`, and `qrels`
-- `clarqa_fr`: creates/updates `DeepPavlov/clarqa_fr` with `multi_turn` and `single_turn`
-- `multiwoz_fr`: creates/updates `DeepPavlov/multiwoz_fr`
-- `statcan_dialog_fr`: creates/updates `DeepPavlov/statcan_dialog_fr` with `queries` and `corpus`
-- `weblinx_fr`: creates/updates `DeepPavlov/weblinx_fr`
-- `faithdial_fr`: creates/updates `DeepPavlov/faithdial_fr`, but note that the current local artifact only includes `history_fr` and `knowledge_fr`
+- `daily_dialog_fr`: обновляет `DeepPavlov/daily_dialog_fr` очищенным локальным переводом;
+- `air_dialog_fr`: создает или обновляет `DeepPavlov/air_dialog_fr`;
+- `canard_fr`: создает или обновляет `DeepPavlov/canard_fr` с `corpus`, `queries` и `qrels`;
+- `clarqa_fr`: создает или обновляет `DeepPavlov/clarqa_fr` с `multi_turn` и `single_turn`;
+- `multiwoz_fr`: создает или обновляет `DeepPavlov/multiwoz_fr`;
+- `statcan_dialog_fr`: создает или обновляет `DeepPavlov/statcan_dialog_fr` с `queries` и `corpus`;
+- `weblinx_fr`: создает или обновляет `DeepPavlov/weblinx_fr`;
+- `faithdial_fr`: создает или обновляет `DeepPavlov/faithdial_fr`; текущий локальный результат содержит `history_fr` и `knowledge_fr`.
 
-## How config is resolved
+## Как собираются настройки
 
-Runtime config is composed from:
+Итоговая настройка запуска собирается из нескольких слоев:
 
-1. `conf/workflows/<workflow>.yaml`
-2. `conf/datasets/<dataset>.yaml`
-3. `conf/runs/<workflow>/<run>.yaml` if `--run` is set
-4. `--set key=value` overrides from CLI
+1. `conf/workflows/<workflow>.yaml`;
+2. `conf/datasets/<dataset>.yaml`;
+3. `conf/runs/<workflow>/<run>.yaml`, если указан `--run`;
+4. переопределения `--set key=value`.
 
-To inspect the final merged config:
+Посмотреть итоговые настройки:
 
 ```bash
 make config-show WORKFLOW=translate DATASET=weblinx
 make config-show WORKFLOW=evaluate DATASET=faithdial
 ```
 
-Two practical ways to customize behavior:
-
-1. One-off override with `--set`
+Разовый запуск с переопределением:
 
 ```bash
 uv run data-translate translate \
@@ -165,9 +163,7 @@ uv run data-translate translate \
   --set translation.backend.api_key_env=DEEPL_API_KEY
 ```
 
-2. Reusable run preset in `conf/runs/<workflow>/<run>.yaml`
-
-Example:
+Многоразовый набор параметров можно сохранить в `conf/runs/<workflow>/<run>.yaml`:
 
 ```yaml
 run_name: deepl_fast
@@ -179,38 +175,38 @@ translation:
     api_key_env: DEEPL_API_KEY
 ```
 
-Run it with:
+Запуск:
 
 ```bash
 make translate DATASET=faithdial RUN=deepl_fast
 ```
 
-## What gets downloaded and what stays local
+## Где появляются файлы
 
-- `airdialog`, `faithdial`, `weblinx`: source dataset is loaded from Hugging Face
-- `globalwoz`: source is HF `MultiWOZ-2.1`, but candidate translation comes from `data/external/globalwoz`
-- translated outputs are materialized under `data/translated/...`
-- upload exports are materialized under `data/hf_exports/...`
-- workflow artifacts and checkpoints go under `results/...`
+- `airdialog`, `faithdial`, `weblinx`: исходные данные загружаются с Hugging Face;
+- `globalwoz`: источник берется из Hugging Face `MultiWOZ-2.1`, готовый внешний перевод - из `data/external/globalwoz`;
+- переводы сохраняются в `data/translated/...`;
+- parquet-выгрузки сохраняются в `data/hf_exports/...`;
+- отчеты и контрольные точки сохраняются в `results/...`.
 
-## Evaluation
+## Оценка качества
 
-Evaluation is separate from translation. It does not auto-run after `translate`.
+Оценка качества отделена от перевода и не запускается автоматически после `translate`.
 
-Typical sequence:
+Обычная последовательность:
 
 ```bash
 make translate DATASET=faithdial
 make evaluate DATASET=faithdial
 ```
 
-Judge LLM config comes from:
+Настройки модели-оценщика берутся из:
 
-- `conf/llm/translation_judge.yaml` for OpenRouter
-- `conf/llm/translation_judge_openai.yaml` for direct OpenAI API
-- `conf/prompts/...` for judge prompts
+- `conf/llm/translation_judge.yaml` для OpenRouter;
+- `conf/llm/translation_judge_openai.yaml` для прямого вызова OpenAI API;
+- `conf/prompts/...` для промптов оценки.
 
-Example with a different model through OpenRouter:
+Пример с другой моделью через OpenRouter:
 
 ```bash
 uv run data-translate evaluate \
@@ -218,7 +214,7 @@ uv run data-translate evaluate \
   --set llm.model=openai/gpt-4o-mini
 ```
 
-Example with a reusable evaluation preset:
+Пример многоразовой настройки оценки:
 
 ```yaml
 run_name: gpt54mini
@@ -231,24 +227,12 @@ runtime:
   requests_per_minute: 30
 ```
 
-Save as `conf/runs/evaluate/gpt54mini.yaml`, then run:
+Сохраните файл как `conf/runs/evaluate/gpt54mini.yaml`, затем запустите:
 
 ```bash
 make evaluate DATASET=faithdial RUN=gpt54mini
 ```
 
-## Failure and resume behavior
+## Сбои и продолжение работы
 
-- translation writes per-split checkpoints to `results/<dataset>/translate/<run>/checkpoint`
-- rerunning the same command resumes from checkpoint
-- evaluation writes records and summary under `results/<dataset>/evaluate/<run>`
-- `config-show` is the first thing to run when behavior is unclear
-
-## Where to look when adding something new
-
-- new dataset config: `conf/datasets/<dataset>.yaml`
-- new reusable run preset: `conf/runs/<workflow>/<run>.yaml`
-- translation strategies: `src/data_translate/domain/translation_strategies`
-- translation backends: `src/data_translate/adapters` and `src/data_translate/adapters/translation_factory.py`
-- judge adapters: `src/data_translate/adapters/llm_factory.py`
-- workflow registration: `src/data_translate/workflow_registry.py`
+Запуски пишут контрольные точки в `results/...`. Если перевод прервался, повторный запуск с теми же настройками продолжит работу с уже сохраненного состояния, если сценарий поддерживает продолжение.

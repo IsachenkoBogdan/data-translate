@@ -1,21 +1,21 @@
-# Extending
+# Расширение проекта
 
-This page is for the three common extension tasks:
+Эта страница описывает четыре частые задачи:
 
-- add a new dataset
-- add a Hub upload config
-- add a new translation backend
-- add a new judge adapter or provider
+- добавить новый набор данных;
+- добавить правило загрузки в Hugging Face;
+- добавить нового поставщика перевода;
+- добавить нового поставщика или адаптер языковой модели для оценки.
 
-The project is already structured for these extension points. You do not need to invent a new integration pattern.
+Проект уже разделен на точки расширения, поэтому новые интеграции лучше добавлять по существующим шаблонам.
 
-## Add a new dataset
+## Добавить новый набор данных
 
-### 1. Create `conf/datasets/<dataset>.yaml`
+### 1. Создать `conf/datasets/<dataset>.yaml`
 
-Start from the closest existing dataset.
+Начните с наиболее похожего существующего файла.
 
-Minimal HF-backed example:
+Минимальный пример для источника с Hugging Face:
 
 ```yaml
 dataset_id: mydataset
@@ -59,97 +59,107 @@ evaluation:
       translation_format: text
 ```
 
-### 2. Choose the right translation strategy
+### 2. Выбрать стратегию перевода
 
-Use:
+Используйте:
 
-- `text` for one scalar text field
-- `text_list` for list of strings
-- `dialog_turns_content` for list of turn objects
-- `weblinx_query` for WebLINX-style action traces
+- `text` для одного текстового поля;
+- `text_list` для списка строк;
+- `dialog_turns_content` для списка объектов-реплик;
+- `weblinx_query` для записей WebLINX с трассой действий;
+- `nested_text_fields` для заранее указанных путей во вложенной структуре;
+- `deep_map_texts` для перевода всех текстовых значений внутри вложенной ячейки.
 
-If none matches, add a new strategy instead of abusing an existing one.
+Если ни одна стратегия не подходит, добавьте новую. Не стоит подгонять сложную структуру под неподходящую стратегию.
 
-Strategy registry:
+Реестр стратегий:
+
 - [registry.py](../src/data_translate/domain/translation_strategies/registry.py)
 
-### 3. Decide whether this is `translate` or `reformat`
+### 3. Решить: `translate` или `reformat`
 
-Use `translate` when the project should translate the source itself.
+Используйте `translate`, если проект сам переводит исходные данные.
 
-Use `reformat` when:
-- you already have an external candidate translation
-- the candidate must be aligned back to the source schema
-- the external data is not the source of truth
+Используйте `reformat`, если:
 
-Reference example:
+- внешний перевод уже существует;
+- его нужно выровнять с исходной схемой;
+- внешний файл не является источником истины.
+
+Пример:
+
 - [globalwoz.yaml](../conf/datasets/globalwoz.yaml)
 
-### 4. Verify config before running
+### 4. Проверить настройки перед запуском
 
 ```bash
 make config-show WORKFLOW=translate DATASET=mydataset
 make config-show WORKFLOW=evaluate DATASET=mydataset
 ```
 
-### 5. Run it
+### 5. Запустить перевод и оценку
 
 ```bash
 make translate DATASET=mydataset
 make evaluate DATASET=mydataset
 ```
 
-### 6. Add upload config when the dataset should go to Hugging Face
+### 6. Добавить правило загрузки
 
-Create `conf/uploads/<upload_id>.yaml` after a translated artifact exists. Upload configs describe the parquet export layout used by the DeepPavlov Hugging Face org.
+Создайте `conf/uploads/<upload_id>.yaml`, когда переведенный результат уже существует. Эти файлы описывают parquet-структуру, которую использует организация DeepPavlov на Hugging Face.
 
-Use the closest existing upload config:
+Ориентиры:
 
-- `daily_dialog_fr.yaml` for one default config under `data/`
-- `canard_fr.yaml` for retrieval datasets with `corpus`, `queries`, and `qrels`
-- `clarqa_fr.yaml` for one repo with several dataset configs
-- `statcan_dialog_fr.yaml` for serialized dialog content where `content_fr` must replace `content`
+- `daily_dialog_fr.yaml` для одного стандартного поднабора `data/`;
+- `canard_fr.yaml` для поисковых наборов с `corpus`, `queries` и `qrels`;
+- `clarqa_fr.yaml` для одного репозитория с несколькими поднаборами;
+- `statcan_dialog_fr.yaml` для сериализованного диалогового содержимого, где `content_fr` заменяет `content`.
 
-Dry-run export:
+Пробный экспорт:
 
 ```bash
 uv run data-translate upload-datasets --upload mydataset_fr --config-root conf
 ```
 
-Only push after inspecting the generated parquet files:
+Публикуйте только после просмотра сгенерированных parquet-файлов:
 
 ```bash
 uv run data-translate upload-datasets --upload mydataset_fr --config-root conf --push --yes
 ```
 
-## Add a new translation strategy
+## Добавить новую стратегию перевода
 
-Add a new strategy when the field shape or invariants are meaningfully different.
+Новая стратегия нужна, когда форма поля или сохраняемые инварианты заметно отличаются от уже поддержанных случаев.
 
-### 1. Implement strategy file
+### 1. Реализовать файл стратегии
 
-Put it under:
+Файл должен лежать в:
+
 - `src/data_translate/domain/translation_strategies`
 
-What a strategy needs:
-- translator function with signature compatible with current strategies
-- input validator
+Стратегии нужны:
 
-Reference files:
+- функция перевода с сигнатурой, совместимой с текущими стратегиями;
+- проверка входной формы.
+
+Файлы-ориентиры:
+
 - [text.py](../src/data_translate/domain/translation_strategies/text.py)
 - [dialog.py](../src/data_translate/domain/translation_strategies/dialog.py)
 - [weblinx.py](../src/data_translate/domain/translation_strategies/weblinx.py)
 
-### 2. Register it
+### 2. Зарегистрировать стратегию
 
-Update:
+Обновите:
+
 - [registry.py](../src/data_translate/domain/translation_strategies/registry.py)
 
-Both maps must be updated:
-- `STRATEGIES`
-- `INPUT_VALIDATORS`
+Нужно добавить обе карты:
 
-### 3. Use it in dataset config
+- `STRATEGIES`;
+- `INPUT_VALIDATORS`.
+
+### 3. Использовать стратегию в настройках набора данных
 
 ```yaml
 rules:
@@ -158,24 +168,26 @@ rules:
     strategy: my_strategy
 ```
 
-### 4. Add tests
+### 4. Добавить тесты
 
-Good tests usually cover:
-- valid input shape
-- invalid input shape
-- invariant preservation
-- multiline / escaping edge cases if the format is structured
+Хорошие тесты обычно проверяют:
 
-## Add a new translation backend
+- корректную входную форму;
+- некорректную входную форму;
+- сохранение инвариантов;
+- многострочный текст и экранирование, если формат структурированный.
 
-This is the path for a new translator such as another HTTP provider.
+## Добавить нового поставщика перевода
 
-### 1. Add backend config model
+Этот путь подходит для нового переводчика, например еще одного HTTP-сервиса.
 
-Edit:
+### 1. Добавить модель настроек
+
+Файл:
+
 - [models_dataset_translation.py](../src/data_translate/config/models_dataset_translation.py)
 
-Pattern:
+Шаблон:
 
 ```python
 class MyBackendModel(BaseModel):
@@ -183,33 +195,38 @@ class MyBackendModel(BaseModel):
     api_key_env: str = Field(min_length=1)
 ```
 
-Then include it in `TranslationBackendModel`.
+Затем включите модель в `TranslationBackendModel`.
 
-### 2. Implement adapter
+### 2. Реализовать адаптер
 
-Put it in:
+Файл должен лежать в:
+
 - `src/data_translate/adapters`
 
-It must satisfy the `TranslationAdapter` protocol:
+Адаптер должен удовлетворять протоколу `TranslationAdapter`:
+
 - [translation_base.py](../src/data_translate/adapters/translation_base.py)
 
-Required methods:
-- `translate(text, use_cache=...) -> TranslationResult`
-- `close()`
+Обязательные методы:
 
-### 3. Wire it into factory
+- `translate(text, use_cache=...) -> TranslationResult`;
+- `close()`.
 
-Edit:
+### 3. Подключить адаптер к фабрике
+
+Файл:
+
 - [translation_factory.py](../src/data_translate/adapters/translation_factory.py)
 
-Add:
-- import
-- `isinstance(...)` branch
-- correct language-code normalization if provider needs a special format
+Нужно добавить:
 
-### 4. Add a run preset
+- импорт;
+- ветку `isinstance(...)`;
+- нормализацию языковых кодов, если поставщик требует особый формат.
 
-Example:
+### 4. Добавить набор параметров запуска
+
+Пример:
 
 ```yaml
 run_name: mybackend
@@ -219,117 +236,64 @@ translation:
     api_key_env: MYBACKEND_API_KEY
 ```
 
-Location:
+Путь:
+
 - `conf/runs/translate/mybackend.yaml`
 
-### 5. Test it
+### 5. Протестировать
 
-At minimum:
-- config validation
-- adapter success path
-- adapter error path
-- factory construction
+Минимум:
 
-## Add a new judge provider or adapter
+- проверка настроек;
+- успешный путь адаптера;
+- путь ошибки адаптера;
+- создание адаптера через фабрику.
 
-This is for evaluation-side LLMs, not for dataset translation.
+## Добавить нового поставщика модели-оценщика
 
-### 1. Decide whether LiteLLM is enough
+Это относится к оценке качества, а не к переводу наборов данных.
 
-If the provider works through LiteLLM, the cheapest path is:
-- add provider mapping if needed
-- keep using [litellm_adapter.py](../src/data_translate/adapters/litellm_adapter.py)
+### 1. Решить, достаточно ли LiteLLM
 
-If it needs custom behavior, create a new adapter implementing:
+Если поставщик работает через LiteLLM, самый простой путь:
+
+- добавить сопоставление поставщика при необходимости;
+- продолжить использовать [litellm_adapter.py](../src/data_translate/adapters/litellm_adapter.py).
+
+Если требуется особое поведение, создайте новый адаптер с интерфейсом:
+
 - [llm_base.py](../src/data_translate/adapters/llm_base.py)
 
-### 2. Wire it in
+### 2. Подключить адаптер
 
-Edit:
+Файл:
+
 - [llm_factory.py](../src/data_translate/adapters/llm_factory.py)
 
-Either:
-- map new provider to the existing LiteLLM builder
-- or add a new builder that returns your custom adapter
+Варианты:
 
-### 3. Add LLM config
+- сопоставить нового поставщика с существующим LiteLLM-сборщиком;
+- добавить новый сборщик, который возвращает собственный адаптер.
 
-Example:
+### 3. Добавить настройку языковой модели
+
+Пример:
 
 ```yaml
 provider: myjudge
 api_key_env: MYJUDGE_API_KEY
-base_url: https://api.example.com/v1
 model: my-model
-temperature: 0.0
 ```
 
-Put it in:
+Путь:
+
 - `conf/llm/myjudge.yaml`
 
-### 4. Add reusable evaluation run presets if useful
+### 4. Добавить проверку оценки
 
-Example:
+Минимум:
 
-```yaml
-run_name: myjudge_fast
-llm:
-  provider: myjudge
-  api_key_env: MYJUDGE_API_KEY
-  base_url: https://api.example.com/v1
-  model: my-model
-runtime:
-  requests_per_minute: 30
-```
-
-Put it in:
-- `conf/runs/evaluate/myjudge_fast.yaml`
-
-## Build your own config cleanly
-
-There are two sane ways to do this.
-
-### Option 1. CLI overrides
-
-Best for one experiment:
-
-```bash
-uv run data-translate evaluate \
-  --dataset faithdial \
-  --set llm.model=openai/gpt-5.4-mini \
-  --set runtime.requests_per_minute=30
-```
-
-### Option 2. Run preset
-
-Best for repeatable runs:
-
-```yaml
-run_name: my_eval
-llm:
-  model: openai/gpt-5.4-mini
-runtime:
-  requests_per_minute: 30
-```
-
-Save it under:
-- `conf/runs/evaluate/my_eval.yaml`
-
-Then run:
-
-```bash
-make evaluate DATASET=faithdial RUN=my_eval
-```
-
-## What not to change casually
-
-Do not silently change:
-
-- dataset schema
-- split semantics
-- role labels
-- placeholders
-- special tokens
-- action syntax in structured formats like `WebLINX`
-
-If the format is structured, preserve structure first and translate only the natural-language payloads inside it.
+- проверка настроек;
+- создание адаптера;
+- обработка корректного ответа;
+- обработка ошибки или некорректного ответа.
