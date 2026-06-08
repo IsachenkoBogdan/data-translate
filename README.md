@@ -2,6 +2,28 @@
 
 `data-translate` is a local workflow package for translating dialogue datasets, checking translation quality, exporting Hub-ready parquet layouts, and running evaluation artifacts.
 
+## Project Practice Artifact
+
+This repository is one of the technical artifacts for the DialogMTEB project practice. DialogMTEB is a benchmark direction for evaluating text embedding models on dialogue-specific tasks: classification, retrieval, reranking, pair classification, and semantic matching. The practical goal of this work is to extend the benchmark beyond English by preparing translated dialogue datasets while preserving source schemas, labels, split semantics, and evaluation compatibility.
+
+This repository covers the French track of the project: reproducible translation configs, reusable translation strategies, quality checks, parquet export, and Hugging Face Hub upload automation. The companion repository [interpparietes/DialogMTEB](https://github.com/interpparietes/DialogMTEB) covers notebook-based translation experiments and the Russian track.
+
+Main public artifacts:
+- code and reproducible pipeline: this repository
+- uploaded French datasets: Hugging Face repos listed in the dataset status table below
+- remaining project materials: presentation and video pitch will be submitted as separate Talent Track artifacts
+
+## Команда и распределение задач
+
+Руководитель проекта: Леднева Дарья. Зона ответственности руководителя: постановка научной задачи, консультации по методологии DialogMTEB/MTEB, рецензирование результатов и контроль исследовательской логики.
+
+| Участник | Степень участия | Зоны ответственности | Основные артефакты |
+| --- | --- | --- | --- |
+| Кремнева Полина | 50% | Русскоязычная часть проекта; перевод датасетов с английского на русский; notebook-based эксперименты; LLM-оценка качества перевода и промпты для проверки | [interpparietes/DialogMTEB](https://github.com/interpparietes/DialogMTEB), русские переводы и материалы оценки |
+| Богдан Исаченко | 50% | Франкоязычная часть проекта; унифицированная инфраструктура перевода; CLI, конфиги датасетов, стратегии перевода, sanity checks, parquet export и загрузка в Hugging Face | этот репозиторий, `conf/datasets`, `conf/uploads`, `check-translation`, `upload-datasets`, французские HF-датасеты |
+
+Для защиты рекомендуется отразить это же разделение в презентации отдельным слайдом: Полина показывает русскоязычный перевод и LLM-as-a-judge оценку, Богдан показывает французский pipeline, контроль качества, загрузку датасетов и воспроизводимость.
+
 Current scope:
 - translate dialogue datasets to French without changing task schema
 - inspect and reformat external candidate translations
