@@ -1,0 +1,74 @@
+upload_id: clarqa_fr
+dataset_id: clarqa
+language: fr
+hub:
+  repo_id: DeepPavlov/clarqa_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+sources:
+  - config_name: multi_turn
+    path: data/translated/fr/DeepPavlov_clarqa_multi_turn/default
+  - config_name: single_turn
+    path: data/translated/fr/DeepPavlov_clarqa_single_turn/default
+export:
+  local_dir: data/hf_exports/clarqa_fr
+  layout: multi_config
+  configs:
+    - config_name: multi_turn
+      source_config: multi_turn
+      data_dir: multi_turn
+      splits:
+        train: train
+        dev: dev
+        test: test
+      transforms:
+        - name: replace_columns
+          columns:
+            context: context_fr
+            entity1: entity1_fr
+            entity2: entity2_fr
+        - name: drop_columns
+          columns:
+            - context_fr
+            - entity1_fr
+            - entity2_fr
+        - name: select_columns
+          columns:
+            - context
+            - entity1
+            - label
+            - entity2
+    - config_name: single_turn
+      source_config: single_turn
+      data_dir: single_turn
+      splits:
+        train: train
+        dev: dev
+        test: test
+      transforms:
+        - name: replace_columns
+          columns:
+            context: context_fr
+            entity1: entity1_fr
+            entity2: entity2_fr
+        - name: drop_columns
+          columns:
+            - context_fr
+            - entity1_fr
+            - entity2_fr
+        - name: select_columns
+          columns:
+            - context
+            - entity1
+            - label
+            - entity2
+validation:
+  check_translation:
+    datasets:
+      - clarqa_multi_turn
+      - clarqa_single_turn
+    expected_errors: 0
+notes:
+  - Matches DeepPavlov/clarqa_es layout with configs multi_turn and single_turn.
+

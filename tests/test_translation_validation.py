@@ -26,6 +26,19 @@ class DummyAdapter:
         return None
 
 
+class RecordingAdapter:
+    def __init__(self) -> None:
+        self.calls: list[str] = []
+
+    async def translate(self, text: str, *, use_cache: bool) -> TranslationResult:
+        del use_cache
+        self.calls.append(text)
+        return TranslationResult(text=f"fr:{text}", status="ok", attempts=1, error="")
+
+    def close(self) -> None:
+        return None
+
+
 def test_validate_translate_inputs_checks_columns_but_not_full_row_shapes() -> None:
     config = load_workflow_model("translate", dataset_id="faithdial")
     translation = config.dataset.translation
@@ -82,6 +95,88 @@ def test_translate_row_collects_outputs_and_attempts() -> None:
     assert record["attempts"] == 2
     assert record["status"] == "ok"
     assert record["error"] == ""
+
+
+def test_translate_text_chunks_long_values() -> None:
+    rule = TranslationRuleModel(
+        source="text",
+        target="text_fr",
+        strategy="text",
+        options={"max_chunk_chars": 5},
+    )
+    adapter = RecordingAdapter()
+
+    async def run() -> dict[str, object]:
+        return await translate_row(0, {"text": "alpha beta"}, [rule], adapter)
+
+    record = anyio.run(run)
+    assert adapter.calls == ["alpha", " beta"]
+    assert record["text_fr"] == "fr:alphafr: beta"
+    assert record["status"] == "ok"
+
+
+def test_nested_text_fields_translates_configured_paths() -> None:
+    rule = TranslationRuleModel(
+        source="turn",
+        target="turn_fr",
+        strategy="nested_text_fields",
+        options={
+            "paths": [
+                "question",
+                "answers[].clr_ans",
+                "answers[].org_ans",
+            ]
+        },
+    )
+    row = {
+        "turn": {
+            "question": "Do you mean Buda or Pest?",
+            "answers": [
+                {"clr_ans": "Pest", "org_ans": "the east side", "span_start": 1},
+                {"clr_ans": "Buda", "org_ans": None, "span_start": 2},
+            ],
+        }
+    }
+
+    async def run() -> dict[str, object]:
+        return await translate_row(4, row, [rule], DummyAdapter())
+
+    record = anyio.run(run)
+    assert record["status"] == "ok"
+    assert record["turn_fr"] == {
+        "question": "fr:Do you mean Buda or Pest?",
+        "answers": [
+            {"clr_ans": "fr:Pest", "org_ans": "fr:the east side", "span_start": 1},
+            {"clr_ans": "fr:Buda", "org_ans": None, "span_start": 2},
+        ],
+    }
+
+
+def test_deep_map_texts_translates_all_nested_strings() -> None:
+    rule = TranslationRuleModel(
+        source="turn",
+        target="turn_fr",
+        strategy="deep_map_texts",
+        options={"exclude_keys": ["id"]},
+    )
+    row = {
+        "turn": {
+            "id": "keep-me",
+            "question": "Where was it located?",
+            "answers": [{"answer": "the west side", "score": 1}],
+        }
+    }
+
+    async def run() -> dict[str, object]:
+        return await translate_row(5, row, [rule], DummyAdapter())
+
+    record = anyio.run(run)
+    assert record["status"] == "ok"
+    assert record["turn_fr"] == {
+        "id": "keep-me",
+        "question": "fr:Where was it located?",
+        "answers": [{"answer": "fr:the west side", "score": 1}],
+    }
 
 
 def test_translate_by_rule_applies_configured_guard_before_strategy() -> None:
@@ -167,6 +262,14 @@ def test_apply_record_requires_all_target_fields() -> None:
 
     with pytest.raises(ValueError, match="missing required translated fields"):
         apply_record(state, {"row_idx": 0}, ["text_fr"])
+
+
+def test_row_complete_allows_null_translated_value() -> None:
+    state = init_state(1, ["optional_fr"])
+
+    apply_record(state, {"row_idx": 0, "optional_fr": None, "status": "ok"}, ["optional_fr"])
+
+    assert row_complete(state, 0, ["optional_fr"]) is True
 
 
 def test_record_succeeded_requires_non_error_status() -> None:

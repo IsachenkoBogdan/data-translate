@@ -81,7 +81,7 @@ def test_translate_sequence_falls_back_to_item_level_translation() -> None:
     assert translated == ["bonjour", "bye"]
     assert attempts == 3
     assert "whole-list parse failed" in error
-    assert "item 1: provider failed" in error
+    assert "item 1: chunk 0: provider failed" in error
 
 
 def test_translate_sequence_clears_marked_parse_error_after_clean_fallback() -> None:

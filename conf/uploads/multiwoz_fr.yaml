@@ -1,0 +1,34 @@
+upload_id: multiwoz_fr
+dataset_id: globalwoz
+language: fr
+hub:
+  repo_id: DeepPavlov/multiwoz_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+source:
+  path: data/translated/fr/globalwoz_candidates/ff/FF
+export:
+  local_dir: data/hf_exports/multiwoz_fr
+  layout: single_config
+  config_name: default
+  data_dir: data
+  splits:
+    train: train
+    dev: dev
+    test: test
+  transforms:
+    - name: drop_columns
+      columns:
+        - source_text
+        - source_history
+        - reformat_variant
+validation:
+  check_translation:
+    dataset: globalwoz
+    run: ff
+    expected_errors: 0
+    expected_warnings: 0
+notes:
+  - Matches DeepPavlov/multiwoz_es layout.
+

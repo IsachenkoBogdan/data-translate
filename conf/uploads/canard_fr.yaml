@@ -1,0 +1,68 @@
+upload_id: canard_fr
+dataset_id: canard_queries
+language: fr
+hub:
+  repo_id: DeepPavlov/canard_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+source:
+  path: data/translated/fr/DeepPavlov_canard_queries/default
+export:
+  local_dir: data/hf_exports/canard_fr
+  layout: multi_config
+  configs:
+    - config_name: corpus
+      data_dir: corpus
+      splits:
+        corpus_train: train
+        corpus_validation: validation
+        corpus_test: test
+      transforms:
+        - name: replace_columns
+          columns:
+            text: text_fr
+        - name: drop_columns
+          columns:
+            - text_fr
+        - name: select_columns
+          columns:
+            - id
+            - text
+    - config_name: queries
+      data_dir: queries
+      splits:
+        train: train
+        validation: validation
+        test: test
+      transforms:
+        - name: replace_columns
+          columns:
+            text: text_fr
+            history: history_fr
+        - name: drop_columns
+          columns:
+            - text_fr
+            - history_fr
+        - name: select_columns
+          columns:
+            - id
+            - text
+            - history
+    - config_name: qrels
+      data_dir: qrels
+      splits:
+        qrels_train: train
+        qrels_validation: validation
+        qrels_test: test
+      transforms:
+        - name: select_columns
+          columns:
+            - query-id
+            - corpus-id
+            - score
+validation:
+  check_translation:
+    dataset: canard_queries
+    expected_errors: 0
+

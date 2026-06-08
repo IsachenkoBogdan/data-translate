@@ -7,6 +7,7 @@ This project has a small number of workflows. Most users only need these:
 - `check-translation`: run simple pre-upload sanity checks on translated artifacts
 - `reformat`: convert an external candidate translation into project schema
 - `inspect-source`: inspect source-to-external coverage before `reformat`
+- `upload-datasets`: export translated artifacts to Hugging Face parquet layout and optionally upload them
 - `benchmark-judge`: run judge experiments that are not tied to one dataset
 
 ## Typical runs
@@ -44,6 +45,13 @@ make check-translation DATASET=globalwoz RUN=ff MAX_ROWS_PER_SPLIT=1000
 make evaluate DATASET=globalwoz RUN=ff
 ```
 
+Prepare Hub parquet export:
+
+```bash
+make upload-datasets UPLOAD=daily_dialog_fr
+make upload-datasets
+```
+
 ## Translation Sanity Checks
 
 Run `check-translation` after translation or reformatting and before uploading a dataset:
@@ -69,7 +77,65 @@ The checker validates:
 - unchanged English-looking text in French fields
 - WebLINX action sequence preservation
 
+It intentionally suppresses unchanged-value warnings for technical strings that should remain stable: URLs, file names, attachments, paths, emails, and hash-like ids.
+
 It writes summaries to `results/<dataset>/check-translation/<run>/summary.json` and exits with code `1` when it finds errors. Warnings, such as suspicious unchanged text, are reported but do not fail the command.
+
+## Hugging Face Upload Exports
+
+The local translated artifacts under `data/translated/...` are `datasets.save_to_disk` Arrow directories. Do not upload those directories directly to Hugging Face. The DeepPavlov org uses parquet files and, for some datasets, multiple configs represented by subdirectories such as `corpus/`, `queries/`, and `qrels/`.
+
+Upload specs live in `conf/uploads/*.yaml`. They describe:
+
+- one local translated artifact path via `source`, or several paths via `sources`
+- target Hub repo id
+- exported parquet layout
+- split mapping
+- column transforms, such as `dialog <- dialog_fr`
+- validation expectations
+
+Dry-run export for one dataset:
+
+```bash
+uv run data-translate upload-datasets --upload daily_dialog_fr --config-root conf
+```
+
+Dry-run export for all configured uploads:
+
+```bash
+uv run data-translate upload-datasets --all --config-root conf
+```
+
+The command writes exports under `data/hf_exports/<upload_id>` and prints a summary. It does not touch Hugging Face unless `--push --yes` is passed.
+
+Upload one dataset:
+
+```bash
+uv run data-translate upload-datasets --upload daily_dialog_fr --config-root conf --push --yes
+```
+
+Upload all configured datasets:
+
+```bash
+uv run data-translate upload-datasets --all --config-root conf --push --yes
+```
+
+Before pushing, verify authentication:
+
+```bash
+hf auth whoami
+```
+
+Current upload configs:
+
+- `daily_dialog_fr`: updates `DeepPavlov/daily_dialog_fr`; replaces the currently misaligned Hub parquet files with the cleaned local translation
+- `air_dialog_fr`: creates/updates `DeepPavlov/air_dialog_fr`
+- `canard_fr`: creates/updates `DeepPavlov/canard_fr` with `corpus`, `queries`, and `qrels`
+- `clarqa_fr`: creates/updates `DeepPavlov/clarqa_fr` with `multi_turn` and `single_turn`
+- `multiwoz_fr`: creates/updates `DeepPavlov/multiwoz_fr`
+- `statcan_dialog_fr`: creates/updates `DeepPavlov/statcan_dialog_fr` with `queries` and `corpus`
+- `weblinx_fr`: creates/updates `DeepPavlov/weblinx_fr`
+- `faithdial_fr`: creates/updates `DeepPavlov/faithdial_fr`, but note that the current local artifact only includes `history_fr` and `knowledge_fr`
 
 ## How config is resolved
 
@@ -124,6 +190,7 @@ make translate DATASET=faithdial RUN=deepl_fast
 - `airdialog`, `faithdial`, `weblinx`: source dataset is loaded from Hugging Face
 - `globalwoz`: source is HF `MultiWOZ-2.1`, but candidate translation comes from `data/external/globalwoz`
 - translated outputs are materialized under `data/translated/...`
+- upload exports are materialized under `data/hf_exports/...`
 - workflow artifacts and checkpoints go under `results/...`
 
 ## Evaluation

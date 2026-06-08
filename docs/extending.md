@@ -3,6 +3,7 @@
 This page is for the three common extension tasks:
 
 - add a new dataset
+- add a Hub upload config
 - add a new translation backend
 - add a new judge adapter or provider
 
@@ -70,7 +71,7 @@ Use:
 If none matches, add a new strategy instead of abusing an existing one.
 
 Strategy registry:
-- [registry.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/domain/translation_strategies/registry.py:1)
+- [registry.py](../src/data_translate/domain/translation_strategies/registry.py)
 
 ### 3. Decide whether this is `translate` or `reformat`
 
@@ -82,7 +83,7 @@ Use `reformat` when:
 - the external data is not the source of truth
 
 Reference example:
-- [globalwoz.yaml](/home/bodunok_/workspace/DialogMTEB/conf/datasets/globalwoz.yaml:1)
+- [globalwoz.yaml](../conf/datasets/globalwoz.yaml)
 
 ### 4. Verify config before running
 
@@ -96,6 +97,29 @@ make config-show WORKFLOW=evaluate DATASET=mydataset
 ```bash
 make translate DATASET=mydataset
 make evaluate DATASET=mydataset
+```
+
+### 6. Add upload config when the dataset should go to Hugging Face
+
+Create `conf/uploads/<upload_id>.yaml` after a translated artifact exists. Upload configs describe the parquet export layout used by the DeepPavlov Hugging Face org.
+
+Use the closest existing upload config:
+
+- `daily_dialog_fr.yaml` for one default config under `data/`
+- `canard_fr.yaml` for retrieval datasets with `corpus`, `queries`, and `qrels`
+- `clarqa_fr.yaml` for one repo with several dataset configs
+- `statcan_dialog_fr.yaml` for serialized dialog content where `content_fr` must replace `content`
+
+Dry-run export:
+
+```bash
+uv run data-translate upload-datasets --upload mydataset_fr --config-root conf
+```
+
+Only push after inspecting the generated parquet files:
+
+```bash
+uv run data-translate upload-datasets --upload mydataset_fr --config-root conf --push --yes
 ```
 
 ## Add a new translation strategy
@@ -112,14 +136,14 @@ What a strategy needs:
 - input validator
 
 Reference files:
-- [text.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/domain/translation_strategies/text.py:1)
-- [dialog.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/domain/translation_strategies/dialog.py:1)
-- [weblinx.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/domain/translation_strategies/weblinx.py:1)
+- [text.py](../src/data_translate/domain/translation_strategies/text.py)
+- [dialog.py](../src/data_translate/domain/translation_strategies/dialog.py)
+- [weblinx.py](../src/data_translate/domain/translation_strategies/weblinx.py)
 
 ### 2. Register it
 
 Update:
-- [registry.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/domain/translation_strategies/registry.py:1)
+- [registry.py](../src/data_translate/domain/translation_strategies/registry.py)
 
 Both maps must be updated:
 - `STRATEGIES`
@@ -149,7 +173,7 @@ This is the path for a new translator such as another HTTP provider.
 ### 1. Add backend config model
 
 Edit:
-- [models_dataset_translation.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/config/models_dataset_translation.py:1)
+- [models_dataset_translation.py](../src/data_translate/config/models_dataset_translation.py)
 
 Pattern:
 
@@ -167,7 +191,7 @@ Put it in:
 - `src/data_translate/adapters`
 
 It must satisfy the `TranslationAdapter` protocol:
-- [translation_base.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/adapters/translation_base.py:1)
+- [translation_base.py](../src/data_translate/adapters/translation_base.py)
 
 Required methods:
 - `translate(text, use_cache=...) -> TranslationResult`
@@ -176,7 +200,7 @@ Required methods:
 ### 3. Wire it into factory
 
 Edit:
-- [translation_factory.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/adapters/translation_factory.py:1)
+- [translation_factory.py](../src/data_translate/adapters/translation_factory.py)
 
 Add:
 - import
@@ -214,15 +238,15 @@ This is for evaluation-side LLMs, not for dataset translation.
 
 If the provider works through LiteLLM, the cheapest path is:
 - add provider mapping if needed
-- keep using [litellm_adapter.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/adapters/litellm_adapter.py:1)
+- keep using [litellm_adapter.py](../src/data_translate/adapters/litellm_adapter.py)
 
 If it needs custom behavior, create a new adapter implementing:
-- [llm_base.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/adapters/llm_base.py:1)
+- [llm_base.py](../src/data_translate/adapters/llm_base.py)
 
 ### 2. Wire it in
 
 Edit:
-- [llm_factory.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/adapters/llm_factory.py:1)
+- [llm_factory.py](../src/data_translate/adapters/llm_factory.py)
 
 Either:
 - map new provider to the existing LiteLLM builder

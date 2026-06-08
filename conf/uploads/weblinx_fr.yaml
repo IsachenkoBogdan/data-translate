@@ -1,0 +1,42 @@
+upload_id: weblinx_fr
+dataset_id: weblinx
+language: fr
+hub:
+  repo_id: DeepPavlov/weblinx_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+source:
+  path: data/translated/fr/DeepPavlov_WebLINX/default
+export:
+  local_dir: data/hf_exports/weblinx_fr
+  layout: single_config
+  config_name: default
+  data_dir: data
+  splits:
+    validation: validation
+    test_iid: test_iid
+    test_cat: test_cat
+    test_geo: test_geo
+    test_vis: test_vis
+    test_web: test_web
+  transforms:
+    - name: replace_columns
+      columns:
+        query: query_fr
+    - name: drop_columns
+      columns:
+        - query_fr
+    - name: select_columns
+      columns:
+        - query_id
+        - query
+        - positive
+        - negative
+        - query_dict
+validation:
+  check_translation:
+    dataset: weblinx
+    expected_errors: 0
+    expected_warnings: 0
+

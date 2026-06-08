@@ -34,7 +34,7 @@ def row_complete(state: RecordIndex, row_idx: int, fields: list[str]) -> bool:
     record = state.get(row_idx)
     if record is None:
         return False
-    return all(record.get(field) is not None for field in fields)
+    return all(field in record for field in fields)
 
 
 def missing_rows(state: RecordIndex, limit: int, fields: list[str]) -> list[int]:

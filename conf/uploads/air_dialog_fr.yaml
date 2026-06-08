@@ -1,0 +1,32 @@
+upload_id: air_dialog_fr
+dataset_id: airdialog
+language: fr
+hub:
+  repo_id: DeepPavlov/air_dialog_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+source:
+  path: data/translated/fr/DeepPavlov_air_dialogue/default
+export:
+  local_dir: data/hf_exports/air_dialog_fr
+  layout: single_config
+  config_name: default
+  data_dir: data
+  splits:
+    train: train
+    dev: dev
+    test: test
+  transforms:
+    - name: select_columns
+      columns:
+        - text
+        - label
+validation:
+  check_translation:
+    dataset: airdialog
+    max_rows_per_split: 1000
+    expected_errors: 0
+notes:
+  - Translation is in-place in the text field, matching DeepPavlov/air_dialog_es layout.
+

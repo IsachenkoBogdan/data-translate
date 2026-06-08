@@ -96,3 +96,128 @@ def test_quality_checker_infers_fr_pairs_without_source_dataset() -> None:
     report = audit_translation_quality(source=None, translated=translated, rules=[])
 
     assert [issue.code for issue in report.issues] == ["unchanged_translation"]
+
+
+def test_quality_checker_ignores_unchanged_technical_values() -> None:
+    translated = DatasetDict(
+        {
+            "train": Dataset.from_dict(
+                {
+                    "query": [
+                        "Capture.PNG (https://www.statcan.gc.ca/livechat/getfile.php?id=6661f0f16fbb99f81bea5cd5d2646a84)",
+                        "https://www150.statcan.gc.ca/n1/en/subjects/labour/earnings_wages",
+                        "I need the report at https://www.statcan.gc.ca/example",
+                    ],
+                    "query_fr": [
+                        "Capture.PNG (https://www.statcan.gc.ca/livechat/getfile.php?id=6661f0f16fbb99f81bea5cd5d2646a84)",
+                        "https://www150.statcan.gc.ca/n1/en/subjects/labour/earnings_wages",
+                        "I need the report at https://www.statcan.gc.ca/example",
+                    ],
+                }
+            )
+        }
+    )
+
+    report = audit_translation_quality(source=None, translated=translated, rules=[])
+
+    assert [(issue.code, issue.row_idx) for issue in report.issues] == [("unchanged_translation", 2)]
+
+
+def test_quality_checker_reports_nested_text_fields() -> None:
+    source = DatasetDict(
+        {
+            "train": Dataset.from_dict(
+                {
+                    "turn": [
+                        {
+                            "question": "What did the user ask?",
+                            "answers": [{"clr_ans": "Pest"}],
+                        }
+                    ]
+                }
+            )
+        }
+    )
+    translated = DatasetDict(
+        {
+            "train": Dataset.from_dict(
+                {
+                    "turn": [
+                        {
+                            "question": "What did the user ask?",
+                            "answers": [{"clr_ans": "Pest"}],
+                        }
+                    ],
+                    "turn_fr": [
+                        {
+                            "question": "What did the user ask?",
+                            "answers": [{"clr_ans": "Pest"}],
+                        }
+                    ],
+                }
+            )
+        }
+    )
+
+    report = audit_translation_quality(
+        source=source,
+        translated=translated,
+        rules=[
+            QualityRule(
+                source="turn",
+                target="turn_fr",
+                strategy="nested_text_fields",
+                options={"paths": ["question", "answers[].clr_ans"]},
+            )
+        ],
+    )
+
+    assert [issue.code for issue in report.issues] == ["unchanged_translation"]
+
+
+def test_quality_checker_reports_deep_map_text_fields() -> None:
+    source = DatasetDict(
+        {
+            "train": Dataset.from_dict(
+                {
+                    "turn": [
+                        {
+                            "id": "do-not-check",
+                            "question": "What did the user ask?",
+                            "answers": [{"answer": "the west side of the river"}],
+                        }
+                    ]
+                }
+            )
+        }
+    )
+    translated = DatasetDict(
+        {
+            "train": Dataset.from_dict(
+                {
+                    "turn": [
+                        {
+                            "id": "do-not-check",
+                            "question": "What did the user ask?",
+                            "answers": [{"answer": "the west side of the river"}],
+                        }
+                    ]
+                }
+            )
+        }
+    )
+
+    report = audit_translation_quality(
+        source=source,
+        translated=translated,
+        rules=[
+            QualityRule(
+                source="turn",
+                target="turn",
+                strategy="deep_map_texts",
+                options={"exclude_keys": ["id"]},
+            )
+        ],
+    )
+
+    assert [issue.code for issue in report.issues] == ["unchanged_translation", "unchanged_translation"]

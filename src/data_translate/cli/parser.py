@@ -39,6 +39,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Hydra override, for example: --set runtime.concurrency=24",
     )
 
+    upload_parser = subparsers.add_parser("upload-datasets")
+    upload_parser.add_argument("--upload", dest="uploads", action="append", default=[], help="Upload id from conf/uploads")
+    upload_parser.add_argument("--all", action="store_true", help="Export/upload all configs from conf/uploads")
+    upload_parser.add_argument("--config-root", default="conf", help="Hydra config root directory")
+    upload_parser.add_argument("--push", action="store_true", help="Create/update Hugging Face dataset repos and upload exports")
+    upload_parser.add_argument("--yes", action="store_true", help="Required together with --push")
+
     config_parser = subparsers.add_parser("config-show")
     config_parser.add_argument("--workflow", choices=sorted(workflow_names()), required=True)
     add_common_args(config_parser, dataset_optional=True)

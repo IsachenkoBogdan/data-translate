@@ -1,4 +1,5 @@
 import json
+import re
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from typing import Any
@@ -6,6 +7,8 @@ from typing import Any
 from datasets import DatasetDict
 
 from data_translate.domain.renderers import action_sequence
+from data_translate.domain.translation_strategies.deep_map import deep_map_text_pairs
+from data_translate.domain.translation_strategies.nested import nested_text_pairs
 
 
 @dataclass(frozen=True)
@@ -93,6 +96,17 @@ _ENGLISH_SIGNAL_WORDS = {
     "your",
 }
 
+_URL_RE = re.compile(r"(?i)\b(?:https?://|www\.)\S+")
+_EMAIL_RE = re.compile(r"(?i)\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b")
+_FILE_EXTENSION_RE = re.compile(
+    r"(?i)\.(?:7z|avif|bmp|csv|doc|docx|gif|gz|htm|html|jpeg|jpg|json|pdf|png|ppt|pptx|tar|tsv|txt|webp|xls|xlsx|xml|zip)\b"
+)
+_FILE_ATTACHMENT_RE = re.compile(
+    r"(?i)^\s*`?[^()\n]{0,180}\.(?:7z|avif|bmp|csv|doc|docx|gif|gz|htm|html|jpeg|jpg|json|pdf|png|ppt|pptx|tar|tsv|txt|webp|xls|xlsx|xml|zip)\s*(?:\([^)]*\))?\s*$"
+)
+_BARE_PATH_RE = re.compile(r"(?i)^\s*(?:[\w.-]+/)+[\w./-]+\s*$")
+_HASH_OR_ID_RE = re.compile(r"(?i)^[a-f0-9]{16,}$|^[a-z0-9_-]{24,}$")
+
 
 def _norm(value: str) -> str:
     return "".join(char.lower() for char in value if char.isalnum())
@@ -120,8 +134,40 @@ def _has_english_signal(value: str) -> bool:
     return any(token in _ENGLISH_SIGNAL_WORDS for token in _tokens(value))
 
 
+def _is_technical_unchanged_value(value: str) -> bool:
+    stripped = value.strip()
+    if not stripped:
+        return False
+    if _URL_RE.fullmatch(stripped.strip("()[]<>\"'`")) or _EMAIL_RE.fullmatch(stripped):
+        return True
+    without_urls = _URL_RE.sub("", stripped)
+    if without_urls and not any(char.isalnum() for char in without_urls):
+        return True
+    if _FILE_ATTACHMENT_RE.fullmatch(stripped):
+        return True
+    if _BARE_PATH_RE.fullmatch(stripped):
+        return True
+    if _HASH_OR_ID_RE.fullmatch(stripped):
+        return True
+
+    tokens = _tokens(stripped)
+    if not tokens:
+        return True
+    if _URL_RE.search(stripped) or _FILE_EXTENSION_RE.search(stripped):
+        signal_tokens = [token for token in tokens if token in _ENGLISH_SIGNAL_WORDS]
+        technical_chars = sum(1 for char in stripped if not char.isalpha() and not char.isspace())
+        technical_ratio = technical_chars / max(1, len(stripped))
+        return len(signal_tokens) <= 1 and technical_ratio >= 0.18
+    return False
+
+
 def suspicious_unchanged_translation(source: str, translated: str, *, min_letters: int = 12) -> bool:
-    return _letter_count(source) >= min_letters and _has_english_signal(source) and _norm(source) == _norm(translated)
+    return (
+        _letter_count(source) >= min_letters
+        and not _is_technical_unchanged_value(source)
+        and _has_english_signal(source)
+        and _norm(source) == _norm(translated)
+    )
 
 
 def _issue(
@@ -155,6 +201,17 @@ def _empty_translated(source: str, translated: str) -> bool:
 
 
 def _text_pairs(source_value: Any, translated_value: Any, strategy: str, options: dict[str, Any]) -> tuple[list[tuple[str, str, str]], list[str]]:
+    if strategy == "deep_map_texts":
+        raw_exclude_keys = options.get("exclude_keys", [])
+        if isinstance(raw_exclude_keys, str):
+            exclude_keys = {raw_exclude_keys}
+        elif isinstance(raw_exclude_keys, list):
+            exclude_keys = {str(item) for item in raw_exclude_keys}
+        else:
+            exclude_keys = set()
+        return deep_map_text_pairs(source_value, translated_value, exclude_keys=exclude_keys)
+    if strategy == "nested_text_fields":
+        return nested_text_pairs(source_value, translated_value, [str(path) for path in options.get("paths", [])])
     if strategy == "serialized_dialog_turns_content":
         return _serialized_dialog_pairs(source_value, translated_value, options)
     if strategy == "dialog_turns_content":

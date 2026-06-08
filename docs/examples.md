@@ -408,3 +408,62 @@ make config-show WORKFLOW=evaluate DATASET=my_dialog_dataset RUN=gpt54mini
 ```
 
 If the merged config is wrong, fix config first. Do not debug a 5-hour run from guesswork.
+
+## 10. Export and upload to Hugging Face
+
+Use this after `translate` / `reformat` and `check-translation` have passed.
+
+Example upload config for a dataset where `text_fr` should become the exported `text` column:
+
+```yaml
+upload_id: my_text_dataset_fr
+dataset_id: my_text_dataset
+language: fr
+hub:
+  repo_id: DeepPavlov/my_text_dataset_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+source:
+  path: data/translated/fr/org_my_text_dataset/default
+export:
+  local_dir: data/hf_exports/my_text_dataset_fr
+  layout: single_config
+  config_name: default
+  data_dir: data
+  splits:
+    train: train
+    validation: validation
+    test: test
+  transforms:
+    - name: replace_columns
+      columns:
+        text: text_fr
+    - name: drop_columns
+      columns:
+        - text_fr
+    - name: select_columns
+      columns:
+        - id
+        - text
+```
+
+Dry-run export:
+
+```bash
+uv run data-translate upload-datasets --upload my_text_dataset_fr --config-root conf
+```
+
+Push to Hugging Face:
+
+```bash
+hf auth whoami
+uv run data-translate upload-datasets --upload my_text_dataset_fr --config-root conf --push --yes
+```
+
+For all configured uploads:
+
+```bash
+uv run data-translate upload-datasets --all --config-root conf
+uv run data-translate upload-datasets --all --config-root conf --push --yes
+```

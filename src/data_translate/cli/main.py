@@ -7,6 +7,7 @@ from data_translate.cli.parser import build_parser
 from data_translate.cli.registry import run_workflow
 from data_translate.config.loader import load_workflow_model
 from data_translate.services.translation_quality import format_quality_summary, run_translation_quality_check
+from data_translate.services.upload_datasets import format_upload_summary, run_upload_datasets
 
 
 def configure_logging() -> None:
@@ -48,6 +49,16 @@ def main() -> None:
         print(format_quality_summary(payload))
         if int(payload["error_count"]) > 0:
             sys.exit(1)
+        return
+    if args.command == "upload-datasets":
+        payload = run_upload_datasets(
+            config_root=args.config_root,
+            upload_ids=args.uploads,
+            all_uploads=args.all,
+            push=args.push,
+            yes=args.yes,
+        )
+        print(format_upload_summary(payload))
         return
     config = load_workflow_model(
         args.command,

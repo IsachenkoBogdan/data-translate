@@ -126,10 +126,43 @@ options:
 
 This is used by `weblinx`.
 
+### `nested_text_fields`
+
+Use for nested dict/list values when only specific text paths should be translated.
+
+Example:
+
+```yaml
+- source: turn
+  target: turn_fr
+  strategy: nested_text_fields
+  options:
+    paths:
+      - question
+      - answers[].answer
+```
+
+### `deep_map_texts`
+
+Use when every textual value inside a nested cell should be translated while preserving the original nested shape.
+
+Example:
+
+```yaml
+- source: history_turns
+  target: history_turns
+  strategy: deep_map_texts
+  options:
+    exclude_keys:
+      - id
+```
+
+This is used by `coqa_abg`.
+
 ## Strategy validation
 
 Each strategy has an input validator. Validation entrypoints are registered in:
-- [registry.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/domain/translation_strategies/registry.py:1)
+- [registry.py](../src/data_translate/domain/translation_strategies/registry.py)
 
 That means adding a strategy is always two steps:
 - implement the translator function
@@ -176,10 +209,10 @@ backend:
 ```
 
 Backend model types are declared in:
-- [models_dataset_translation.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/config/models_dataset_translation.py:1)
+- [models_dataset_translation.py](../src/data_translate/config/models_dataset_translation.py)
 
 Backend instantiation happens in:
-- [translation_factory.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/adapters/translation_factory.py:1)
+- [translation_factory.py](../src/data_translate/adapters/translation_factory.py)
 
 ## Judge LLM adapters
 
@@ -209,13 +242,13 @@ model: gpt-4o-mini
 ```
 
 LLM adapter interface:
-- [llm_base.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/adapters/llm_base.py:1)
+- [llm_base.py](../src/data_translate/adapters/llm_base.py)
 
 Current LiteLLM-based implementation:
-- [litellm_adapter.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/adapters/litellm_adapter.py:1)
+- [litellm_adapter.py](../src/data_translate/adapters/litellm_adapter.py)
 
 Provider routing:
-- [llm_factory.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/adapters/llm_factory.py:1)
+- [llm_factory.py](../src/data_translate/adapters/llm_factory.py)
 
 ## Workflow registry
 
@@ -227,11 +260,16 @@ Registered workflows:
 - `reformat`
 - `inspect-source`
 
+Additional CLI-only commands:
+
+- `check-translation`
+- `upload-datasets`
+
 The registry lives in:
-- [workflow_registry.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/workflow_registry.py:1)
+- [workflow_registry.py](../src/data_translate/workflow_registry.py)
 
 Hydra composition entrypoint:
-- [composition.py](/home/bodunok_/workspace/DialogMTEB/src/data_translate/config/composition.py:1)
+- [composition.py](../src/data_translate/config/composition.py)
 
 ## Practical rules when adding a dataset
 
@@ -240,6 +278,69 @@ Hydra composition entrypoint:
 3. Choose the narrowest translation strategy that matches the field shape.
 4. Keep evaluation field pairs aligned with translated output fields.
 5. For external candidates, add `inspect-source` and `reformat` config instead of treating them as source truth.
+
+## Upload config shape
+
+Upload configs live in `conf/uploads/<upload_id>.yaml`. They are not Hydra workflow configs; they are declarative specs consumed by:
+
+```bash
+uv run data-translate upload-datasets --upload <upload_id> --config-root conf
+```
+
+Minimal single-config upload:
+
+```yaml
+upload_id: my_dataset_fr
+dataset_id: my_dataset
+language: fr
+hub:
+  repo_id: DeepPavlov/my_dataset_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+source:
+  path: data/translated/fr/DeepPavlov_my_dataset/default
+export:
+  local_dir: data/hf_exports/my_dataset_fr
+  layout: single_config
+  config_name: default
+  data_dir: data
+  splits:
+    train: train
+    test: test
+  transforms:
+    - name: replace_columns
+      columns:
+        text: text_fr
+    - name: drop_columns
+      columns:
+        - text_fr
+    - name: select_columns
+      columns:
+        - id
+        - text
+```
+
+Supported transform names:
+
+- `replace_columns`: copy translated helper columns into canonical exported columns
+- `drop_columns`: remove helper/source columns
+- `select_columns`: keep and order final exported columns
+- `serialized_dialog_content`: replace JSON-serialized turn `content` from a translated helper key such as `content_fr`
+
+Multi-config uploads use `export.layout: multi_config` and `export.configs`. They can read one local artifact with `source`, or several artifacts with `sources` and per-config `source_config`.
+
+Examples:
+
+- `conf/uploads/canard_fr.yaml`
+- `conf/uploads/clarqa_fr.yaml`
+- `conf/uploads/statcan_dialog_fr.yaml`
+
+Safety behavior:
+
+- without `--push`, `upload-datasets` only writes local parquet exports under `data/hf_exports`
+- with `--push --yes`, it runs `hf repos create ... --exist-ok` and `hf upload ...`
+- `--push` without `--yes` is rejected
 
 ## Custom config patterns
 

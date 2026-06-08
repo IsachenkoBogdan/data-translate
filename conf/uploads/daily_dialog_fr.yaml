@@ -1,0 +1,41 @@
+upload_id: daily_dialog_fr
+dataset_id: daily_dialog
+language: fr
+hub:
+  repo_id: DeepPavlov/daily_dialog_fr
+  type: dataset
+  visibility: public
+  mode: update
+source:
+  path: data/translated/fr/DeepPavlov_daily_dialog/default
+export:
+  local_dir: data/hf_exports/daily_dialog_fr
+  layout: single_config
+  config_name: default
+  data_dir: data
+  splits:
+    train: train
+    validation: validation
+    test: test
+  transforms:
+    - name: replace_columns
+      columns:
+        dialog: dialog_fr
+    - name: drop_columns
+      columns:
+        - dialog_fr
+    - name: select_columns
+      columns:
+        - act_label
+        - act_label_text
+        - emotion_label
+        - emotion_label_text
+        - dialog
+validation:
+  check_translation:
+    dataset: daily_dialog
+    expected_errors: 0
+    expected_warnings: 0
+notes:
+  - Existing Hub repo is misaligned; replace current parquet files from the cleaned local artifact.
+

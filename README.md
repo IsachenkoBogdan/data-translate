@@ -1,20 +1,21 @@
 # data-translate
 
-`data-translate` is a local workflow package for translating dialogue datasets and preparing or running evaluation artifacts.
+`data-translate` is a local workflow package for translating dialogue datasets, checking translation quality, exporting Hub-ready parquet layouts, and running evaluation artifacts.
 
 Current scope:
 - translate dialogue datasets to French without changing task schema
 - inspect and reformat external candidate translations
+- export translated artifacts to the parquet layout used by the DeepPavlov Hugging Face org
 - run LLM-based evaluation and benchmark judging
 
 Main package path:
 - `src/data_translate`
 
 Docs:
-- [docs/usage.md](/home/bodunok_/workspace/DialogMTEB/docs/usage.md)
-- [docs/reference.md](/home/bodunok_/workspace/DialogMTEB/docs/reference.md)
-- [docs/extending.md](/home/bodunok_/workspace/DialogMTEB/docs/extending.md)
-- [docs/examples.md](/home/bodunok_/workspace/DialogMTEB/docs/examples.md)
+- [docs/usage.md](docs/usage.md)
+- [docs/reference.md](docs/reference.md)
+- [docs/extending.md](docs/extending.md)
+- [docs/examples.md](docs/examples.md)
 
 CLI:
 
@@ -24,6 +25,7 @@ uv run data-translate evaluate --dataset faithdial
 uv run data-translate reformat --dataset globalwoz --run ff
 uv run data-translate inspect-source --dataset globalwoz --run ff
 uv run data-translate check-translation --dataset faithdial
+uv run data-translate upload-datasets --upload daily_dialog_fr
 uv run data-translate benchmark-judge --run translation_judge
 ```
 
@@ -36,6 +38,7 @@ make evaluate DATASET=weblinx
 make reformat DATASET=globalwoz RUN=ff
 make inspect-source DATASET=globalwoz RUN=ff
 make check-translation DATASET=faithdial
+make upload-datasets UPLOAD=daily_dialog_fr
 make benchmark-judge RUN=translation_judge
 ```
 
@@ -46,6 +49,7 @@ make translate DATASET=faithdial
 make evaluate DATASET=weblinx
 make reformat DATASET=globalwoz RUN=ff
 make config-show WORKFLOW=translate DATASET=airdialog
+make upload-datasets
 ```
 
 Common flow:
@@ -62,14 +66,25 @@ make evaluate DATASET=weblinx
 make reformat DATASET=globalwoz RUN=ff
 make check-translation DATASET=globalwoz RUN=ff
 make evaluate DATASET=globalwoz RUN=ff
+
+make upload-datasets UPLOAD=daily_dialog_fr
+make upload-datasets-push UPLOAD=daily_dialog_fr
 ```
 
 Notes:
 - datasets are loaded from Hugging Face when configured with `source.hf_dataset_id`
 - `globalwoz` is the main external-source exception and uses `reformat` instead of `translate`
 - `check-translation` is a pre-upload sanity workflow for schema, row counts, list lengths, empty translations, unchanged English-like text, and WebLINX action preservation
+- unchanged technical values such as URLs, file names, attachments, paths, emails, and hash-like ids are ignored by `check-translation`
+- `upload-datasets` reads `conf/uploads/*.yaml`, exports local translated artifacts to parquet under `data/hf_exports`, and only pushes to Hugging Face when called with `--push --yes`
 - evaluation is a separate workflow; it does not run automatically after translation
 - OpenRouter is supported for judge models via `conf/llm/translation_judge.yaml`
+
+Dataset status:
+
+- translated and prepared for French upload: `daily_dialog`, `statcan-dialogue-dataset-retrieval`, `weblinx`, `airdialog`, `canard`, `clarqa`, `globalwoz` / MultiWOZ
+- translated locally but not a full Hub-equivalent yet: `faithdial` currently has `history_fr` and `knowledge_fr`; the Spanish Hub analogue also translates response and label fields
+- still unfinished: `mantis`, `wizard_of_wikipedia`, `coqa_abg`, `coral`
 
 Next improvements:
 - add `mt-metrics-eval` as an external calibration benchmark for judge quality on standard MT human-eval data
@@ -81,6 +96,7 @@ Next improvements:
 
 Config layout:
 - `conf/datasets` dataset specs
+- `conf/uploads` Hugging Face parquet export/upload specs
 - `conf/workflows` workflow defaults
 - `conf/runs` run presets
 - `conf/llm`, `conf/runtime`, `conf/prompts` runtime and judging settings

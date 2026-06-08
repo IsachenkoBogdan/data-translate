@@ -1,0 +1,92 @@
+dataset_id: coqa_abg
+source:
+  hf_dataset_id: DeepPavlov/coqa_abg
+artifacts:
+  translated_basename: DeepPavlov_coqa_abg
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  rules:
+    - source: story
+      target: story
+      strategy: text
+      cache: true
+      options:
+        max_chunk_chars: 2500
+    - source: target_turn
+      target: target_turn
+      strategy: deep_map_texts
+      cache: true
+      options:
+        max_chunk_chars: 2500
+    - source: history_turns
+      target: history_turns
+      strategy: deep_map_texts
+      cache: true
+      options:
+        max_chunk_chars: 2500
+    - source: clarification_turn
+      target: clarification_turn
+      strategy: deep_map_texts
+      cache: true
+      options:
+        max_chunk_chars: 2500
+    - source: clarification_turn_2
+      target: clarification_turn_2
+      strategy: deep_map_texts
+      cache: true
+      options:
+        max_chunk_chars: 2500
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: conversational question answering, reading comprehension
+  split: all
+  seed: 42
+  inputs:
+    source:
+      kind: source
+    translation:
+      kind: translated
+  sampling:
+    strategy: per_split_random
+    dataset: source
+    samples_per_split: 50
+  field_pairs:
+    - name: story
+      source_dataset: source
+      source_field: story
+      source_format: text
+      translation_dataset: translation
+      translation_field: story
+      translation_format: text
+    - name: target_turn
+      source_dataset: source
+      source_field: target_turn
+      source_format: raw
+      translation_dataset: translation
+      translation_field: target_turn
+      translation_format: raw
+    - name: history_turns
+      source_dataset: source
+      source_field: history_turns
+      source_format: raw
+      translation_dataset: translation
+      translation_field: history_turns
+      translation_format: raw
+    - name: clarification_turn
+      source_dataset: source
+      source_field: clarification_turn
+      source_format: raw
+      translation_dataset: translation
+      translation_field: clarification_turn
+      translation_format: raw
+    - name: clarification_turn_2
+      source_dataset: source
+      source_field: clarification_turn_2
+      source_format: raw
+      translation_dataset: translation
+      translation_field: clarification_turn_2
+      translation_format: raw

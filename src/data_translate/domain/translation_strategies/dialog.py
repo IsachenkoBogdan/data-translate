@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from data_translate.adapters.translation_base import TranslationAdapter
-from data_translate.domain.translation_common import Options, StrategyResult, translate_sequence
+from data_translate.domain.translation_common import DEFAULT_MAX_CHUNK_CHARS, Options, StrategyResult, translate_sequence
 
 
 def _dialog_contents(dialog: list[Any], *, content_field: str, normalize_newlines: bool) -> list[str]:
@@ -55,8 +55,14 @@ async def translate_dialog_turns_content(
     dialog = list(value or [])
     content_field = str(options.get("content_field", "content"))
     normalize_newlines = bool(options.get("normalize_newlines", True))
+    max_chunk_chars = int(options.get("max_chunk_chars", DEFAULT_MAX_CHUNK_CHARS))
     contents = _dialog_contents(dialog, content_field=content_field, normalize_newlines=normalize_newlines)
-    translated_contents, attempts, error = await translate_sequence(contents, adapter, use_cache=use_cache)
+    translated_contents, attempts, error = await translate_sequence(
+        contents,
+        adapter,
+        use_cache=use_cache,
+        max_chunk_chars=max_chunk_chars,
+    )
     return StrategyResult(
         _dialog_with_translated_contents(dialog, translated_contents, content_field=content_field),
         error=error,

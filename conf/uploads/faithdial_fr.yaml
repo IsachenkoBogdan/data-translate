@@ -1,0 +1,37 @@
+upload_id: faithdial_fr
+dataset_id: faithdial
+language: fr
+hub:
+  repo_id: DeepPavlov/faithdial_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+source:
+  path: data/translated/fr/DeepPavlov_FaithDial/default
+export:
+  local_dir: data/hf_exports/faithdial_fr
+  layout: single_config
+  config_name: default
+  data_dir: data
+  splits:
+    test: test
+  transforms:
+    - name: select_columns
+      columns:
+        - dialog_idx
+        - response
+        - original_response
+        - history
+        - knowledge
+        - BEGIN
+        - VRM
+        - history_fr
+        - knowledge_fr
+validation:
+  check_translation:
+    dataset: faithdial
+    expected_errors: 0
+    expected_warnings: 0
+notes:
+  - Current local artifact contains translated history_fr and knowledge_fr only.
+  - DeepPavlov/faithdial_es additionally has response_es, original_response_es, BEGIN_es, and VRM_es.
