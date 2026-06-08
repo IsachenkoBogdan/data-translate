@@ -82,9 +82,20 @@ Notes:
 
 Dataset status:
 
-- translated and prepared for French upload: `daily_dialog`, `statcan-dialogue-dataset-retrieval`, `weblinx`, `airdialog`, `canard`, `clarqa`, `globalwoz` / MultiWOZ
-- translated locally but not a full Hub-equivalent yet: `faithdial` currently has `history_fr` and `knowledge_fr`; the Spanish Hub analogue also translates response and label fields
-- still unfinished: `mantis`, `wizard_of_wikipedia`, `coqa_abg`, `coral`
+| Source dataset | Local dataset id | French Hub repo | Status |
+| --- | --- | --- | --- |
+| DailyDialog Manually Labelled Multi-turn Dialogue Dataset | `daily_dialog` | [DeepPavlov/daily_dialog_fr](https://huggingface.co/datasets/DeepPavlov/daily_dialog_fr) | Translated and uploaded |
+| statcan-dialogue-dataset-retrieval | `statcan-dialogue-dataset-retrieval` | [DeepPavlov/statcan_dialog_fr](https://huggingface.co/datasets/DeepPavlov/statcan_dialog_fr) | Translated and uploaded |
+| WebLINX | `weblinx` | [DeepPavlov/weblinx_fr](https://huggingface.co/datasets/DeepPavlov/weblinx_fr) | Translated and uploaded |
+| FaithDial | `faithdial` | [DeepPavlov/faithdial_fr](https://huggingface.co/datasets/DeepPavlov/faithdial_fr) | Translated and uploaded; current artifact includes `history_fr` and `knowledge_fr` |
+| Multi2WOZ / MultiWOZ | `globalwoz` | [DeepPavlov/multiwoz_fr](https://huggingface.co/datasets/DeepPavlov/multiwoz_fr) | Translated and uploaded |
+| air-dialogue | `airdialog` | [DeepPavlov/air_dialog_fr](https://huggingface.co/datasets/DeepPavlov/air_dialog_fr) | Translated and uploaded |
+| CANARD | `canard_queries` | [DeepPavlov/canard_fr](https://huggingface.co/datasets/DeepPavlov/canard_fr) | Translated and uploaded |
+| ClarQA | `clarqa_multi_turn`, `clarqa_single_turn` | [DeepPavlov/clarqa_fr](https://huggingface.co/datasets/DeepPavlov/clarqa_fr) | Translated and uploaded |
+| MANtIS | `mantis` | Planned | Translation in progress; will be uploaded after completion and checks |
+| Wizard of Wikipedia / WoW | `wizard_of_wikipedia` | Planned | Translation in progress; will be uploaded after completion and checks |
+| Abg-CoQA | `coqa_abg` | Planned | Translation in progress; config is prepared, upload after completion and checks |
+| Coral | `coral_*` | Planned | Translation in progress; configs are prepared, upload after completion and checks |
 
 Next improvements:
 - add `mt-metrics-eval` as an external calibration benchmark for judge quality on standard MT human-eval data
