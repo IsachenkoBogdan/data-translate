@@ -390,28 +390,46 @@ fonts:
   <a href="https://huggingface.co/DeepPavlov">huggingface.co/DeepPavlov</a>
 </div>
 
-<div class="coverage-board mt-4">
-  <div class="coverage-card">
-    <h3>Намерения и классификация</h3>
-    <p>atis_intents · banking77 · vira-intent · CLINC150 · HWU64 · MTOPIntent · MASSIVE</p>
+<div class="publication-layout mt-4">
+  <div class="coverage-panel">
+    <h3>Командный охват задач</h3>
+    <div class="coverage-line">
+      <b>Намерения</b>
+      <span>atis_intents · banking77 · vira-intent · CLINC150 · HWU64 · MTOPIntent · MASSIVE</span>
+    </div>
+    <div class="coverage-line">
+      <b>Диалоговые сценарии</b>
+      <span>X-RiSAWOZ · DailyDialog · FaithDial · Multi2WOZ · air-dialogue</span>
+    </div>
+    <div class="coverage-line">
+      <b>Поиск и ранжирование</b>
+      <span>statcan-dialogue-dataset-retrieval · WebLINX · CANARD · MANtIS · WoW · QReCC · Coral · TREC iKAT 2023</span>
+    </div>
+    <div class="coverage-line">
+      <b>Вопросы-ответы</b>
+      <span>ClarQA · TopiOCQA · Abg-CoQA · DialogSum</span>
+    </div>
   </div>
-  <div class="coverage-card">
-    <h3>Диалоговые сценарии</h3>
-    <p>X-RiSAWOZ · DailyDialog · FaithDial · Multi2WOZ · air-dialogue</p>
-  </div>
-  <div class="coverage-card">
-    <h3>Поиск и ранжирование</h3>
-    <p>statcan-dialogue-dataset-retrieval · WebLINX · CANARD · MANtIS · WoW · QReCC · Coral · TREC iKAT 2023</p>
-  </div>
-  <div class="coverage-card">
-    <h3>Вопросы-ответы и суммаризация</h3>
-    <p>ClarQA · TopiOCQA · Abg-CoQA · DialogSum</p>
+  <div class="publication-panel">
+    <h3>Статус французской части</h3>
+    <div>
+      <b>Загружено</b>
+      <span>DailyDialog, StatCan, WebLINX, FaithDial, MultiWOZ, AirDialog, CANARD, ClarQA, MANtIS</span>
+    </div>
+    <div>
+      <b>Abg-CoQA</b>
+      <span>готов конфиг <code>coqa_abg_fr</code>; загрузка после финальной проверки</span>
+    </div>
+    <div>
+      <b>Дальше</b>
+      <span>WoW и Coral: сначала корпуса, затем запросы и связи релевантности</span>
+    </div>
   </div>
 </div>
 
 <!--
 Полина и Богдан. 50 секунд.
-Сказать: это общий командный результат; русские и французские артефакты опубликованы в DeepPavlov, а не в личных репозиториях. Это важно как проверяемый артефакт проекта: результаты доступны не в локальных папках, а в общей организации вместе с кодом, настройками перевода и описанием статуса работ.
+Сказать: это общий командный результат; русские и французские артефакты опубликованы в DeepPavlov, а не в личных репозиториях. Отдельно отметить, что MANtIS уже залит, а для Abg-CoQA подготовлен конфиг загрузки и он идет следующим после финальной проверки.
 -->
 
 ---
@@ -433,10 +451,10 @@ fonts:
   <div class="card accent">
     <h3>Следующие шаги</h3>
     <ul>
-      <li>дозавершить оставшиеся языковые версии WoW, Abg-CoQA и Coral</li>
+      <li>загрузить Abg-CoQA после финальной проверки перевода</li>
+      <li>дозавершить оставшиеся крупные языковые версии WoW и Coral</li>
       <li>добавить ручную двуязычную проверку на небольшой выборке</li>
       <li>запустить многоязычную оценку DialogMTEB</li>
-      <li>расширить конвейер на новые языки</li>
     </ul>
   </div>
 </div>
