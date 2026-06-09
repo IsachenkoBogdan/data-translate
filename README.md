@@ -116,7 +116,7 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 | air-dialogue | `airdialog` | [DeepPavlov/air_dialog_fr](https://huggingface.co/datasets/DeepPavlov/air_dialog_fr) | Переведен и загружен |
 | CANARD | `canard_queries` | [DeepPavlov/canard_fr](https://huggingface.co/datasets/DeepPavlov/canard_fr) | Переведен и загружен |
 | ClarQA | `clarqa_multi_turn`, `clarqa_single_turn` | [DeepPavlov/clarqa_fr](https://huggingface.co/datasets/DeepPavlov/clarqa_fr) | Переведен и загружен |
-| MANtIS | `mantis` | Планируется | Перевод в процессе; будет загружен после завершения и проверок |
+| MANtIS | `mantis` | [DeepPavlov/mantis_fr](https://huggingface.co/datasets/DeepPavlov/mantis_fr) | Переведен и загружен; `check-translation`: 0 ошибок, 0 предупреждений |
 | Wizard of Wikipedia / WoW | `wizard_of_wikipedia` | Планируется | Перевод в процессе; будет загружен после завершения и проверок |
 | Abg-CoQA | `coqa_abg` | Планируется | Перевод в процессе; настройки подготовлены, загрузка после завершения и проверок |
 | Coral | `coral_*` | Планируется | Перевод в процессе; настройки подготовлены, загрузка после завершения и проверок |

@@ -2,7 +2,14 @@ from collections.abc import Mapping
 from typing import Any
 
 from data_translate.adapters.translation_base import TranslationAdapter
-from data_translate.domain.translation_common import DEFAULT_MAX_CHUNK_CHARS, Options, StrategyResult, translate_sequence
+from data_translate.domain.translation_common import (
+    DEFAULT_MAX_CHUNK_CHARS,
+    Options,
+    StrategyResult,
+    merge_translation_errors,
+    translate_sequence,
+)
+from data_translate.domain.translation_unchanged import retry_if_unchanged
 
 
 def _dialog_contents(dialog: list[Any], *, content_field: str, normalize_newlines: bool) -> list[str]:
@@ -63,8 +70,15 @@ async def translate_dialog_turns_content(
         use_cache=use_cache,
         max_chunk_chars=max_chunk_chars,
     )
+    retry_errors: list[str] = []
+    for idx, (source, translated) in enumerate(zip(contents, translated_contents, strict=True)):
+        retry_text, retry_attempts, retry_error = await retry_if_unchanged(source, translated, adapter, options)
+        attempts += retry_attempts
+        translated_contents[idx] = retry_text
+        if retry_error:
+            retry_errors.append(f"item {idx}: {retry_error}")
     return StrategyResult(
         _dialog_with_translated_contents(dialog, translated_contents, content_field=content_field),
-        error=error,
+        error=merge_translation_errors(error, *retry_errors),
         attempts=attempts,
     )

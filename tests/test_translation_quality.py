@@ -106,12 +106,22 @@ def test_quality_checker_ignores_unchanged_technical_values() -> None:
                     "query": [
                         "Capture.PNG (https://www.statcan.gc.ca/livechat/getfile.php?id=6661f0f16fbb99f81bea5cd5d2646a84)",
                         "https://www150.statcan.gc.ca/n1/en/subjects/labour/earnings_wages",
+                        "@NesanMano https://unix.stackexchange.com/questions/84090/how-can-i-revert-a-chmod-on-the-etc-directory",
+                        "`df -h` `sudo umount /dev/sda1`",
+                        "8f5303e4b1afc818798425a700139133  /lib/firmware/ath10k/QCA6174/hw2.1/firmware-5.bin",
+                        "Canon i-Sensys MF231",
                         "I need the report at https://www.statcan.gc.ca/example",
+                        "I need 1 single room today",
                     ],
                     "query_fr": [
                         "Capture.PNG (https://www.statcan.gc.ca/livechat/getfile.php?id=6661f0f16fbb99f81bea5cd5d2646a84)",
                         "https://www150.statcan.gc.ca/n1/en/subjects/labour/earnings_wages",
+                        "@NesanMano https://unix.stackexchange.com/questions/84090/how-can-i-revert-a-chmod-on-the-etc-directory",
+                        "`df -h` `sudo umount /dev/sda1`",
+                        "8f5303e4b1afc818798425a700139133  /lib/firmware/ath10k/QCA6174/hw2.1/firmware-5.bin",
+                        "Canon i-Sensys MF231",
                         "I need the report at https://www.statcan.gc.ca/example",
+                        "I need 1 single room today",
                     ],
                 }
             )
@@ -120,7 +130,10 @@ def test_quality_checker_ignores_unchanged_technical_values() -> None:
 
     report = audit_translation_quality(source=None, translated=translated, rules=[])
 
-    assert [(issue.code, issue.row_idx) for issue in report.issues] == [("unchanged_translation", 2)]
+    assert [(issue.code, issue.row_idx) for issue in report.issues] == [
+        ("unchanged_translation", 6),
+        ("unchanged_translation", 7),
+    ]
 
 
 def test_quality_checker_reports_nested_text_fields() -> None:

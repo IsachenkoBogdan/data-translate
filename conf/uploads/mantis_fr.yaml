@@ -1,0 +1,42 @@
+upload_id: mantis_fr
+dataset_id: mantis
+language: fr
+hub:
+  repo_id: DeepPavlov/mantis_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+source:
+  path: data/translated/fr/DeepPavlov_Mantis/default
+export:
+  local_dir: data/hf_exports/mantis_fr
+  layout: single_config
+  config_name: default
+  data_dir: data
+  splits:
+    train: train
+    dev: dev
+    test: test
+  transforms:
+    - name: replace_columns
+      columns:
+        dialog: dialog_fr
+        title: title_fr
+    - name: drop_columns
+      columns:
+        - dialog_fr
+        - title_fr
+    - name: select_columns
+      columns:
+        - dialog
+        - title
+        - category
+        - dialog_time
+validation:
+  check_translation:
+    dataset: mantis
+    expected_errors: 0
+    expected_warnings: 0
+notes:
+  - French export keeps the same public schema as DeepPavlov/mantis_es.
+  - Static quality check passes without errors or warnings after manual repair of unchanged English fragments.

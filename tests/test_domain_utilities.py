@@ -208,6 +208,43 @@ def test_text_list_strategy_reports_unchanged_items_after_retry() -> None:
     assert result.attempts == 2
 
 
+def test_dialog_strategy_retries_unchanged_turns_without_cache() -> None:
+    adapter = QueueAdapter(
+        [
+            TranslationResult(
+                text="@@0@@ May I try this on?\n@@1@@ Bonjour",
+                status="ok",
+                attempts=1,
+                error="",
+            ),
+            TranslationResult(text="Puis-je l'essayer ?", status="ok", attempts=1, error=""),
+        ]
+    )
+
+    async def run():
+        return await translate_dialog_turns_content(
+            [
+                {"role": "user", "content": "May I try this on?"},
+                {"role": "assistant", "content": "Hello"},
+            ],
+            adapter,
+            {"retry_unchanged": True, "unchanged_min_letters": 8},
+            use_cache=True,
+        )
+
+    result = anyio.run(run)
+    assert result.value == [
+        {"role": "user", "content": "Puis-je l'essayer ?"},
+        {"role": "assistant", "content": "Bonjour"},
+    ]
+    assert result.error == ""
+    assert result.attempts == 2
+    assert adapter.calls == [
+        ("@@0@@ May I try this on?\n@@1@@ Hello", False),
+        ("May I try this on?", False),
+    ]
+
+
 def test_text_processing_guards_support_no_letters_and_fullmatch_regex() -> None:
     assert should_skip_translation("1978.", {"guards": [{"kind": "no_letters"}]}) is True
     assert should_skip_translation("English text.", {"guards": [{"kind": "no_letters"}]}) is False

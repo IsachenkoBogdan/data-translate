@@ -15,11 +15,15 @@ translation:
       cache: true
       options:
         content_field: message
+        retry_unchanged: true
+        unchanged_min_letters: 12
     - source: title
       target: title_fr
       strategy: text
       cache: true
-      options: {}
+      options:
+        retry_unchanged: true
+        unchanged_min_letters: 12
 evaluation:
   source_lang: English
   target_lang: French

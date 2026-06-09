@@ -106,6 +106,14 @@ _FILE_ATTACHMENT_RE = re.compile(
 )
 _BARE_PATH_RE = re.compile(r"(?i)^\s*(?:[\w.-]+/)+[\w./-]+\s*$")
 _HASH_OR_ID_RE = re.compile(r"(?i)^[a-f0-9]{16,}$|^[a-z0-9_-]{24,}$")
+_HASH_OR_ID_TOKEN_RE = re.compile(r"(?i)\b[a-f0-9]{16,}\b|\b[a-z0-9_-]{24,}\b")
+_PATH_FRAGMENT_RE = re.compile(r"(?i)(?:/[\w.+-]+){2,}")
+_HANDLE_RE = re.compile(r"(?<![\w.])@[\w.-]+")
+_HTML_TAG_RE = re.compile(r"(?is)<[^>]+>")
+_BACKTICK_CODE_RE = re.compile(r"(?s)```.*?```|`[^`]+`")
+_LATEX_RE = re.compile(r"(?s)\$[^$]+\$")
+_COMMAND_RE = re.compile(r"(?i)(?:^|\s)(?:awk|df|ffmpeg|localedef|mkfs|sudo|umount)\b")
+_TECHNICAL_LABELS = {"hth", "output", "source"}
 
 
 def _norm(value: str) -> str:
@@ -134,6 +142,19 @@ def _has_english_signal(value: str) -> bool:
     return any(token in _ENGLISH_SIGNAL_WORDS for token in _tokens(value))
 
 
+def _is_modelish_value(value: str) -> bool:
+    parts = [part.strip("()[]{}:;,!?\"'`") for part in value.split()]
+    parts = [part for part in parts if part]
+    if len(parts) < 2 or len(parts) > 8:
+        return False
+    if not any(char.isdigit() for char in value):
+        return False
+    for part in parts:
+        if part.isalpha() and part.islower() and part not in {"i"}:
+            return False
+    return True
+
+
 def _is_technical_unchanged_value(value: str) -> bool:
     stripped = value.strip()
     if not stripped:
@@ -149,10 +170,44 @@ def _is_technical_unchanged_value(value: str) -> bool:
         return True
     if _HASH_OR_ID_RE.fullmatch(stripped):
         return True
+    if _HASH_OR_ID_TOKEN_RE.search(stripped) and _PATH_FRAGMENT_RE.search(stripped):
+        return True
+    if _is_modelish_value(stripped):
+        return True
+
+    technical_context = bool(
+        _URL_RE.search(stripped)
+        or _BACKTICK_CODE_RE.search(stripped)
+        or _LATEX_RE.search(stripped)
+        or _COMMAND_RE.search(stripped)
+        or _PATH_FRAGMENT_RE.search(stripped)
+        or "<code>" in stripped.lower()
+        or "<a " in stripped.lower()
+        or "href=" in stripped.lower()
+        or "</a>" in stripped.lower()
+    )
+    if _COMMAND_RE.search(stripped):
+        technical_chars = sum(1 for char in stripped if not char.isalpha() and not char.isspace())
+        if technical_chars / max(1, len(stripped)) >= 0.08:
+            return True
+    if _LATEX_RE.search(stripped) or _BACKTICK_CODE_RE.search(stripped):
+        without_code = _LATEX_RE.sub("", _BACKTICK_CODE_RE.sub("", stripped))
+        if not [token for token in _tokens(without_code) if token not in _TECHNICAL_LABELS]:
+            return True
 
     tokens = _tokens(stripped)
     if not tokens:
         return True
+    if technical_context:
+        semantic = _URL_RE.sub("", stripped)
+        semantic = _EMAIL_RE.sub("", semantic)
+        semantic = _BACKTICK_CODE_RE.sub("", semantic)
+        semantic = _LATEX_RE.sub("", semantic)
+        semantic = _HTML_TAG_RE.sub("", semantic)
+        semantic = _HANDLE_RE.sub("", semantic)
+        semantic_tokens = [token for token in _tokens(semantic) if token not in _TECHNICAL_LABELS]
+        if not semantic_tokens or not any(token in _ENGLISH_SIGNAL_WORDS for token in semantic_tokens):
+            return True
     if _URL_RE.search(stripped) or _FILE_EXTENSION_RE.search(stripped):
         signal_tokens = [token for token in tokens if token in _ENGLISH_SIGNAL_WORDS]
         technical_chars = sum(1 for char in stripped if not char.isalpha() and not char.isspace())
