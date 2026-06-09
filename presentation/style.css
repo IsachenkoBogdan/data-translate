@@ -10,7 +10,7 @@
   --indigo: #818cf8;
   --violet: #a78bfa;
   --emerald: #34d399;
-  --amber: #fbbf24;
+  --amber: #93c5fd;
 }
 
 .slidev-layout {
@@ -789,9 +789,9 @@
   --line: rgba(199, 213, 225, 0.16);
   --cyan: #2dd4bf;
   --indigo: #38bdf8;
-  --violet: #f59e0b;
+  --violet: #a5b4fc;
   --emerald: #22c55e;
-  --amber: #f59e0b;
+  --amber: #93c5fd;
 }
 
 .slidev-layout {
@@ -808,7 +808,7 @@
 .slidev-layout::before {
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(45, 212, 191, 0.72), rgba(245, 158, 11, 0.0) 34%),
+    linear-gradient(90deg, rgba(45, 212, 191, 0.72), rgba(147, 197, 253, 0.0) 34%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 28%);
   width: 100%;
   height: 3px;
@@ -823,7 +823,7 @@
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(180deg, var(--cyan), rgba(245, 158, 11, 0.85), rgba(34, 197, 94, 0.72));
+  background: linear-gradient(180deg, var(--cyan), rgba(147, 197, 253, 0.72), rgba(34, 197, 94, 0.62));
   opacity: 0.66;
   pointer-events: none;
 }
@@ -852,7 +852,7 @@
   width: 1.55rem;
   height: 1px;
   background: var(--amber);
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.48);
+  box-shadow: 0 0 12px rgba(147, 197, 253, 0.34);
 }
 
 .slidev-layout h3 {
@@ -920,12 +920,12 @@
 }
 
 .card.warning {
-  border-color: rgba(245, 158, 11, 0.48);
-  background: rgba(50, 31, 9, 0.72);
+  border-color: rgba(129, 140, 248, 0.36);
+  background: rgba(20, 25, 47, 0.72);
 }
 
 .metric-value {
-  color: #fff7ed;
+  color: #ecfeff;
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: 1.82rem;
 }
@@ -949,7 +949,7 @@
 
 .bubble.user {
   color: #031314;
-  background: linear-gradient(135deg, #5eead4, #fbbf24);
+  background: linear-gradient(135deg, #5eead4, #93c5fd);
 }
 
 .bubble.bot {
@@ -1025,26 +1025,26 @@
 
 .badge {
   border-radius: 5px;
-  background: rgba(245, 158, 11, 0.16);
-  color: #fbbf24;
+  background: rgba(45, 212, 191, 0.14);
+  color: #99f6e4;
   font-family: "JetBrains Mono", ui-monospace, monospace;
 }
 
 .org-callout {
   border-color: rgba(45, 212, 191, 0.46);
   background:
-    linear-gradient(90deg, rgba(45, 212, 191, 0.14), rgba(245, 158, 11, 0.08)),
+    linear-gradient(90deg, rgba(45, 212, 191, 0.14), rgba(147, 197, 253, 0.08)),
     rgba(7, 19, 23, 0.9);
 }
 
 .org-callout a {
-  color: #fbbf24;
+  color: #7dd3fc;
 }
 
 .org-callout .suffix {
-  border-color: rgba(245, 158, 11, 0.34);
-  background: rgba(245, 158, 11, 0.12);
-  color: #fde68a;
+  border-color: rgba(45, 212, 191, 0.34);
+  background: rgba(45, 212, 191, 0.11);
+  color: #99f6e4;
 }
 
 .final-box {
@@ -1055,7 +1055,7 @@
 }
 
 .person-photo {
-  border-color: rgba(245, 158, 11, 0.42);
+  border-color: rgba(147, 197, 253, 0.36);
   box-shadow: 0 14px 50px rgba(0, 0, 0, 0.35);
 }
 
@@ -1065,6 +1065,6 @@
 
 .slidev-layout li::before {
   border-radius: 1px;
-  background: var(--amber);
+  background: var(--cyan);
   transform: rotate(45deg);
 }
