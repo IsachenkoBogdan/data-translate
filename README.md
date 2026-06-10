@@ -106,7 +106,7 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 
 Статус наборов данных:
 
-Актуально на 10 июня 2026 года: французские версии всех завершенных наборов опубликованы в организации `DeepPavlov` на Hugging Face.
+Актуально на 10 июня 2026 года: французские версии всех запланированных наборов опубликованы в организации `DeepPavlov` на Hugging Face.
 
 | Исходный набор данных | Локальный идентификатор | Французский репозиторий Hugging Face | Статус |
 | --- | --- | --- | --- |
@@ -119,9 +119,9 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 | CANARD | `canard_queries` | [DeepPavlov/canard_fr](https://huggingface.co/datasets/DeepPavlov/canard_fr) | Переведен и загружен |
 | ClarQA | `clarqa_multi_turn`, `clarqa_single_turn` | [DeepPavlov/clarqa_fr](https://huggingface.co/datasets/DeepPavlov/clarqa_fr) | Переведен и загружен |
 | MANtIS | `mantis` | [DeepPavlov/mantis_fr](https://huggingface.co/datasets/DeepPavlov/mantis_fr) | Переведен и загружен; `check-translation`: 0 ошибок, 0 предупреждений |
-| Wizard of Wikipedia / WoW | `wizard_of_wikipedia` | Планируется | Перевод в процессе; настройки загрузки подготовлены, загрузка после завершения и проверок |
+| Wizard of Wikipedia / WoW | `wizard_of_wikipedia` | [DeepPavlov/wizard_of_wikipedia_fr](https://huggingface.co/datasets/DeepPavlov/wizard_of_wikipedia_fr) | Переведен и загружен |
 | Abg-CoQA | `coqa_abg` | [DeepPavlov/coqa_abg_fr](https://huggingface.co/datasets/DeepPavlov/coqa_abg_fr) | Переведен и загружен |
-| Coral | `coral_*` | Планируется | Перевод в процессе; настройки подготовлены, загрузка после завершения и проверок |
+| Coral | `coral_*` | [DeepPavlov/coral_fr](https://huggingface.co/datasets/DeepPavlov/coral_fr) | Переведен и загружен |
 
 План дальнейших улучшений:
 - добавить `mt-metrics-eval` как внешний набор для калибровки качества моделей-оценщиков на стандартных данных машинного перевода с человеческими оценками

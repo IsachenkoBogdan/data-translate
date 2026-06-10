@@ -71,8 +71,10 @@
 | ClarQA | [DeepPavlov/clarqa_fr](https://huggingface.co/datasets/DeepPavlov/clarqa_fr) | Переведен и загружен |
 | MANtIS | [DeepPavlov/mantis_fr](https://huggingface.co/datasets/DeepPavlov/mantis_fr) | Переведен и загружен; проверка показала 0 ошибок и 0 предупреждений |
 | Abg-CoQA | [DeepPavlov/coqa_abg_fr](https://huggingface.co/datasets/DeepPavlov/coqa_abg_fr) | Переведен и загружен |
+| Wizard of Wikipedia / WoW | [DeepPavlov/wizard_of_wikipedia_fr](https://huggingface.co/datasets/DeepPavlov/wizard_of_wikipedia_fr) | Переведен и загружен |
+| Coral | [DeepPavlov/coral_fr](https://huggingface.co/datasets/DeepPavlov/coral_fr) | Переведен и загружен |
 
-В процессе остаются французские переводы для `WoW` и `Coral`. Для `Abg-CoQA` подготовлен отдельный конфиг загрузки `coqa_abg_fr`, а публичный артефакт опубликован в Hugging Face.
+Во французской части все запланированные наборы данных опубликованы в Hugging Face. Для крупных поисковых наборов `WoW` и `Coral` подготовлены отдельные конфиги загрузки `wizard_of_wikipedia_fr` и `coral_fr`, повторяющие структуру соответствующих наборов в организации `DeepPavlov`.
 
 Дополнительные публичные артефакты:
 
@@ -85,7 +87,7 @@
 
 Дальнейшая работа состоит из нескольких направлений:
 
-- довести `WoW` и `Coral` во французской части;
+- расширить ручную проверку качества на самые крупные поисковые наборы;
 - добавить ручную двуязычную проверку на небольшой выборке из диалогового домена;
 - добавить второй уровень проверки с помощью языковой модели для подозрительно непереведенного текста;
 - интегрировать переведенные наборы данных в полноценную многоязычную оценку DialogMTEB;

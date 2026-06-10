@@ -26,11 +26,11 @@
 репозиторий Hub собирается из нескольких локальных артефактов, например из
 `multi_turn` и `single_turn` для ClarQAv1.
 
-## Готовые команды для оставшихся наборов
+## Команды воспроизводимости для WoW и Coral
 
-WoW публикуется одним upload-конфигом `wizard_of_wikipedia_fr`, но перед ним
-нужно перевести корпус, а затем запросы: итоговый артефакт запросов подтянет
-переведенный корпус и исходные `qrels`.
+WoW публикуется одним upload-конфигом `wizard_of_wikipedia_fr`. Для полной
+воспроизводимости сначала переводится корпус, затем запросы: итоговый артефакт
+запросов подтягивает переведенный корпус и исходные `qrels`.
 
 ```bash
 make translate DATASET=wizard_of_wikipedia_corpus SET="runtime.concurrency=16"
@@ -41,7 +41,7 @@ make upload-datasets-push UPLOAD=wizard_of_wikipedia_fr
 
 Coral публикуется upload-конфигом `coral_fr`; он собирает `corpus`, `qrels`
 и `queries`, как уже опубликованные версии `DeepPavlov/coral_ru` и
-`DeepPavlov/coral_es`.
+`DeepPavlov/coral_es`. Команды ниже воспроизводят перевод и загрузку.
 
 ```bash
 make translate DATASET=coral_corpus SET="runtime.concurrency=16"
