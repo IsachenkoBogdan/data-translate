@@ -106,6 +106,8 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 
 Статус наборов данных:
 
+Актуально на 10 июня 2026 года: французские версии всех завершенных наборов опубликованы в организации `DeepPavlov` на Hugging Face.
+
 | Исходный набор данных | Локальный идентификатор | Французский репозиторий Hugging Face | Статус |
 | --- | --- | --- | --- |
 | DailyDialog Manually Labelled Multi-turn Dialogue Dataset | `daily_dialog` | [DeepPavlov/daily_dialog_fr](https://huggingface.co/datasets/DeepPavlov/daily_dialog_fr) | Переведен и загружен |
