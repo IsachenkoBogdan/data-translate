@@ -39,14 +39,13 @@ make check-translation DATASET=wizard_of_wikipedia_queries
 make upload-datasets-push UPLOAD=wizard_of_wikipedia_fr
 ```
 
-Coral публикуется upload-конфигом `coral_fr`; он собирает `corpus`, `qrels`,
-`queries` и `rewritten_queries`, поэтому нужны оба артефакта запросов.
+Coral публикуется upload-конфигом `coral_fr`; он собирает `corpus`, `qrels`
+и `queries`, как уже опубликованные версии `DeepPavlov/coral_ru` и
+`DeepPavlov/coral_es`.
 
 ```bash
 make translate DATASET=coral_corpus SET="runtime.concurrency=16"
 make translate DATASET=coral_queries SET="runtime.concurrency=16"
-make translate DATASET=coral_rewritten_queries SET="runtime.concurrency=16"
 make check-translation DATASET=coral_queries
-make check-translation DATASET=coral_rewritten_queries
 make upload-datasets-push UPLOAD=coral_fr
 ```

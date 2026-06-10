@@ -16,7 +16,7 @@ export:
       data_dir: corpus
       splits:
         corpus_train: train
-        corpus_valid: validation
+        corpus_valid: valid
         corpus_test: test
       transforms:
         - name: replace_columns
@@ -36,7 +36,7 @@ export:
       data_dir: qrels
       splits:
         qrels_train: train
-        qrels_valid: val
+        qrels_valid: valid
         qrels_test: test
       transforms:
         - name: select_columns
@@ -48,7 +48,7 @@ export:
       data_dir: queries
       splits:
         train: train
-        valid: validation
+        valid: valid
         test: test
       transforms:
         - name: replace_columns
@@ -72,5 +72,5 @@ validation:
     dataset: wizard_of_wikipedia_queries
     expected_errors: 0
 notes:
-  - Повторяет структуру DeepPavlov/wizard_of_wikipedia_es с конфигурациями corpus, qrels и queries.
+  - Повторяет структуру DeepPavlov/wizard_of_wikipedia и DeepPavlov/wizard_of_wikipedia_ru с конфигурациями corpus, qrels, queries и split valid.
   - Сначала нужно перевести wizard_of_wikipedia_corpus, затем wizard_of_wikipedia_queries; итоговый артефакт queries подтягивает переведенный корпус и исходные qrels как passthrough-разбиения.
