@@ -1,0 +1,76 @@
+upload_id: wizard_of_wikipedia_fr
+dataset_id: wizard_of_wikipedia_queries
+language: fr
+hub:
+  repo_id: DeepPavlov/wizard_of_wikipedia_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+source:
+  path: data/translated/fr/DeepPavlov_wizard_of_wikipedia_queries/default
+export:
+  local_dir: data/hf_exports/wizard_of_wikipedia_fr
+  layout: multi_config
+  configs:
+    - config_name: corpus
+      data_dir: corpus
+      splits:
+        corpus_train: train
+        corpus_valid: validation
+        corpus_test: test
+      transforms:
+        - name: replace_columns
+          columns:
+            title: title_fr
+            text: text_fr
+        - name: drop_columns
+          columns:
+            - title_fr
+            - text_fr
+        - name: select_columns
+          columns:
+            - id
+            - title
+            - text
+    - config_name: qrels
+      data_dir: qrels
+      splits:
+        qrels_train: train
+        qrels_valid: val
+        qrels_test: test
+      transforms:
+        - name: select_columns
+          columns:
+            - query-id
+            - corpus-id
+            - score
+    - config_name: queries
+      data_dir: queries
+      splits:
+        train: train
+        valid: validation
+        test: test
+      transforms:
+        - name: replace_columns
+          columns:
+            text: text_fr
+            persona: persona_fr
+            topic: topic_fr
+        - name: drop_columns
+          columns:
+            - text_fr
+            - persona_fr
+            - topic_fr
+        - name: select_columns
+          columns:
+            - id
+            - text
+            - persona
+            - topic
+validation:
+  check_translation:
+    dataset: wizard_of_wikipedia_queries
+    expected_errors: 0
+notes:
+  - Повторяет структуру DeepPavlov/wizard_of_wikipedia_es с конфигурациями corpus, qrels и queries.
+  - Сначала нужно перевести wizard_of_wikipedia_corpus, затем wizard_of_wikipedia_queries; итоговый артефакт queries подтягивает переведенный корпус и исходные qrels как passthrough-разбиения.

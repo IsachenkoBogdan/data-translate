@@ -1,0 +1,87 @@
+upload_id: coral_fr
+dataset_id: coral_queries
+language: fr
+hub:
+  repo_id: DeepPavlov/coral_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+sources:
+  - config_name: queries_artifact
+    path: data/translated/fr/DeepPavlov_coral_queries/default
+  - config_name: rewritten_queries_artifact
+    path: data/translated/fr/DeepPavlov_coral_rewritten_queries/default
+export:
+  local_dir: data/hf_exports/coral_fr
+  layout: multi_config
+  configs:
+    - config_name: corpus
+      source_config: queries_artifact
+      data_dir: corpus
+      splits:
+        corpus_train: train
+      transforms:
+        - name: replace_columns
+          columns:
+            text: text_fr
+        - name: drop_columns
+          columns:
+            - text_fr
+        - name: select_columns
+          columns:
+            - id
+            - text
+    - config_name: qrels
+      source_config: queries_artifact
+      data_dir: qrels
+      splits:
+        qrels_train: train
+        qrels_test: test
+      transforms:
+        - name: select_columns
+          columns:
+            - query-id
+            - corpus-id
+            - score
+    - config_name: queries
+      source_config: queries_artifact
+      data_dir: queries
+      splits:
+        train: train
+        test: test
+      transforms:
+        - name: replace_columns
+          columns:
+            text: text_fr
+        - name: drop_columns
+          columns:
+            - text_fr
+        - name: select_columns
+          columns:
+            - id
+            - text
+    - config_name: rewritten_queries
+      source_config: rewritten_queries_artifact
+      data_dir: rewritten_queries
+      splits:
+        train: train
+        test: test
+      transforms:
+        - name: replace_columns
+          columns:
+            text: text_fr
+        - name: drop_columns
+          columns:
+            - text_fr
+        - name: select_columns
+          columns:
+            - id
+            - text
+validation:
+  check_translation:
+    dataset: coral_queries
+    expected_errors: 0
+notes:
+  - Сначала нужно перевести coral_corpus, затем coral_queries и coral_rewritten_queries.
+  - Артефакты запросов подтягивают переведенный корпус и исходные qrels как passthrough-разбиения.
+  - DeepPavlov/coral_es содержит конфигурации corpus, qrels и queries; французская загрузка дополнительно публикует rewritten_queries, потому что для него в репозитории есть отдельный сценарий перевода.
