@@ -166,7 +166,12 @@ def check_text_pair(
     if (
         content_heuristics_enabled
         and diagnostics["source_digit_sequences"]
-        and digit_sequences_changed(diagnostics["source_digit_sequences"], diagnostics["translation_digit_sequences"], source_text)
+        and digit_sequences_changed(
+            diagnostics["source_digit_sequences"],
+            diagnostics["translation_digit_sequences"],
+            source_text,
+            translated_text,
+        )
         and not source_is_technical
     ):
         issues.append(

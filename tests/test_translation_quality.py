@@ -378,7 +378,20 @@ def test_quality_checker_keeps_common_numeric_rewrites_quiet() -> None:
         "The first store in the United States was opened in1998.",
         "Walmart has 11,703 stores and clubs in 28countries",
         "It has an option 2.3L EcoBoost turbocharged and direct injected 4 cylinder engine.",
-        ]
+        "It was NOT under warranty. The a/c cost $1300.00 and the transmission was $2400.",
+        "Maybe $180,000.00. I like the Bentley Turbo R.",
+        "She has to keep them on for 1.5 years to straighten and align her teeth",
+        "The first generation was released 6/29/2007.",
+        "In the 02-03 year rowers were only 2% of all college athletes.",
+        "This includes the top fifteen schools in the 2017 rankings.",
+        "Hi, I like Sixties rock like the Rolling Stones. They formed in 1962.",
+        "The metro area has a pop. of 2,353,045.",
+        "South Park has been out since 1997 and is more than 2 decades old.",
+        "In 2016, the city had 8,537, 673 people",
+        "Still on history, in1516, Habsburg Spain unified kingdoms; the constitution dates to 1978.",
+        "I tried to ride all 16 roller coasters, but only could get on like8 before the day was over.",
+        "It's hard to believe there have been eleven generations. I still have a 6s and heard good things about the 8.",
+    ]
     translated_texts = [
         "Le groupe a vendu plus de 50 millions d'albums au début des années 2000.",
         "Cela en fait le 41e artiste le plus vendu de tous les temps.",
@@ -411,6 +424,19 @@ def test_quality_checker_keeps_common_numeric_rewrites_quiet() -> None:
         "Le premier magasin aux États-Unis a ouvert ses portes en 1998.",
         "Walmart compte 11 703 magasins et clubs dans 28 pays",
         "Il dispose d'un moteur 4 cylindres EcoBoost de 2,3 L turbocompressé et à injection directe.",
+        "Il n'était PAS sous garantie. La climatisation coûtait 1 300,00 $ et la transmission était de 2 400 $.",
+        "Peut-être 180 000,00 $. J'aime la Bentley Turbo R.",
+        "Elle doit les garder pendant 1 an et demi pour redresser et aligner ses dents",
+        "La première génération est sortie le 29/06/2007.",
+        "Au cours des années 2002-2003, les rameurs ne représentaient que 2 % des athlètes.",
+        "Cela inclut les 15 meilleures écoles du classement 2017.",
+        "Salut, j'aime le rock des années 60 comme les Rolling Stones. Ils se sont formés en 1962.",
+        "La zone métropolitaine a du pop. de 2.353.045.",
+        "South Park est sorti depuis 1997 et il a plus de 20 ans.",
+        "En 2016, la ville comptait 8 537 673 habitants",
+        "Toujours sur l'histoire, en 1516, l'Espagne des Habsbourg a unifié des royaumes ; la constitution date de 1978.",
+        "J'ai essayé de monter les 16 montagnes russes, mais je n'ai pu monter que comme 8 avant la fin de la journée.",
+        "Il est difficile de croire qu'il existe onze générations. J'ai toujours un 6s et entendu de bonnes choses sur les 8.",
     ]
     source = DatasetDict({"train": Dataset.from_dict({"text": source_texts})})
     translated = DatasetDict({"train": Dataset.from_dict({"text": source_texts, "text_fr": translated_texts})})

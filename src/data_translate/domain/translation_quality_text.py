@@ -92,19 +92,20 @@ _LATEX_RE = re.compile(r"(?s)\$[^$]+\$")
 _COMMAND_RE = re.compile(r"(?i)(?:^|\s)(?:awk|df|ffmpeg|localedef|mkfs|sudo|umount)\b")
 _TECHNICAL_LABELS = {"hth", "output", "source"}
 _DIGIT_SEQUENCE_RE = re.compile(
-    r"(?<![A-Za-z0-9])(?:\d{1,3}(?:[,\u00a0 ]\d{3})+(?!\d)(?:[.,]\d+)?|\d+(?:[.,]\d+)?)(?![A-Za-z0-9])"
+    r"(?<![A-Za-z0-9])(?:\d{1,3}(?:[,\.\u00a0 ]\d{3})+(?!\d)(?:[.,]\d+)?|\d+(?:[.,]\d+)?)(?![A-Za-z0-9])"
 )
 _PLACEHOLDER_OR_MARKER_RE = re.compile(r"\[[^\[\]\n]{1,120}\]|\{[^{}\n]{1,120}\}|<[/]?[A-Za-z][^>\n]{0,120}>")
 _HTML_ENTITY_RE = re.compile(r"&(?:[A-Za-z]{2,16}|#[0-9]{2,7}|#x[0-9A-Fa-f]{2,6});")
 _GROUPED_OR_PLAIN_NUMBER = r"\d{1,3}(?:[,\u00a0 ]\d{3})+|\d+"
 _ORDINAL_SUFFIX_RE = re.compile(rf"(?i)(?<![A-Za-z0-9])({_GROUPED_OR_PLAIN_NUMBER})(?:st|nd|rd|th)\b")
-_DECADE_SUFFIX_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d{2,4})s\b")
+_DECADE_SUFFIX_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d{1,4})s\b")
 _ATTACHED_UNIT_RE = re.compile(
     r"(?i)(?<![A-Za-z0-9])(\d+(?:[.,]\d+)?|\.\d+)(?:mm|cm|m|km|mph|sq\s*ft|sqft|sq\s*feet|square\s*feet|yd|yards?|in|inch|inches|ft|feet|lbs?|pounds?|oz|ounces?|l|liters?|litres?|meters?|metres?)\b"
 )
 _ERA_SUFFIX_RE = re.compile(rf"(?i)(?<![A-Za-z0-9])({_GROUPED_OR_PLAIN_NUMBER})\s*(?:b\.?c\.?e?\.?|c\.?e\.?|a\.?d\.?)\b")
 _LOOSE_NUMERIC_SUFFIX_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d+(?:[.,]\d+)?|\.\d+)(?:ish|approx(?:imately)?)\b")
 _ATTACHED_WORD_NUMBER_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d+(?:[.,]\d+)?)(?=[A-Za-z]{2,})")
+_WORD_ATTACHED_NUMBER_RE = re.compile(r"(?i)(?<=[A-Za-z])(\d+(?:[.,]\d+)?)\b")
 _APOSTROPHE_YEAR_RE = re.compile(r"(?<!\d)['’](\d{2})\b")
 _TRAILING_APOSTROPHE_YEAR_RE = re.compile(r"(?<!\d)(\d{2})['’](?!\d)")
 _TWELVE_HOUR_TIME_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\b")
@@ -118,6 +119,11 @@ _MONTH_ATTACHED_DAY_RE = re.compile(
 _NUMBER_WITH_MULTIPLIER_RE = re.compile(
     r"(?i)(?<!\d)(\d+(?:[.,]\d+)?|\.\d+)\s*(k|grand|thousand|million|billion|trillion)s?\b"
 )
+_YEAR_RANGE_RE = re.compile(
+    r"(?i)(?<!\d)(\d{2})\s*[-–—]\s*(\d{2})(?=\s*(?:year|season|school|academic|rowers?|athletes?))"
+)
+_DECADE_COUNT_RE = re.compile(r"(?i)(?<!\d)(\d+)\s+decades?\b")
+_TRANSLATED_HALF_RE = re.compile(r"(?i)\b(?:demi|half|halb|media|mezza|mezzo)\b")
 _MULTIPLIER_WORDS = {
     "k": Decimal("1000"),
     "grand": Decimal("1000"),
@@ -148,6 +154,44 @@ _NUMBER_WORD_EQUIVALENTS = {
     "ninth": "9",
     "ten": "10",
     "tenth": "10",
+    "eleven": "11",
+    "eleventh": "11",
+    "twelve": "12",
+    "twelfth": "12",
+    "thirteen": "13",
+    "thirteenth": "13",
+    "fourteen": "14",
+    "fourteenth": "14",
+    "fifteen": "15",
+    "fifteenth": "15",
+    "sixteen": "16",
+    "sixteenth": "16",
+    "seventeen": "17",
+    "seventeenth": "17",
+    "eighteen": "18",
+    "eighteenth": "18",
+    "nineteen": "19",
+    "nineteenth": "19",
+    "twenty": "20",
+    "twentieth": "20",
+    "thirty": "30",
+    "thirtieth": "30",
+    "forty": "40",
+    "fortieth": "40",
+    "fifty": "50",
+    "fiftieth": "50",
+    "sixty": "60",
+    "sixtieth": "60",
+    "sixties": "60",
+    "seventy": "70",
+    "seventieth": "70",
+    "seventies": "70",
+    "eighty": "80",
+    "eightieth": "80",
+    "eighties": "80",
+    "ninety": "90",
+    "ninetieth": "90",
+    "nineties": "90",
 }
 
 
@@ -349,31 +393,65 @@ def suspicious_unchanged_translation(source: str, translated: str, *, min_letter
     )
 
 
+def _compact_number_group_spaces(value: str) -> str:
+    return re.sub(r"(?<=\d),\s+(?=\d{3}(?:\D|$))", ",", value)
+
+
+def _normalize_number_token(number_text: str) -> str:
+    token = number_text.strip().replace("\u00a0", " ")
+    if token.startswith("."):
+        token = f"0{token}"
+    token = re.sub(r"\s+", " ", token)
+    separator_positions = [(idx, char) for idx, char in enumerate(token) if char in "., "]
+    if not separator_positions:
+        return token
+
+    decimal_position: tuple[int, str] | None = None
+    for idx, char in reversed(separator_positions):
+        if char not in ",.":
+            continue
+        fraction = token[idx + 1 :]
+        if fraction.isdigit() and len(fraction) != 3:
+            decimal_position = (idx, char)
+            break
+
+    if decimal_position is not None:
+        idx, _char = decimal_position
+        integer = "".join(char for char in token[:idx] if char.isdigit())
+        fraction = "".join(char for char in token[idx + 1 :] if char.isdigit())
+        if integer and fraction:
+            return f"{integer}.{fraction}"
+
+    digits = "".join(char for char in token if char.isdigit())
+    return digits or token
+
+
 def digit_sequences(value: str) -> list[str]:
     values = []
 
     def append_unique(number_text: str) -> None:
-        normalized = f"0{number_text}" if number_text.startswith(".") else number_text.replace(",", ".")
+        normalized = _normalize_number_token(number_text)
         if normalized not in values:
             values.append(normalized)
 
-    for match in _DIGIT_SEQUENCE_RE.finditer(value):
+    normalized_value = _compact_number_group_spaces(value)
+    for match in _DIGIT_SEQUENCE_RE.finditer(normalized_value):
         token = match.group(0)
         if "," in token and "\u00a0" not in token and " " not in token:
             parts = token.split(",")
             if len(parts) > 2 and parts[0].isdigit() and all(part.isdigit() and len(part) == 3 for part in parts[1:]):
-                append_unique("".join(parts))
+                append_unique(token)
             else:
                 integer, fraction = parts[0], parts[1]
                 if len(integer) <= 2 and len(fraction) == 4:
                     append_unique(integer)
                     append_unique(fraction)
                 elif integer.isdigit() and fraction.isdigit() and len(fraction) == 3:
-                    append_unique(integer + fraction)
+                    append_unique(token)
                 else:
                     append_unique(token)
-        elif re.fullmatch(r"\d{1,3}(?:[,\u00a0 ]\d{3})+(?!\d)(?:[.,]\d+)?", token):
-            append_unique(token.replace(",", "").replace("\u00a0", "").replace(" ", ""))
+        elif re.fullmatch(r"\d{1,3}(?:[,\.\u00a0 ]\d{3})+(?!\d)(?:[.,]\d+)?", token):
+            append_unique(token)
         else:
             append_unique(token)
     for regex in (
@@ -383,6 +461,7 @@ def digit_sequences(value: str) -> list[str]:
         _ERA_SUFFIX_RE,
         _LOOSE_NUMERIC_SUFFIX_RE,
         _ATTACHED_WORD_NUMBER_RE,
+        _WORD_ATTACHED_NUMBER_RE,
         _MONTH_ATTACHED_DAY_RE,
         _NUMBER_WITH_MULTIPLIER_RE,
     ):
@@ -478,6 +557,19 @@ def _short_year_equivalents(source_text: str) -> set[str]:
         if len(decade) == 2:
             equivalents.add(f"19{decade}")
             equivalents.add(f"20{decade}")
+    for match in _YEAR_RANGE_RE.finditer(source_text):
+        start_year = match.group(1)
+        end_year = match.group(2)
+        equivalents.update(
+            {
+                start_year,
+                end_year,
+                f"19{start_year}",
+                f"20{start_year}",
+                f"19{end_year}",
+                f"20{end_year}",
+            }
+        )
     return equivalents
 
 
@@ -512,7 +604,17 @@ def _unit_conversion_equivalents(source_text: str) -> set[str]:
     return equivalents
 
 
-def digit_equivalence_set(values: list[str], source_text: str = "") -> set[str]:
+def _duration_equivalents(source_text: str, translated_text: str = "") -> set[str]:
+    equivalents: set[str] = set()
+    for match in _DECADE_COUNT_RE.finditer(source_text):
+        equivalents.add(str(int(match.group(1)) * 10))
+    if translated_text and _TRANSLATED_HALF_RE.search(translated_text):
+        for match in re.finditer(r"(?<!\d)(\d+)\.5(?!\d)", source_text):
+            equivalents.add(match.group(1))
+    return equivalents
+
+
+def digit_equivalence_set(values: list[str], source_text: str = "", translated_text: str = "") -> set[str]:
     equivalents = set(values)
     for value in values:
         equivalents.add(_canonical_digit_value(value))
@@ -528,13 +630,14 @@ def digit_equivalence_set(values: list[str], source_text: str = "") -> set[str]:
     equivalents.update(_time_equivalents(source_text))
     equivalents.update(_short_year_equivalents(source_text))
     equivalents.update(_unit_conversion_equivalents(source_text))
+    equivalents.update(_duration_equivalents(source_text, translated_text))
     return equivalents
 
 
-def digit_sequences_changed(source_values: list[str], translation_values: list[str], source_text: str = "") -> bool:
+def digit_sequences_changed(source_values: list[str], translation_values: list[str], source_text: str = "", translated_text: str = "") -> bool:
     if not source_values or not translation_values:
         return False
-    source_equivalents = digit_equivalence_set(source_values, source_text)
+    source_equivalents = digit_equivalence_set(source_values, source_text, translated_text)
     translation_set = {_canonical_digit_value(value) for value in translation_values}
     return not translation_set <= source_equivalents
 
