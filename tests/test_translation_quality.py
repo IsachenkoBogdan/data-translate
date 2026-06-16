@@ -582,6 +582,77 @@ def test_quality_metrics_and_html_rendering_escape_examples() -> None:
     assert "Reason</th>" not in html
 
 
+def test_issue_guide_sorts_by_count_and_marks_priority() -> None:
+    issues = []
+    for idx in range(4):
+        issues.append(
+            {
+                "severity": "warning",
+                "code": "digit_sequence_changed",
+                "split": "train",
+                "row_idx": idx,
+                "field": "text_fr",
+                "message": "digit sequences changed between source and translation",
+                "sample": {"source": "I need 2 rooms.", "translation": "J'ai besoin de 3 chambres."},
+                "diagnostics": {},
+            }
+        )
+    for idx in range(2):
+        issues.append(
+            {
+                "severity": "warning",
+                "code": "english_residue",
+                "split": "train",
+                "row_idx": idx + 10,
+                "field": "text_fr",
+                "message": "translation still contains several English signal words",
+                "sample": {"source": "Where are you?", "translation": "Where êtes-vous ?"},
+                "diagnostics": {},
+            }
+        )
+    issues.append(
+        {
+            "severity": "error",
+            "code": "empty_translation",
+            "split": "train",
+            "row_idx": 20,
+            "field": "text_fr",
+            "message": "source is non-empty but translation is empty",
+            "sample": {"source": "Hello", "translation": ""},
+            "diagnostics": {},
+        }
+    )
+    payload = {
+        "dataset_id": "demo",
+        "workflow": "check-translation",
+        "checked_rows": 7,
+        "checked_pairs": 7,
+        "error_count": 1,
+        "warning_count": 6,
+        "suppressed_count": 0,
+        "splits": {"train": 7},
+        "checked_rows_by_split": {"train": 7},
+        "checked_pairs_by_split": {"train": 7},
+        "checked_pairs_by_field": {"text_fr": 7},
+        "issues": issues,
+        "suppressed": [],
+    }
+
+    metrics = build_quality_metrics(payload)
+    html = render_quality_html(payload, metrics)
+
+    assert [row["code"] for row in metrics["issue_guide"]] == [
+        "digit_sequence_changed",
+        "english_residue",
+        "empty_translation",
+    ]
+    assert html.index("Number changed") < html.index("English residue") < html.index("Empty field")
+    assert "rule-priority-sample" in html
+    assert "rule-count-sample" in html
+    assert "rule-priority-fix" in html
+    assert "rule-count-fix" in html
+
+
 def test_split_metrics_hide_unchecked_passthrough_splits() -> None:
     payload = {
         "dataset_id": "demo",

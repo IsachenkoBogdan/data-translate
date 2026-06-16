@@ -276,7 +276,7 @@ def _issue_guide_rows(issue_counts: dict[str, int]) -> list[dict[str, Any]]:
         )
         rows.append({"code": code, "count": count, **guidance})
     priority_order = {"fix": 0, "review": 1, "sample": 2}
-    return sorted(rows, key=lambda row: (priority_order.get(str(row["priority"]), 3), -int(row["count"]), str(row["code"])))
+    return sorted(rows, key=lambda row: (-int(row["count"]), priority_order.get(str(row["priority"]), 3), str(row["code"])))
 
 
 def build_quality_metrics(payload: dict[str, Any]) -> dict[str, Any]:

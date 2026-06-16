@@ -193,9 +193,9 @@ def _issue_guide_cards(metrics: dict[str, Any]) -> str:
         priority = escape(str(item.get("priority", "")))
         rows.append(
             f"""
-            <article class="rule-card">
+            <article class="rule-card rule-priority-{priority}">
               <header>
-                <span class="rule-count">{int(item.get('count', 0))}</span>
+                <span class="rule-count rule-count-{priority}">{int(item.get('count', 0))}</span>
                 <div>
                   <b>{escape(str(item.get('rule', item.get('code', ''))))}</b>
                   <code>{escape(str(item.get('code', '')))}</code>
@@ -259,11 +259,18 @@ def _base_css() -> str:
     .section-note { color: var(--muted); font-size: 13px; }
     .rule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 10px; }
     .rule-card, .empty-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+    .rule-card { border-left: 4px solid var(--line-strong); }
+    .rule-card.rule-priority-fix { border-left-color: var(--red); }
+    .rule-card.rule-priority-review { border-left-color: var(--yellow); }
+    .rule-card.rule-priority-sample { border-left-color: var(--green); }
     .rule-card header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: start; }
     .rule-card b { display: block; }
     .rule-card p { margin: 8px 0 4px; color: #33403a; }
     .rule-card small { color: var(--muted); }
     .rule-count { min-width: 34px; height: 30px; border-radius: 6px; display: inline-grid; place-items: center; background: #121614; color: #fff; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .rule-count-fix { background: var(--red); }
+    .rule-count-review { background: var(--yellow); }
+    .rule-count-sample { background: var(--green); }
     table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
     th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
     th { background: var(--panel-soft); font-size: 11px; text-transform: uppercase; color: #4f5a54; letter-spacing: .06em; }
@@ -276,7 +283,7 @@ def _base_css() -> str:
     .priority { display: inline-flex; padding: 2px 7px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
     .priority-fix { color: var(--red); background: var(--red-bg); }
     .priority-review { color: var(--yellow); background: var(--yellow-bg); }
-    .priority-sample { color: var(--blue); background: #e3edf7; }
+    .priority-sample { color: var(--green); background: var(--green-bg); }
     .bar { display: block; height: 5px; background: #e7ebe2; border-radius: 999px; overflow: hidden; margin-top: 4px; }
     .bar span { display: block; height: 100%; background: var(--blue); }
     .filters { display: grid; grid-template-columns: 130px 220px 160px 220px minmax(260px, 1fr); gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px 8px 0 0; padding: 10px; position: sticky; top: 0; z-index: 2; }
