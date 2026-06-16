@@ -24,10 +24,6 @@ def _rule_label_map(metrics: dict[str, Any]) -> dict[str, str]:
     return {str(item.get("code", "")): str(item.get("rule", item.get("code", ""))) for item in metrics.get("issue_guide", [])}
 
 
-def _suppression_label_map(metrics: dict[str, Any]) -> dict[str, str]:
-    return {str(item.get("reason", "")): str(item.get("rule", item.get("reason", ""))) for item in metrics.get("suppression_guide", [])}
-
-
 def _rule_options(values: list[str], labels: dict[str, str]) -> str:
     return '<option value="">All</option>' + "".join(
         f'<option value="{escape(value)}">{escape(labels.get(value, value))}</option>' for value in values
@@ -65,10 +61,6 @@ def _sample_text(issue: dict[str, Any], key: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
-def _json_blob(value: Any) -> str:
-    return escape(json.dumps(value, ensure_ascii=False, indent=2))
-
-
 def _issue_records(issues: list[dict[str, Any]], rule_labels: dict[str, str]) -> list[dict[str, Any]]:
     records = []
     for idx, issue in enumerate(issues, start=1):
@@ -103,13 +95,6 @@ def _issue_records(issues: list[dict[str, Any]], rule_labels: dict[str, str]) ->
             }
         )
     return records
-
-
-def _suppressed_rule_pills(metrics: dict[str, Any]) -> str:
-    rows = metrics.get("suppression_guide", [])
-    if not rows:
-        return '<span class="muted">none</span>'
-    return " ".join(f'<span class="pill muted-pill">{escape(str(item.get("rule", "")))} {int(item.get("count", 0))}</span>' for item in rows)
 
 
 def _issue_guide_table(metrics: dict[str, Any]) -> str:
@@ -225,10 +210,8 @@ def _base_css() -> str:
 
 def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str:
     issues = [dict(issue) for issue in payload.get("issues", [])]
-    suppressed = [dict(item) for item in payload.get("suppressed", [])]
     dataset_name = str(payload.get("dataset_id") or payload.get("translated_path") or "translation")
     rule_labels = _rule_label_map(metrics)
-    suppression_labels = _suppression_label_map(metrics)
     issue_records = _safe_json(_issue_records(issues, rule_labels))
     field_rows = "\n".join(
         f"""
@@ -258,20 +241,6 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
         """
         for row in metrics["splits"]
     )
-    suppressed_rows = "\n".join(
-        f"""
-        <tr>
-          <td><span class="rule-name">{escape(suppression_labels.get(str(item.get('reason', '')), str(item.get('reason', ''))))}</span><br><code>{escape(str(item.get('reason', '')))}</code></td>
-          <td><code>{escape(str(item.get('split', '')))}[{escape(str(item.get('row_idx', '')))}]</code></td>
-          <td>{_field_cell(normalized_field_path(str(item.get('field', ''))), field_position_note(str(item.get('field', ''))))}</td>
-          <td>{escape(str(item.get('sample', {}).get('source', '')))}</td>
-        </tr>
-        """
-        for item in suppressed[:80]
-    )
-    if not suppressed_rows:
-        suppressed_rows = '<tr><td colspan="4" class="muted">No ignored false positives.</td></tr>'
-
     codes = sorted({str(issue.get("code", "")) for issue in issues if issue.get("code")})
     severities = sorted({str(issue.get("severity", "")) for issue in issues if issue.get("severity")})
     splits = sorted({str(issue.get("split", "")) for issue in issues if issue.get("split")})
@@ -309,12 +278,6 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
   <section class="decision decision-{recommendation_level}">
     <b>{escape(str(recommendation.get('summary', 'Review report.')))}</b>
     <span>{escape(str(recommendation.get('detail', 'Inspect the issue guide and examples below.')))}</span>
-  </section>
-
-  <section class="note">
-    <b>Ignored false positives · {metrics['suppressed_count']}</b>
-    <div class="muted">Unchanged technical values such as URLs, file names, IDs, commands, model names, or titles are counted here instead of being shown as warnings.</div>
-    <div>{_suppressed_rule_pills(metrics)}</div>
   </section>
 
   <h2>Field Coverage</h2>
@@ -358,12 +321,6 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
   </section>
   <section id="issues"><div class="empty">Loading issues...</div></section>
 
-  <h2>Ignored False Positives</h2>
-  <p class="muted">These values were intentionally excluded from warnings, but are still counted for auditability.</p>
-  <table>
-    <thead><tr><th>Check rule</th><th>Location</th><th>Field</th><th>Sample</th></tr></thead>
-    <tbody>{suppressed_rows}</tbody>
-  </table>
 </main>
 <script>
 const issueData = {issue_records};

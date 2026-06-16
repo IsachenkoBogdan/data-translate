@@ -476,7 +476,8 @@ def test_quality_metrics_and_html_rendering_escape_examples() -> None:
     assert "Check rule" in html
     assert "Empty field" in html
     assert "Suppressed" not in html
-    assert "Ignored false positives" in html
+    assert "Ignored false positives" not in html
+    assert "suppressed_count" not in html
     assert "Reason</th>" not in html
 
 
