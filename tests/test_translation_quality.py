@@ -512,8 +512,9 @@ def test_quality_metrics_and_html_rendering_escape_examples() -> None:
     assert "const issueData =" in html
     assert "function escapeHtml" in html
     assert "Showing 50 cases per page" in html
+    assert "Triggered Rules" in html
+    assert "Coverage by field and split" in html
     assert "Field Coverage" in html
-    assert "Check rule" in html
     assert "Empty field" in html
     assert "Suppressed" not in html
     assert "Ignored false positives" not in html

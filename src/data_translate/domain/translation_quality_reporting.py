@@ -120,62 +120,6 @@ ISSUE_GUIDANCE: dict[str, dict[str, str]] = {
     },
 }
 
-SUPPRESSION_GUIDANCE: dict[str, dict[str, str]] = {
-    "title_like_value": {
-        "rule": "Title/name kept unchanged",
-        "meaning": "The unchanged value looks like a title, name, topic, or named entity.",
-    },
-    "model_or_product_name": {
-        "rule": "Model/product name kept",
-        "meaning": "The unchanged value looks like a product, model, or versioned technical name.",
-    },
-    "file_or_path": {
-        "rule": "File/path kept",
-        "meaning": "The unchanged value looks like a file name or filesystem path.",
-    },
-    "file_attachment": {
-        "rule": "File attachment kept",
-        "meaning": "The unchanged value looks like a file attachment reference.",
-    },
-    "url_or_email": {
-        "rule": "URL/email kept",
-        "meaning": "The unchanged value is a URL or email address.",
-    },
-    "url_wrapped_punctuation": {
-        "rule": "URL punctuation kept",
-        "meaning": "Only URL wrapper punctuation remained around the technical value.",
-    },
-    "url_or_file_context": {
-        "rule": "URL/file context kept",
-        "meaning": "The value is mostly URL or file syntax with little translatable text.",
-    },
-    "hash_or_id": {
-        "rule": "Hash/id kept",
-        "meaning": "The unchanged value looks like a hash or opaque identifier.",
-    },
-    "hash_or_id_path": {
-        "rule": "Hash/id path kept",
-        "meaning": "The unchanged value combines an opaque identifier with path-like syntax.",
-    },
-    "command_or_shell": {
-        "rule": "Shell command kept",
-        "meaning": "The unchanged value looks like a command-line snippet.",
-    },
-    "code_or_latex": {
-        "rule": "Code/LaTeX kept",
-        "meaning": "The unchanged value is code-like or LaTeX-like syntax.",
-    },
-    "technical_context": {
-        "rule": "Technical value kept",
-        "meaning": "The unchanged value appears in a technical context and has little natural language.",
-    },
-    "no_text_tokens": {
-        "rule": "No text tokens",
-        "meaning": "The value contains no meaningful natural-language tokens to translate.",
-    },
-}
-
-
 def quality_verdict(payload: dict[str, Any]) -> str:
     if int(payload.get("error_count", 0)) > 0:
         return "fail"
@@ -287,33 +231,6 @@ def _split_rows(payload: dict[str, Any], issues: list[dict[str, Any]]) -> list[d
     return sorted(rows, key=lambda row: (-(row["errors"] + row["warnings"]), row["split"]))
 
 
-def _suppression_metrics(payload: dict[str, Any]) -> dict[str, dict[str, int]]:
-    suppressed = payload.get("suppressed", [])
-    by_reason: Counter[str] = Counter()
-    by_field: Counter[str] = Counter()
-    for item in suppressed:
-        by_reason[str(item.get("reason", ""))] += 1
-        by_field[str(item.get("field", ""))] += 1
-    return {
-        "by_reason": _counter_dict(by_reason),
-        "by_field": _counter_dict(by_field),
-    }
-
-
-def _suppression_guide_rows(suppressed_counts: dict[str, int]) -> list[dict[str, Any]]:
-    rows = []
-    for reason, count in suppressed_counts.items():
-        guidance = SUPPRESSION_GUIDANCE.get(
-            reason,
-            {
-                "rule": reason.replace("_", " ").title(),
-                "meaning": "This unchanged value was suppressed by a technical false-positive guard.",
-            },
-        )
-        rows.append({"reason": reason, "count": count, **guidance})
-    return sorted(rows, key=lambda row: (-int(row["count"]), str(row["rule"])))
-
-
 def _recommendation(payload: dict[str, Any]) -> dict[str, Any]:
     errors = int(payload.get("error_count", 0))
     warnings = int(payload.get("warning_count", 0))
@@ -354,7 +271,7 @@ def _issue_guide_rows(issue_counts: dict[str, int]) -> list[dict[str, Any]]:
                 "priority": "sample",
                 "label": "Review",
                 "meaning": "No specific guidance is registered for this issue code.",
-                "action": "Inspect examples and decide whether the check needs a dataset-specific suppression.",
+                "action": "Inspect examples and decide whether this should be fixed or encoded as a normal rule.",
             },
         )
         rows.append({"code": code, "count": count, **guidance})
@@ -365,14 +282,12 @@ def _issue_guide_rows(issue_counts: dict[str, int]) -> list[dict[str, Any]]:
 def build_quality_metrics(payload: dict[str, Any]) -> dict[str, Any]:
     issues = [dict(issue) for issue in payload.get("issues", [])]
     issue_counts = _issue_counters(issues)
-    suppression_metrics = _suppression_metrics(payload)
     return {
         "verdict": quality_verdict(payload),
         "checked_rows": int(payload.get("checked_rows", 0)),
         "checked_pairs": int(payload.get("checked_pairs", 0)),
         "error_count": int(payload.get("error_count", 0)),
         "warning_count": int(payload.get("warning_count", 0)),
-        "suppressed_count": int(payload.get("suppressed_count", 0)),
         "rates": {
             "error_rate": int(payload.get("error_count", 0)) / int(payload.get("checked_pairs", 1) or 1),
             "warning_rate": int(payload.get("warning_count", 0)) / int(payload.get("checked_pairs", 1) or 1),
@@ -383,6 +298,4 @@ def build_quality_metrics(payload: dict[str, Any]) -> dict[str, Any]:
         "issue_guide": _issue_guide_rows(issue_counts["by_code"]),
         "fields": _field_rows(payload, issues),
         "splits": _split_rows(payload, issues),
-        "suppressed": suppression_metrics,
-        "suppression_guide": _suppression_guide_rows(suppression_metrics["by_reason"]),
     }

@@ -8,7 +8,10 @@ from data_translate.domain.translation_quality_fields import field_position_note
 def _pct(value: float | None) -> str:
     if value is None:
         return "n/a"
-    return f"{value * 100:.2f}%"
+    percent = value * 100
+    if 0 < percent < 0.01:
+        return "<0.01%"
+    return f"{percent:.2f}%"
 
 
 def _bar(value: float | None) -> str:
@@ -184,64 +187,86 @@ def _issue_records(issues: list[dict[str, Any]], rule_labels: dict[str, str]) ->
     return records
 
 
-def _issue_guide_table(metrics: dict[str, Any]) -> str:
+def _issue_guide_cards(metrics: dict[str, Any]) -> str:
     rows = []
     for item in metrics.get("issue_guide", []):
         priority = escape(str(item.get("priority", "")))
         rows.append(
             f"""
-            <tr>
-              <td><span class="rule-name">{escape(str(item.get('rule', item.get('code', ''))))}</span><br><code>{escape(str(item.get('code', '')))}</code></td>
-              <td class="num">{int(item.get('count', 0))}</td>
-              <td><span class="priority priority-{priority}">{escape(str(item.get('label', 'Review')))}</span></td>
-              <td>{escape(str(item.get('meaning', '')))}</td>
-              <td>{escape(str(item.get('action', '')))}</td>
-            </tr>
+            <article class="rule-card">
+              <header>
+                <span class="rule-count">{int(item.get('count', 0))}</span>
+                <div>
+                  <b>{escape(str(item.get('rule', item.get('code', ''))))}</b>
+                  <code>{escape(str(item.get('code', '')))}</code>
+                </div>
+                <span class="priority priority-{priority}">{escape(str(item.get('label', 'Review')))}</span>
+              </header>
+              <p>{escape(str(item.get('meaning', '')))}</p>
+              <small>{escape(str(item.get('action', '')))}</small>
+            </article>
             """
         )
     if not rows:
-        return '<tr><td colspan="5" class="muted">No issue guidance needed.</td></tr>'
+        return '<div class="empty-panel">No reported rules. Static checks did not find errors or warnings.</div>'
     return "\n".join(rows)
 
 
 def _base_css() -> str:
     return """
     :root {
-      --bg: #f5f6f2;
+      --bg: #f4f5f0;
       --panel: #ffffff;
-      --panel-soft: #eef1ea;
-      --text: #1d211f;
-      --muted: #657069;
-      --line: #d9ded5;
-      --green: #237348;
-      --green-bg: #e4f3ea;
-      --yellow: #9a6500;
-      --yellow-bg: #fff0cc;
+      --panel-soft: #f0f2eb;
+      --text: #171a18;
+      --muted: #667069;
+      --line: #d8ded4;
+      --line-strong: #bfc8bd;
+      --green: #206b44;
+      --green-bg: #e6f4eb;
+      --yellow: #8b6100;
+      --yellow-bg: #fff3c8;
       --red: #a7342f;
-      --red-bg: #ffe1de;
-      --blue: #285f8f;
+      --red-bg: #ffe2df;
+      --blue: #1f5f89;
+      --blue-bg: #e3edf5;
+      --shadow: 0 10px 28px rgba(25, 32, 27, .07);
       --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 var(--sans); }
-    main { max-width: 1320px; margin: 0 auto; padding: 28px; }
-    h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: 0; overflow-wrap: anywhere; }
-    h2 { margin: 28px 0 10px; font-size: 18px; }
+    main { max-width: 1420px; margin: 0 auto; padding: 24px 28px 40px; }
+    h1 { margin: 0; font-size: 25px; letter-spacing: 0; overflow-wrap: anywhere; }
+    h2 { margin: 24px 0 10px; font-size: 17px; }
+    h3 { margin: 0 0 8px; font-size: 14px; }
     code, pre { font-family: var(--mono); }
-    .topline { border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+    .topline { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; box-shadow: var(--shadow); }
+    .title-row { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
     .subtitle, .muted, .empty { color: var(--muted); }
-    .cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
-    .card, .note, .decision { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
-    .card b { display: block; font-size: 24px; line-height: 1.1; }
-    .card span { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-    .decision { border-left: 5px solid var(--blue); margin-bottom: 10px; }
-    .decision b { display: block; font-size: 16px; margin-bottom: 3px; }
-    .decision-pass { border-left-color: var(--green); background: var(--green-bg); }
-    .decision-block { border-left-color: var(--red); background: var(--red-bg); }
-    .decision-review, .decision-sample { border-left-color: var(--yellow); background: var(--yellow-bg); }
-    table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-    th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
-    th { background: var(--panel-soft); font-size: 12px; text-transform: uppercase; color: #4f5a54; letter-spacing: .04em; }
+    .subtitle { margin-top: 5px; }
+    .status-pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 7px 10px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+    .status-pass { color: var(--green); background: var(--green-bg); }
+    .status-block { color: var(--red); background: var(--red-bg); }
+    .status-review, .status-sample { color: var(--yellow); background: var(--yellow-bg); }
+    .summary-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--line); margin-top: 16px; padding-top: 14px; gap: 12px; }
+    .metric { min-width: 0; }
+    .metric b { display: block; font-size: 23px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+    .metric span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+    .decision-line { margin-top: 12px; color: #33403a; max-width: 900px; }
+    .decision-line b { margin-right: 7px; }
+    .section-head { display: flex; justify-content: space-between; gap: 12px; align-items: end; margin-top: 24px; margin-bottom: 10px; }
+    .section-head h2 { margin: 0; }
+    .section-note { color: var(--muted); font-size: 13px; }
+    .rule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 10px; }
+    .rule-card, .empty-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+    .rule-card header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: start; }
+    .rule-card b { display: block; }
+    .rule-card p { margin: 8px 0 4px; color: #33403a; }
+    .rule-card small { color: var(--muted); }
+    .rule-count { min-width: 34px; height: 30px; border-radius: 6px; display: inline-grid; place-items: center; background: #121614; color: #fff; font-weight: 800; font-variant-numeric: tabular-nums; }
+    table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+    th { background: var(--panel-soft); font-size: 11px; text-transform: uppercase; color: #4f5a54; letter-spacing: .06em; }
     tr:last-child td { border-bottom: 0; }
     .num { text-align: right; font-variant-numeric: tabular-nums; }
     .error-text { color: var(--red); font-weight: 700; }
@@ -252,18 +277,18 @@ def _base_css() -> str:
     .priority-fix { color: var(--red); background: var(--red-bg); }
     .priority-review { color: var(--yellow); background: var(--yellow-bg); }
     .priority-sample { color: var(--blue); background: #e3edf7; }
-    .bar { display: block; height: 6px; background: #e7ebe2; border-radius: 999px; overflow: hidden; margin-top: 4px; }
+    .bar { display: block; height: 5px; background: #e7ebe2; border-radius: 999px; overflow: hidden; margin-top: 4px; }
     .bar span { display: block; height: 100%; background: var(--blue); }
-    .filters { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px 6px 0 0; padding: 12px; position: sticky; top: 0; z-index: 2; }
-    .filters label { display: grid; gap: 4px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-    select, input { width: 100%; box-sizing: border-box; border: 1px solid var(--line); border-radius: 4px; padding: 8px; background: #fff; color: var(--text); font: inherit; min-width: 0; }
-    .issue-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 6px 6px; padding: 10px 12px; margin-bottom: 12px; }
+    .filters { display: grid; grid-template-columns: 130px 220px 160px 220px minmax(260px, 1fr); gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px 8px 0 0; padding: 10px; position: sticky; top: 0; z-index: 2; }
+    .filters label { display: grid; gap: 4px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+    select, input { width: 100%; box-sizing: border-box; border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; background: #fff; color: var(--text); font: inherit; min-width: 0; }
+    .issue-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 8px 8px; padding: 9px 10px; margin-bottom: 12px; }
     .issue-toolbar b { display: block; }
     .pager { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
-    .pager button { border: 1px solid var(--line); background: #fff; color: var(--text); border-radius: 4px; padding: 6px 9px; font: inherit; cursor: pointer; }
+    .pager button { border: 1px solid var(--line); background: #fff; color: var(--text); border-radius: 6px; padding: 6px 9px; font: inherit; cursor: pointer; }
     .pager button:disabled { color: var(--muted); opacity: .55; cursor: default; }
     .page-status { color: var(--muted); min-width: 92px; text-align: center; }
-    .issue-card { background: var(--panel); border: 1px solid var(--line); border-left-width: 5px; border-radius: 6px; margin: 10px 0; padding: 12px; }
+    .issue-card { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--line-strong); border-radius: 8px; margin: 10px 0; padding: 12px; }
     .issue-card.severity-error { border-left-color: var(--red); }
     .issue-card.severity-warning { border-left-color: var(--yellow); }
     .issue-card header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -276,16 +301,19 @@ def _base_css() -> str:
     .loc { color: var(--muted); }
     .field-name { display: grid; gap: 3px; }
     .field-meta { color: var(--muted); font-size: 12px; }
-    .field-chip, .position-chip { display: inline-flex; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+    .field-chip, .position-chip { display: inline-flex; padding: 2px 6px; border-radius: 5px; font-size: 12px; }
     .field-chip { font-family: var(--mono); background: #eef1ea; color: #39423d; overflow-wrap: anywhere; }
     .position-chip { background: #e3edf7; color: var(--blue); font-weight: 700; }
     .exact-field { opacity: .72; }
     .message { margin: 8px 0; color: #39423d; }
     .sample-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .sample-grid h4 { margin: 0 0 4px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-    pre { white-space: pre-wrap; word-break: break-word; background: #f2f4ef; border: 1px solid var(--line); border-radius: 4px; padding: 10px; margin: 0; max-height: 260px; overflow: auto; }
+    pre { white-space: pre-wrap; word-break: break-word; background: #f7f8f4; border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin: 0; max-height: 260px; overflow: auto; }
     details { margin-top: 8px; }
     summary { cursor: pointer; color: var(--blue); }
+    .section-details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 0; margin-top: 24px; }
+    .section-details > summary { display: flex; justify-content: space-between; gap: 12px; padding: 12px; color: var(--text); font-weight: 800; }
+    .coverage-grid { display: grid; grid-template-columns: 1fr; gap: 14px; padding: 0 12px 12px; }
     .locations { margin: 8px 0 0; padding-left: 18px; color: #39423d; }
     .locations li { margin: 3px 0; }
     .example-list ul { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 8px; }
@@ -293,7 +321,7 @@ def _base_css() -> str:
     .example-list pre { max-height: 120px; }
     @media (max-width: 900px) {
       main { padding: 16px; }
-      .cards, .filters, .sample-grid { grid-template-columns: 1fr; }
+      .title-row, .summary-grid, .filters, .sample-grid { grid-template-columns: 1fr; display: grid; }
       .issue-toolbar { display: block; }
       .pager { justify-content: flex-start; margin-top: 8px; }
     }
@@ -339,6 +367,7 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
     fields = sorted({normalized_field_path(str(issue.get("field", ""))) for issue in issues if issue.get("field")})
     recommendation = metrics.get("recommendation", {})
     recommendation_level = escape(str(recommendation.get("level", "sample")))
+    status_label = "Fix required" if recommendation_level == "block" else "Ready" if recommendation_level == "pass" else "Review"
     issue_rate = metrics.get("rates", {}).get("issue_rate")
 
     return f"""<!doctype html>
@@ -353,44 +382,37 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
 <body>
 <main>
   <section class="topline">
+    <div class="title-row">
+      <div>
+        <h1>check-translation · {escape(dataset_name)}</h1>
+        <div class="subtitle">Static checks for translated dataset artifacts.</div>
+      </div>
+      <span class="status-pill status-{recommendation_level}">{escape(status_label)}</span>
+    </div>
+    <section class="summary-grid">
+      <div class="metric"><b>{metrics['checked_rows']}</b><span>rows</span></div>
+      <div class="metric"><b>{metrics['checked_pairs']}</b><span>text pairs</span></div>
+      <div class="metric"><b>{metrics['error_count']}</b><span>errors</span></div>
+      <div class="metric"><b>{metrics['warning_count']}</b><span>warnings</span></div>
+      <div class="metric"><b>{_pct(issue_rate)}</b><span>issue rate</span></div>
+    </section>
+    <div class="decision-line"><b>{escape(str(recommendation.get('summary', 'Review report.')))}</b>{escape(str(recommendation.get('detail', 'Inspect the issue rules and cases below.')))}</div>
+  </section>
+
+  <section class="section-head">
     <div>
-      <h1>check-translation · {escape(dataset_name)}</h1>
-      <div class="subtitle">Static quality report generated by data-translate.</div>
+      <h2>Triggered Rules</h2>
+      <div class="section-note">Only reported errors and warnings are listed here. Technical values such as URLs, IDs, file names, and titles are not treated as translation issues.</div>
     </div>
   </section>
+  <section class="rule-grid">{_issue_guide_cards(metrics)}</section>
 
-  <section class="cards">
-    <div class="card"><b>{metrics['checked_rows']}</b><span>checked rows</span></div>
-    <div class="card"><b>{metrics['checked_pairs']}</b><span>checked pairs</span></div>
-    <div class="card"><b>{metrics['error_count']}</b><span>errors</span></div>
-    <div class="card"><b>{metrics['warning_count']}</b><span>warnings</span></div>
-    <div class="card"><b>{_pct(issue_rate)}</b><span>issue rate</span></div>
+  <section class="section-head">
+    <div>
+      <h2>Issue Cases</h2>
+      <div class="section-note">Duplicate rows with the same source and translation are grouped into one case.</div>
+    </div>
   </section>
-
-  <section class="decision decision-{recommendation_level}">
-    <b>{escape(str(recommendation.get('summary', 'Review report.')))}</b>
-    <span>{escape(str(recommendation.get('detail', 'Inspect the issue guide and examples below.')))}</span>
-  </section>
-
-  <h2>Field Coverage</h2>
-  <table>
-    <thead><tr><th>Field</th><th>Checked pairs</th><th>Errors</th><th>Warnings</th><th>Issue rate</th><th>Top rules</th></tr></thead>
-    <tbody>{field_rows}</tbody>
-  </table>
-
-  <h2>Split Coverage</h2>
-  <table>
-    <thead><tr><th>Split</th><th>Rows</th><th>Checked rows</th><th>Checked pairs</th><th>Errors</th><th>Warnings</th><th>Issue rate</th><th>Top rules</th></tr></thead>
-    <tbody>{split_rows}</tbody>
-  </table>
-
-  <h2>Issue Guide</h2>
-  <table>
-    <thead><tr><th>Check rule</th><th>Count</th><th>Priority</th><th>Triggered when</th><th>Suggested action</th></tr></thead>
-    <tbody>{_issue_guide_table(metrics)}</tbody>
-  </table>
-
-  <h2>Issue Cases</h2>
   <section class="filters">
     <label>Severity<select id="severityFilter">{_options(severities)}</select></label>
     <label>Rule<select id="codeFilter">{_rule_options(codes, rule_labels)}</select></label>
@@ -401,7 +423,7 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
   <section class="issue-toolbar">
     <div>
       <b id="issueRange">0 cases</b>
-      <span class="muted">Duplicate rows with the same source and translation are grouped. Showing 50 cases per page.</span>
+      <span class="muted">Showing 50 cases per page after filters.</span>
     </div>
     <div class="pager">
       <button type="button" id="firstPage">First</button>
@@ -412,6 +434,26 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
     </div>
   </section>
   <section id="issues"><div class="empty">Loading issues...</div></section>
+
+  <details class="section-details">
+    <summary><span>Coverage by field and split</span><span class="muted">{len(metrics["fields"])} fields · {len(metrics["splits"])} splits</span></summary>
+    <div class="coverage-grid">
+      <section>
+        <h3>Field Coverage</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Checked pairs</th><th>Errors</th><th>Warnings</th><th>Issue rate</th><th>Top rules</th></tr></thead>
+          <tbody>{field_rows}</tbody>
+        </table>
+      </section>
+      <section>
+        <h3>Split Coverage</h3>
+        <table>
+          <thead><tr><th>Split</th><th>Rows</th><th>Checked rows</th><th>Checked pairs</th><th>Errors</th><th>Warnings</th><th>Issue rate</th><th>Top rules</th></tr></thead>
+          <tbody>{split_rows}</tbody>
+        </table>
+      </section>
+    </div>
+  </details>
 
 </main>
 <script>
