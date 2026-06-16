@@ -61,8 +61,45 @@ def _sample_text(issue: dict[str, Any], key: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+def _sample_examples(issue: dict[str, Any]) -> list[dict[str, str]]:
+    examples = issue.get("sample", {}).get("examples", [])
+    if not isinstance(examples, list):
+        return []
+    rows = []
+    for item in examples:
+        if not isinstance(item, dict):
+            continue
+        rows.append(
+            {
+                "split": str(item.get("split", "")),
+                "row_idx": str(item.get("row_idx", "")),
+                "field": normalized_field_path(str(item.get("field", ""))),
+                "exact_field": str(item.get("field", "")),
+                "source": str(item.get("source", "")),
+            }
+        )
+    return rows
+
+
 def _group_text(value: str) -> str:
     return " ".join(value.split())
+
+
+def _issue_occurrence_count(issue: dict[str, Any]) -> int:
+    diagnostics = issue.get("diagnostics", {})
+    if not isinstance(diagnostics, dict):
+        return 1
+    candidates = [
+        diagnostics.get("duplicate_count", 1),
+        diagnostics.get("occurrence_count", 1),
+    ]
+    counts = []
+    for value in candidates:
+        try:
+            counts.append(int(value))
+        except (TypeError, ValueError):
+            continue
+    return max(1, *counts)
 
 
 def _issue_group_key(issue: dict[str, Any]) -> tuple[str, str, str, str, str]:
@@ -101,8 +138,13 @@ def _issue_records(issues: list[dict[str, Any]], rule_labels: dict[str, str]) ->
         rule = rule_labels.get(str(issue.get("code", "")), str(issue.get("code", "")))
         source_text = _sample_text(issue, "source")
         translation_text = _sample_text(issue, "translation")
-        search = " ".join([severity, code, rule, split, normalized_field_path(raw_field), raw_field, position, message, source_text, translation_text]).lower()
-        occurrence_count = max(1, int(issue.get("diagnostics", {}).get("duplicate_count", 1)))
+        examples = _sample_examples(issue)
+        example_search = " ".join(
+            " ".join([str(example.get("split", "")), str(example.get("row_idx", "")), str(example.get("field", "")), str(example.get("source", ""))])
+            for example in examples
+        )
+        search = " ".join([severity, code, rule, split, normalized_field_path(raw_field), raw_field, position, message, source_text, translation_text, example_search]).lower()
+        occurrence_count = _issue_occurrence_count(issue)
         key = _issue_group_key(issue)
         existing = by_key.get(key)
         if existing is None:
@@ -122,6 +164,8 @@ def _issue_records(issues: list[dict[str, Any]], rule_labels: dict[str, str]) ->
                 "diagnostics": issue.get("diagnostics", {}),
                 "search": search,
                 "occurrence_count": occurrence_count,
+                "distinct_source_count": issue.get("sample", {}).get("distinct_source_count", issue.get("diagnostics", {}).get("distinct_source_count", "")),
+                "examples": examples,
                 "locations": [_issue_location(issue)],
                 "fields": [field] if field else [],
                 "exact_fields": [raw_field] if raw_field else [],
@@ -130,6 +174,7 @@ def _issue_records(issues: list[dict[str, Any]], rule_labels: dict[str, str]) ->
             records.append(record)
             continue
         existing["occurrence_count"] += occurrence_count
+        existing["examples"].extend(examples)
         existing["locations"].append(_issue_location(issue))
         existing["search"] = f"{existing['search']} {search}"
         if field and field not in existing["fields"]:
@@ -243,6 +288,9 @@ def _base_css() -> str:
     summary { cursor: pointer; color: var(--blue); }
     .locations { margin: 8px 0 0; padding-left: 18px; color: #39423d; }
     .locations li { margin: 3px 0; }
+    .example-list ul { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 8px; }
+    .example-list li { display: grid; gap: 4px; }
+    .example-list pre { max-height: 120px; }
     @media (max-width: 900px) {
       main { padding: 16px; }
       .cards, .filters, .sample-grid { grid-template-columns: 1fr; }
@@ -415,6 +463,22 @@ function locationsHtml(locations) {{
   return `<ul class="locations">${{items}}${{omitted}}</ul>`;
 }}
 
+function sourceExamplesHtml(issue) {{
+  const examples = issue.examples || [];
+  if (!examples.length) {{
+    return `<pre>${{escapeHtml(issue.source)}}</pre>`;
+  }}
+  const distinctCount = Number(issue.distinct_source_count || 0);
+  const distinct = distinctCount ? ` of ${{escapeHtml(issue.distinct_source_count)}} distinct` : '';
+  const items = examples.slice(0, 5).map(example => {{
+    const exact = example.exact_field && example.exact_field !== example.field ? ` · ${{escapeHtml(example.exact_field)}}` : '';
+    return `<li><div class="loc"><code>${{escapeHtml(example.split)}}[${{escapeHtml(example.row_idx)}}]</code> · <code>${{escapeHtml(example.field)}}</code>${{exact}}</div><pre>${{escapeHtml(example.source)}}</pre></li>`;
+  }}).join('');
+  const omittedCount = Math.max(examples.length - 5, distinctCount - Math.min(examples.length, 5), 0);
+  const omitted = omittedCount > 0 ? `<li class="muted">and ${{omittedCount}} more distinct source examples not shown</li>` : '';
+  return `<div class="example-list"><div class="field-meta">${{examples.length}} shown${{distinct}}</div><ul>${{items}}${{omitted}}</ul></div>`;
+}}
+
 function issueCard(issue) {{
   const fields = issue.fields && issue.fields.length ? issue.fields : [issue.field];
   const fieldLabel = fields.length > 1 ? `${{fields[0]}} +${{fields.length - 1}}` : fields[0];
@@ -446,7 +510,7 @@ function issueCard(issue) {{
       </header>
       <p class="message">${{escapeHtml(issue.message)}}</p>
       <div class="sample-grid">
-        <div><h4>Source</h4><pre>${{escapeHtml(issue.source)}}</pre></div>
+        <div><h4>${{(issue.examples || []).length ? 'Source examples' : 'Source'}}</h4>${{sourceExamplesHtml(issue)}}</div>
         <div><h4>Translation</h4><pre>${{escapeHtml(issue.translation)}}</pre></div>
       </div>
       ${{locationDetails}}

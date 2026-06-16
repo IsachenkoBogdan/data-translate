@@ -447,6 +447,20 @@ def test_quality_checker_reports_repeated_translation_groups() -> None:
     repeated = [issue for issue in report.issues if issue.code == "repeated_translation"]
     assert len(repeated) == 1
     assert repeated[0].diagnostics["distinct_source_count"] == 5
+    assert repeated[0].diagnostics["occurrence_count"] == 5
+
+    payload = {
+        "dataset_id": "demo",
+        "workflow": "check-translation",
+        "splits": {"train": 5},
+        **report.to_dict(),
+    }
+    metrics = build_quality_metrics(payload)
+    html = render_quality_html(payload, metrics)
+
+    assert "Source examples" in html
+    assert "This is a distinct source sentence number 0" in html
+    assert '"occurrence_count": 5' in html
 
 
 def test_quality_metrics_and_html_rendering_escape_examples() -> None:
