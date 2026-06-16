@@ -613,8 +613,9 @@ def test_quality_metrics_and_html_rendering_escape_examples() -> None:
     assert "function escapeHtml" in html
     assert "Showing 50 cases per page" in html
     assert "Triggered Rules" in html
-    assert "Coverage" in html
     assert "Field Coverage" in html
+    assert "<h2>Coverage</h2>" not in html
+    assert html.index("Field Coverage") < html.index("Split Coverage")
     assert html.index("Field Coverage") < html.index("Triggered Rules")
     assert html.index("Split Coverage") < html.index("Triggered Rules")
     assert "Empty field" in html
