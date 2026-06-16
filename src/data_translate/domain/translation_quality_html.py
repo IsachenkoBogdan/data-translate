@@ -61,8 +61,34 @@ def _sample_text(issue: dict[str, Any], key: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+def _group_text(value: str) -> str:
+    return " ".join(value.split())
+
+
+def _issue_group_key(issue: dict[str, Any]) -> tuple[str, str, str, str, str]:
+    return (
+        str(issue.get("severity", "")),
+        str(issue.get("code", "")),
+        str(issue.get("message", "")),
+        _group_text(_sample_text(issue, "source")),
+        _group_text(_sample_text(issue, "translation")),
+    )
+
+
+def _issue_location(issue: dict[str, Any]) -> dict[str, str]:
+    raw_field = str(issue.get("field", ""))
+    return {
+        "split": str(issue.get("split", "")),
+        "row_idx": str(issue.get("row_idx", "")),
+        "field": normalized_field_path(raw_field),
+        "exact_field": raw_field,
+        "position": field_position_note(raw_field),
+    }
+
+
 def _issue_records(issues: list[dict[str, Any]], rule_labels: dict[str, str]) -> list[dict[str, Any]]:
     records = []
+    by_key: dict[tuple[str, str, str, str, str], dict[str, Any]] = {}
     for idx, issue in enumerate(issues, start=1):
         severity = str(issue.get("severity", ""))
         code = str(issue.get("code", ""))
@@ -76,8 +102,11 @@ def _issue_records(issues: list[dict[str, Any]], rule_labels: dict[str, str]) ->
         source_text = _sample_text(issue, "source")
         translation_text = _sample_text(issue, "translation")
         search = " ".join([severity, code, rule, split, normalized_field_path(raw_field), raw_field, position, message, source_text, translation_text]).lower()
-        records.append(
-            {
+        occurrence_count = max(1, int(issue.get("diagnostics", {}).get("duplicate_count", 1)))
+        key = _issue_group_key(issue)
+        existing = by_key.get(key)
+        if existing is None:
+            record = {
                 "index": idx,
                 "severity": severity,
                 "code": code,
@@ -92,8 +121,21 @@ def _issue_records(issues: list[dict[str, Any]], rule_labels: dict[str, str]) ->
                 "translation": translation_text,
                 "diagnostics": issue.get("diagnostics", {}),
                 "search": search,
+                "occurrence_count": occurrence_count,
+                "locations": [_issue_location(issue)],
+                "fields": [field] if field else [],
+                "exact_fields": [raw_field] if raw_field else [],
             }
-        )
+            by_key[key] = record
+            records.append(record)
+            continue
+        existing["occurrence_count"] += occurrence_count
+        existing["locations"].append(_issue_location(issue))
+        existing["search"] = f"{existing['search']} {search}"
+        if field and field not in existing["fields"]:
+            existing["fields"].append(field)
+        if raw_field and raw_field not in existing["exact_fields"]:
+            existing["exact_fields"].append(raw_field)
     return records
 
 
@@ -199,6 +241,8 @@ def _base_css() -> str:
     pre { white-space: pre-wrap; word-break: break-word; background: #f2f4ef; border: 1px solid var(--line); border-radius: 4px; padding: 10px; margin: 0; max-height: 260px; overflow: auto; }
     details { margin-top: 8px; }
     summary { cursor: pointer; color: var(--blue); }
+    .locations { margin: 8px 0 0; padding-left: 18px; color: #39423d; }
+    .locations li { margin: 3px 0; }
     @media (max-width: 900px) {
       main { padding: 16px; }
       .cards, .filters, .sample-grid { grid-template-columns: 1fr; }
@@ -298,7 +342,7 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
     <tbody>{_issue_guide_table(metrics)}</tbody>
   </table>
 
-  <h2>Issues</h2>
+  <h2>Issue Cases</h2>
   <section class="filters">
     <label>Severity<select id="severityFilter">{_options(severities)}</select></label>
     <label>Rule<select id="codeFilter">{_rule_options(codes, rule_labels)}</select></label>
@@ -308,8 +352,8 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
   </section>
   <section class="issue-toolbar">
     <div>
-      <b id="issueRange">0 issues</b>
-      <span class="muted">Showing 50 examples per page after filters.</span>
+      <b id="issueRange">0 cases</b>
+      <span class="muted">Duplicate rows with the same source and translation are grouped. Showing 50 cases per page.</span>
     </div>
     <div class="pager">
       <button type="button" id="firstPage">First</button>
@@ -361,12 +405,31 @@ function diagnosticsText(value) {{
   }}
 }}
 
+function locationsHtml(locations) {{
+  const items = (locations || []).slice(0, 12).map(location => {{
+    const position = location.position ? ` · ${{escapeHtml(location.position)}}` : '';
+    const exact = location.exact_field && location.exact_field !== location.field ? ` · ${{escapeHtml(location.exact_field)}}` : '';
+    return `<li><code>${{escapeHtml(location.split)}}[${{escapeHtml(location.row_idx)}}]</code> · <code>${{escapeHtml(location.field)}}</code>${{position}}${{exact}}</li>`;
+  }}).join('');
+  const omitted = (locations || []).length > 12 ? `<li class="muted">and ${{(locations || []).length - 12}} more listed occurrences</li>` : '';
+  return `<ul class="locations">${{items}}${{omitted}}</ul>`;
+}}
+
 function issueCard(issue) {{
+  const fields = issue.fields && issue.fields.length ? issue.fields : [issue.field];
+  const fieldLabel = fields.length > 1 ? `${{fields[0]}} +${{fields.length - 1}}` : fields[0];
   const exactField = issue.exact_field && issue.exact_field !== issue.field
     ? `<span class="code exact-field">${{escapeHtml(issue.exact_field)}}</span>`
     : '';
   const position = issue.position
     ? `<span class="position-chip">${{escapeHtml(issue.position)}}</span>`
+    : '';
+  const occurrenceCount = Number(issue.occurrence_count || 1);
+  const occurrenceChip = occurrenceCount > 1
+    ? `<span class="pill">${{occurrenceCount}} occurrences</span>`
+    : '';
+  const locationDetails = (issue.locations || []).length > 1
+    ? `<details><summary>Locations</summary>${{locationsHtml(issue.locations)}}</details>`
     : '';
   return `
     <article class="issue-card severity-${{escapeHtml(issue.severity)}}">
@@ -376,15 +439,17 @@ function issueCard(issue) {{
         <span class="rule-name">${{escapeHtml(issue.rule)}}</span>
         <span class="code">${{escapeHtml(issue.code)}}</span>
         <span class="loc">${{escapeHtml(issue.split)}}[${{escapeHtml(issue.row_idx)}}]</span>
-        <span class="field-chip">${{escapeHtml(issue.field)}}</span>
+        <span class="field-chip">${{escapeHtml(fieldLabel)}}</span>
         ${{position}}
         ${{exactField}}
+        ${{occurrenceChip}}
       </header>
       <p class="message">${{escapeHtml(issue.message)}}</p>
       <div class="sample-grid">
         <div><h4>Source</h4><pre>${{escapeHtml(issue.source)}}</pre></div>
         <div><h4>Translation</h4><pre>${{escapeHtml(issue.translation)}}</pre></div>
       </div>
+      ${{locationDetails}}
       <details>
         <summary>Diagnostics</summary>
         <pre class="diagnostics">${{escapeHtml(diagnosticsText(issue.diagnostics))}}</pre>
@@ -398,7 +463,7 @@ function matchesFilters(issue) {{
   return (!filters.severity.value || issue.severity === filters.severity.value)
     && (!filters.code.value || issue.code === filters.code.value)
     && (!filters.split.value || issue.split === filters.split.value)
-    && (!filters.field.value || issue.field === filters.field.value)
+    && (!filters.field.value || (issue.fields || [issue.field]).includes(filters.field.value))
     && (!query || issue.search.includes(query));
 }}
 
@@ -411,14 +476,14 @@ function renderIssues(page = currentPage) {{
   const visible = filtered.slice(start, start + pageSize);
   issuesRoot.innerHTML = visible.length
     ? visible.map(issueCard).join('')
-    : '<div class="empty">No issues match the current filters.</div>';
+    : '<div class="empty">No cases match the current filters.</div>';
 
   if (total) {{
     const end = start + visible.length;
-    issueRange.textContent = `Showing ${{start + 1}}-${{end}} of ${{total}} issues`;
+    issueRange.textContent = `Showing ${{start + 1}}-${{end}} of ${{total}} cases`;
     pageStatus.textContent = `Page ${{currentPage}} / ${{pageCount}}`;
   }} else {{
-    issueRange.textContent = '0 issues';
+    issueRange.textContent = '0 cases';
     pageStatus.textContent = 'Page 0 / 0';
   }}
   pager.first.disabled = currentPage <= 1 || total === 0;
@@ -450,14 +515,26 @@ def render_fix_suggestions_html(payload: dict[str, Any]) -> str:
         suggestion = escape(str(row.get("suggested_translation", "")))
         rationale = escape(str(row.get("rationale", "")))
         confidence = escape(str(row.get("confidence", "")))
+        occurrence_count = int(issue.get("occurrence_count", 1))
+        occurrence_html = f'<span class="pill">{occurrence_count} occurrences</span>' if occurrence_count > 1 else ""
+        location_rows = []
+        for location in issue.get("locations", [])[:20]:
+            location_rows.append(
+                f"<li><code>{escape(str(location.get('split', '')))}[{escape(str(location.get('row_idx', '')))}]</code> · "
+                f"<code>{escape(str(location.get('field', '')))}</code></li>"
+            )
+        if len(issue.get("locations", [])) > 20:
+            location_rows.append(f'<li class="muted">and {len(issue.get("locations", [])) - 20} more listed occurrences</li>')
+        locations_html = f"<details><summary>Locations</summary><ul class=\"locations\">{''.join(location_rows)}</ul></details>" if location_rows else ""
         cards.append(
             f"""
             <article class="issue-card">
-              <header><span class="issue-index">#{idx}</span><span class="badge warning">{status}</span><span class="code">{escape(str(issue.get('code', '')))}</span><span class="loc">{escape(str(issue.get('split', '')))}[{escape(str(issue.get('row_idx', '')))}] · {escape(str(issue.get('field', '')))}</span></header>
+              <header><span class="issue-index">#{idx}</span><span class="badge warning">{status}</span><span class="code">{escape(str(issue.get('code', '')))}</span><span class="loc">{escape(str(issue.get('split', '')))}[{escape(str(issue.get('row_idx', '')))}] · {escape(str(issue.get('field', '')))}</span>{occurrence_html}</header>
               <div class="sample-grid">
                 <div><h4>Source</h4><pre>{source}</pre></div>
                 <div><h4>Current</h4><pre>{current}</pre></div>
               </div>
+              {locations_html}
               <h4>Suggested translation · confidence {confidence}</h4>
               <pre>{suggestion}</pre>
               <p class="message">{rationale}</p>

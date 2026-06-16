@@ -52,6 +52,34 @@ Return strict JSON:
 """
 
 
+def _sample_text(issue: dict[str, Any], key: str) -> str:
+    value = issue.get("sample", {}).get(key, "")
+    if isinstance(value, str):
+        return value.strip()
+    return json.dumps(value, ensure_ascii=False)
+
+
+def _group_text(value: str) -> str:
+    return " ".join(value.split())
+
+
+def _issue_location(issue: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "split": issue.get("split"),
+        "row_idx": issue.get("row_idx"),
+        "field": issue.get("field"),
+    }
+
+
+def _fix_case_key(issue: dict[str, Any]) -> tuple[str, str, str, str]:
+    return (
+        str(issue.get("code", "")),
+        str(issue.get("message", "")),
+        _group_text(_sample_text(issue, "source")),
+        _group_text(_sample_text(issue, "translation")),
+    )
+
+
 def _strip_code_fences(content: str) -> str:
     match = re.match(r"^```[a-zA-Z0-9_-]*\s*(.*?)\s*```$", content.strip(), re.DOTALL)
     return match.group(1).strip() if match else content.strip()
@@ -76,15 +104,34 @@ def _first_json_object(content: str) -> dict[str, Any] | None:
     return None
 
 
-def _selected_issues(payload: dict[str, Any], max_fixes: int) -> list[dict[str, Any]]:
-    issues = [
+def _fixable_issues(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
         dict(issue)
         for issue in payload.get("issues", [])
         if str(issue.get("code", "")) in FIXABLE_CODES
         and str(issue.get("sample", {}).get("source", "")).strip()
         and str(issue.get("sample", {}).get("translation", "")).strip()
     ]
-    return issues if max_fixes < 0 else issues[:max_fixes]
+
+
+def _group_fix_cases(issues: list[dict[str, Any]], max_fixes: int) -> list[dict[str, Any]]:
+    cases: list[dict[str, Any]] = []
+    by_key: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    for issue in issues:
+        key = _fix_case_key(issue)
+        occurrence_count = max(1, int(issue.get("diagnostics", {}).get("duplicate_count", 1)))
+        existing = by_key.get(key)
+        if existing is None:
+            grouped = dict(issue)
+            grouped["occurrence_count"] = occurrence_count
+            grouped["locations"] = [_issue_location(issue)]
+            grouped["case_key"] = list(key)
+            by_key[key] = grouped
+            cases.append(grouped)
+            continue
+        existing["occurrence_count"] = int(existing.get("occurrence_count", 1)) + occurrence_count
+        existing.setdefault("locations", []).append(_issue_location(issue))
+    return cases if max_fixes < 0 else cases[:max_fixes]
 
 
 def _suggestion_id(issue: dict[str, Any]) -> str:
@@ -126,9 +173,8 @@ async def _build_suggestions(
     semaphore = anyio.Semaphore(config.runtime.concurrency)
 
     async def process_issue(issue: dict[str, Any]) -> dict[str, Any]:
-        sample = issue.get("sample", {})
-        source_text = str(sample.get("source", ""))
-        translation_text = str(sample.get("translation", ""))
+        source_text = _sample_text(issue, "source")
+        translation_text = _sample_text(issue, "translation")
         user_prompt = FIX_USER_PROMPT.format(
             source_lang=evaluation.source_lang,
             target_lang=evaluation.target_lang,
@@ -181,7 +227,7 @@ async def _build_suggestions(
             "finish_reason": response.finish_reason,
         }
 
-    with progress_bar(total=len(issues), desc="check-translation-fix", unit="issue", enabled=show_progress) as progress:
+    with progress_bar(total=len(issues), desc="check-translation-fix", unit="case", enabled=show_progress) as progress:
         async with anyio.create_task_group() as task_group:
             results: list[dict[str, Any] | None] = [None] * len(issues)
 
@@ -218,7 +264,8 @@ def run_translation_quality_fix(
         max_issues=-1,
         show_progress=show_progress,
     )
-    issues = _selected_issues(quality_payload, max_fixes)
+    fixable_issues = _fixable_issues(quality_payload)
+    issues = _group_fix_cases(fixable_issues, max_fixes)
     config = load_workflow_model(
         "evaluate",
         config_root=config_root,
@@ -243,7 +290,9 @@ def run_translation_quality_fix(
         "workflow": "check-translation-fix",
         "dataset_id": dataset_id,
         "run_name": run_name or "",
-        "selected_issue_count": len(issues),
+        "selected_issue_count": sum(int(issue.get("occurrence_count", 1)) for issue in issues),
+        "selected_case_count": len(issues),
+        "deduplicated_issue_count": sum(int(issue.get("occurrence_count", 1)) for issue in issues) - len(issues),
         "suggestion_count": len(suggestions),
         "quality_summary_path": str(summary_path),
         "suggestions_path": str(suggestions_path),
@@ -263,6 +312,7 @@ def format_fix_summary(payload: dict[str, Any]) -> str:
         [
             f"check-translation-fix: {payload['dataset_id']}",
             f"selected_issues: {payload['selected_issue_count']}",
+            f"selected_cases: {payload.get('selected_case_count', payload['suggestion_count'])}",
             f"suggestions: {payload['suggestion_count']}",
             f"suggestions_jsonl: {payload['suggestions_path']}",
             f"suggestions_html: {payload['suggestions_html_path']}",

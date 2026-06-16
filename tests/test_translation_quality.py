@@ -471,7 +471,7 @@ def test_quality_metrics_and_html_rendering_escape_examples() -> None:
     assert metrics["fields"][0]["checked_pairs"] == 1
     assert "const issueData =" in html
     assert "function escapeHtml" in html
-    assert "Showing 50 examples per page" in html
+    assert "Showing 50 cases per page" in html
     assert "Field Coverage" in html
     assert "Check rule" in html
     assert "Empty field" in html
@@ -580,6 +580,53 @@ def test_field_metrics_group_indexed_dialog_turns() -> None:
     assert "Next</button>" in html
 
 
+def test_html_report_groups_duplicate_issue_cases() -> None:
+    payload = {
+        "dataset_id": "demo",
+        "workflow": "check-translation",
+        "checked_rows": 2,
+        "checked_pairs": 2,
+        "error_count": 0,
+        "warning_count": 2,
+        "suppressed_count": 0,
+        "splits": {"train": 2},
+        "checked_rows_by_split": {"train": 2},
+        "checked_pairs_by_split": {"train": 2},
+        "checked_pairs_by_field": {"topic_fr": 2},
+        "issues": [
+            {
+                "severity": "warning",
+                "code": "unchanged_translation",
+                "split": "train",
+                "row_idx": 0,
+                "field": "topic_fr",
+                "message": "meaningful English-looking source remained unchanged",
+                "sample": {"source": "Guns N' Roses", "translation": "Guns N' Roses"},
+                "diagnostics": {},
+            },
+            {
+                "severity": "warning",
+                "code": "unchanged_translation",
+                "split": "train",
+                "row_idx": 1,
+                "field": "topic_fr",
+                "message": "meaningful English-looking source remained unchanged",
+                "sample": {"source": "Guns N' Roses", "translation": "Guns N' Roses"},
+                "diagnostics": {},
+            },
+        ],
+        "suppressed": [],
+    }
+
+    metrics = build_quality_metrics(payload)
+    html = render_quality_html(payload, metrics)
+
+    assert '"occurrence_count": 2' in html
+    assert '"row_idx": "0"' in html
+    assert '"row_idx": "1"' in html
+    assert "Showing 50 cases per page" in html
+
+
 def test_translation_quality_service_writes_full_artifacts(tmp_path, monkeypatch) -> None:
     source = DatasetDict(
         {
@@ -657,7 +704,11 @@ def test_translation_quality_service_writes_sample_artifacts_separately(tmp_path
 
 
 class FakeFixAdapter:
+    def __init__(self) -> None:
+        self.calls = 0
+
     async def chat(self, **_kwargs):
+        self.calls += 1
         return success_response(
             content='{"suggested_translation":"Bonjour","confidence":0.91,"rationale":"Corrects the unchanged text."}',
             attempts=1,
@@ -706,9 +757,57 @@ def test_translation_quality_fix_writes_suggestions_without_mutating_artifacts(t
         payload = run_translation_quality_fix(dataset_id="demo", max_fixes=10)
 
     assert payload["selected_issue_count"] == 1
+    assert payload["selected_case_count"] == 1
     assert payload["suggestion_count"] == 1
     assert load_jsonl(tmp_path / "fix_suggestions.jsonl")[0]["suggested_translation"] == "Bonjour"
     assert (tmp_path / "fix_suggestions.html").exists()
+
+
+def test_translation_quality_fix_groups_duplicate_cases_before_llm(tmp_path) -> None:
+    quality_payload = {
+        "summary_path": str(tmp_path / "summary.json"),
+        "issues": [
+            {
+                "severity": "warning",
+                "code": "unchanged_translation",
+                "split": "train",
+                "row_idx": 0,
+                "field": "topic_fr",
+                "message": "meaningful English-looking source remained unchanged",
+                "sample": {"source": "Guns N' Roses", "translation": "Guns N' Roses"},
+                "diagnostics": {},
+            },
+            {
+                "severity": "warning",
+                "code": "unchanged_translation",
+                "split": "train",
+                "row_idx": 1,
+                "field": "topic_fr",
+                "message": "meaningful English-looking source remained unchanged",
+                "sample": {"source": "Guns N' Roses", "translation": "Guns N' Roses"},
+                "diagnostics": {},
+            },
+        ],
+    }
+    config = load_workflow_model("evaluate", dataset_id="faithdial")
+    adapter = FakeFixAdapter()
+
+    with patch("data_translate.services.translation_quality_fix.run_translation_quality_check", return_value=quality_payload), patch(
+        "data_translate.services.translation_quality_fix.load_workflow_model", return_value=config
+    ), patch("data_translate.services.translation_quality_fix.build_llm_adapter", return_value=adapter):
+        payload = run_translation_quality_fix(dataset_id="demo", max_fixes=10)
+
+    suggestions = load_jsonl(tmp_path / "fix_suggestions.jsonl")
+    html = (tmp_path / "fix_suggestions.html").read_text(encoding="utf-8")
+
+    assert adapter.calls == 1
+    assert payload["selected_issue_count"] == 2
+    assert payload["selected_case_count"] == 1
+    assert payload["deduplicated_issue_count"] == 1
+    assert payload["suggestion_count"] == 1
+    assert suggestions[0]["issue"]["occurrence_count"] == 2
+    assert len(suggestions[0]["issue"]["locations"]) == 2
+    assert "2 occurrences" in html
 
 
 def test_translation_quality_fix_skips_llm_when_no_fixable_issues(tmp_path) -> None:
@@ -736,6 +835,7 @@ def test_translation_quality_fix_skips_llm_when_no_fixable_issues(tmp_path) -> N
 
     build_adapter.assert_not_called()
     assert payload["selected_issue_count"] == 0
+    assert payload["selected_case_count"] == 0
     assert payload["suggestion_count"] == 0
     assert load_jsonl(tmp_path / "fix_suggestions.jsonl") == []
     assert (tmp_path / "fix_suggestions.html").exists()
