@@ -1,6 +1,7 @@
 import re
 from typing import Any
 
+from data_translate.domain.translation_quality_fields import normalized_field_path
 from data_translate.domain.translation_quality_models import QualityIssue, QualitySuppression, short_sample
 from data_translate.domain.translation_quality_text import (
     CONTENT_HEURISTIC_MAX_ALPHA,
@@ -305,13 +306,15 @@ def append_repeated_translation_issues(
             continue
         first = rows[0]
         examples = list(distinct_sources.values())[:5]
+        fields = {normalized_field_path(str(row.get("field", ""))) for row in rows if row.get("field")}
+        issue_field = next(iter(fields)) if len(fields) == 1 else root_field
         issues.append(
             issue(
                 "warning",
                 "repeated_translation",
                 str(first["split"]),
                 int(first["row_idx"]),
-                root_field,
+                issue_field,
                 "same translation is reused for several distinct source texts",
                 {
                     "translation": short_sample(first["translation"]),

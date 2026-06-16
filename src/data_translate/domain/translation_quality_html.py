@@ -521,8 +521,8 @@ function sourceExamplesHtml(issue) {{
   const distinctCount = Number(issue.distinct_source_count || 0);
   const distinct = distinctCount ? ` of ${{escapeHtml(issue.distinct_source_count)}} distinct` : '';
   const items = examples.slice(0, 5).map(example => {{
-    const exact = example.exact_field && example.exact_field !== example.field ? ` · ${{escapeHtml(example.exact_field)}}` : '';
-    return `<li><div class="loc"><code>${{escapeHtml(example.split)}}[${{escapeHtml(example.row_idx)}}]</code> · <code>${{escapeHtml(example.field)}}</code>${{exact}}</div><pre>${{escapeHtml(example.source)}}</pre></li>`;
+    const field = example.exact_field || example.field;
+    return `<li><div class="loc"><code>${{escapeHtml(example.split)}}[${{escapeHtml(example.row_idx)}}]</code> · <code>${{escapeHtml(field)}}</code></div><pre>${{escapeHtml(example.source)}}</pre></li>`;
   }}).join('');
   const omittedCount = Math.max(examples.length - 5, distinctCount - Math.min(examples.length, 5), 0);
   const omitted = omittedCount > 0 ? `<li class="muted">and ${{omittedCount}} more distinct source examples not shown</li>` : '';

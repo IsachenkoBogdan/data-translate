@@ -547,6 +547,48 @@ def test_quality_checker_reports_repeated_translation_groups() -> None:
     assert '"occurrence_count": 5' in html
 
 
+def test_repeated_translation_uses_normalized_nested_field() -> None:
+    source_dialogs = [
+        [
+            {"content": f"This is unique source sentence {idx} in the first turn."},
+            {"content": f"This is unique source sentence {idx} in the second turn."},
+        ]
+        for idx in range(5)
+    ]
+    translated_dialogs = [
+        [
+            {"content": "Quelle est votre chanson préférée ?"},
+            {"content": "Quelle est votre chanson préférée ?"},
+        ]
+        for _idx in range(5)
+    ]
+    source = DatasetDict({"train": Dataset.from_dict({"text": source_dialogs})})
+    translated = DatasetDict({"train": Dataset.from_dict({"text": source_dialogs, "text_fr": translated_dialogs})})
+
+    report = audit_translation_quality(
+        source=source,
+        translated=translated,
+        rules=[QualityRule(source="text", target="text_fr", strategy="dialog_turns_content")],
+    )
+
+    repeated = [issue for issue in report.issues if issue.code == "repeated_translation"]
+    assert len(repeated) == 1
+    assert repeated[0].field == "text_fr[].content"
+
+    payload = {
+        "dataset_id": "demo",
+        "workflow": "check-translation",
+        "splits": {"train": 5},
+        **report.to_dict(),
+    }
+    metrics = build_quality_metrics(payload)
+    html = render_quality_html(payload, metrics)
+
+    assert '"field": "text_fr[].content"' in html
+    assert '<option value="text_fr">text_fr</option>' not in html
+    assert "text_fr[].content · text_fr[" not in html
+
+
 def test_quality_metrics_and_html_rendering_escape_examples() -> None:
     source = DatasetDict({"train": Dataset.from_dict({"text": ["Do you need <b>help</b> today?"]})})
     translated = DatasetDict({"train": Dataset.from_dict({"text": ["Do you need <b>help</b> today?"], "text_fr": [""]})})
