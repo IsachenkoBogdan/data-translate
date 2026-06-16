@@ -276,6 +276,19 @@ def _base_css() -> str:
     th { background: var(--panel-soft); font-size: 11px; text-transform: uppercase; color: #4f5a54; letter-spacing: .06em; }
     tr:last-child td { border-bottom: 0; }
     .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .coverage-table { table-layout: fixed; }
+    .coverage-table th, .coverage-table td { vertical-align: middle; }
+    .coverage-table .num, .coverage-table .count-cell, .coverage-table .rate-cell { text-align: left; font-variant-numeric: tabular-nums; }
+    .coverage-table .bar { max-width: 180px; }
+    .field-col { width: 26%; }
+    .checked-col { width: 14%; }
+    .issue-col { width: 11%; }
+    .rate-col { width: 15%; }
+    .rules-col { width: auto; }
+    .split-col { width: 11%; }
+    .rows-col { width: 9%; }
+    .checked-rows-col { width: 14%; }
+    .checked-pairs-col { width: 15%; }
     .error-text { color: var(--red); font-weight: 700; }
     .warning-text { color: var(--yellow); font-weight: 700; }
     .pill { display: inline-flex; gap: 4px; padding: 2px 6px; border: 1px solid var(--line); border-radius: 999px; background: #f8faf6; margin: 1px; font-size: 12px; }
@@ -341,10 +354,10 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
         f"""
         <tr>
           <td>{_field_cell(str(row['field']), _field_row_detail(row))}</td>
-          <td>{row['checked_pairs']}</td>
+          <td class="count-cell">{row['checked_pairs']}</td>
           <td class="num error-text">{row['errors']}</td>
           <td class="num warning-text">{row['warnings']}</td>
-          <td>{_pct(row['issue_rate'])} {_bar(row['issue_rate'])}</td>
+          <td class="rate-cell">{_pct(row['issue_rate'])} {_bar(row['issue_rate'])}</td>
           <td>{_rule_list(row['top_codes'], rule_labels)}</td>
         </tr>
         """
@@ -354,12 +367,12 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
         f"""
         <tr>
           <td><code>{escape(row['split'])}</code></td>
-          <td>{row['rows']}</td>
-          <td>{row['checked_rows']}</td>
-          <td>{row['checked_pairs']}</td>
+          <td class="count-cell">{row['rows']}</td>
+          <td class="count-cell">{row['checked_rows']}</td>
+          <td class="count-cell">{row['checked_pairs']}</td>
           <td class="num error-text">{row['errors']}</td>
           <td class="num warning-text">{row['warnings']}</td>
-          <td>{_pct(row['issue_rate'])} {_bar(row['issue_rate'])}</td>
+          <td class="rate-cell">{_pct(row['issue_rate'])} {_bar(row['issue_rate'])}</td>
           <td>{_rule_list(row['top_codes'], rule_labels)}</td>
         </tr>
         """
@@ -410,7 +423,15 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
     </div>
   </section>
   <section>
-    <table>
+    <table class="coverage-table field-coverage-table">
+      <colgroup>
+        <col class="field-col">
+        <col class="checked-col">
+        <col class="issue-col">
+        <col class="issue-col">
+        <col class="rate-col">
+        <col class="rules-col">
+      </colgroup>
       <thead><tr><th>Field</th><th>Checked pairs</th><th>Errors</th><th>Warnings</th><th>Issue rate</th><th>Top rules</th></tr></thead>
       <tbody>{field_rows}</tbody>
     </table>
@@ -423,7 +444,17 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
     </div>
   </section>
   <section>
-    <table>
+    <table class="coverage-table split-coverage-table">
+      <colgroup>
+        <col class="split-col">
+        <col class="rows-col">
+        <col class="checked-rows-col">
+        <col class="checked-pairs-col">
+        <col class="issue-col">
+        <col class="issue-col">
+        <col class="rate-col">
+        <col class="rules-col">
+      </colgroup>
       <thead><tr><th>Split</th><th>Rows</th><th>Checked rows</th><th>Checked pairs</th><th>Errors</th><th>Warnings</th><th>Issue rate</th><th>Top rules</th></tr></thead>
       <tbody>{split_rows}</tbody>
     </table>

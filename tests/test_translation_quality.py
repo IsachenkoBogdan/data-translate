@@ -614,6 +614,8 @@ def test_quality_metrics_and_html_rendering_escape_examples() -> None:
     assert "Showing 50 cases per page" in html
     assert "Triggered Rules" in html
     assert "Field Coverage" in html
+    assert 'class="coverage-table field-coverage-table"' in html
+    assert 'class="coverage-table split-coverage-table"' in html
     assert "<h2>Coverage</h2>" not in html
     assert html.index("Field Coverage") < html.index("Split Coverage")
     assert html.index("Field Coverage") < html.index("Triggered Rules")
