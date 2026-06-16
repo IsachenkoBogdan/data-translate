@@ -1,4 +1,4 @@
-.PHONY: help test config-show translate evaluate reformat inspect-source benchmark-judge check-translation upload-datasets upload-datasets-push \
+.PHONY: help test config-show translate evaluate reformat inspect-source benchmark-judge check-translation check-translation-fix upload-datasets upload-datasets-push \
 	translate-airdialog translate-faithdial translate-weblinx \
 	evaluate-airdialog evaluate-faithdial evaluate-weblinx \
 	inspect-globalwoz reformat-globalwoz evaluate-globalwoz benchmark-judge-default
@@ -11,11 +11,13 @@ RUN ?=
 WORKFLOW ?=
 SET ?=
 MAX_ROWS_PER_SPLIT ?=
+MAX_FIXES ?=
 UPLOAD ?=
 
 dataset_arg = $(if $(strip $(DATASET)),--dataset $(DATASET),)
 run_arg = $(if $(strip $(RUN)),--run $(RUN),)
 max_rows_arg = $(if $(strip $(MAX_ROWS_PER_SPLIT)),--max-rows-per-split $(MAX_ROWS_PER_SPLIT),)
+max_fixes_arg = $(if $(strip $(MAX_FIXES)),--max-fixes $(MAX_FIXES),)
 set_args = $(foreach item,$(SET),--set $(item))
 upload_args = $(if $(strip $(UPLOAD)),--upload $(UPLOAD),--all)
 
@@ -26,6 +28,7 @@ help:
 	'  make translate DATASET=faithdial' \
 	'  make evaluate DATASET=faithdial' \
 	'  make check-translation DATASET=faithdial' \
+	'  make check-translation-fix DATASET=faithdial MAX_FIXES=20' \
 	'  make upload-datasets UPLOAD=daily_dialog_fr' \
 	'  make inspect-source DATASET=globalwoz RUN=ff' \
 	'  make reformat DATASET=globalwoz RUN=ff' \
@@ -42,6 +45,7 @@ help:
 	'  DATASET=<dataset_id>' \
 	'  RUN=<run_preset>' \
 	'  MAX_ROWS_PER_SPLIT=<row_limit_for_check_translation>' \
+	'  MAX_FIXES=<issue_limit_for_check_translation_fix>' \
 	'  UPLOAD=<upload_id_from_conf_uploads>' \
 	'  SET="runtime.concurrency=8 evaluation.seed=7"' \
 	'  CONFIG_ROOT=conf'
@@ -75,6 +79,10 @@ benchmark-judge:
 check-translation:
 	@test -n "$(DATASET)" || (echo "DATASET is required, e.g. make check-translation DATASET=faithdial" && exit 1)
 	$(CLI) check-translation --dataset $(DATASET) $(run_arg) --config-root $(CONFIG_ROOT) $(max_rows_arg) $(set_args)
+
+check-translation-fix:
+	@test -n "$(DATASET)" || (echo "DATASET is required, e.g. make check-translation-fix DATASET=faithdial" && exit 1)
+	$(CLI) check-translation-fix --dataset $(DATASET) $(run_arg) --config-root $(CONFIG_ROOT) $(max_fixes_arg) $(set_args)
 
 upload-datasets:
 	$(CLI) upload-datasets $(upload_args) --config-root $(CONFIG_ROOT)

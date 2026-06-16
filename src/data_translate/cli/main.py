@@ -45,10 +45,24 @@ def main() -> None:
             overrides=args.overrides,
             max_issues=args.max_issues,
             max_rows_per_split=args.max_rows_per_split,
+            show_progress=not args.no_progress,
         )
         print(format_quality_summary(payload))
         if int(payload["error_count"]) > 0:
             sys.exit(1)
+        return
+    if args.command == "check-translation-fix":
+        from data_translate.services.translation_quality_fix import format_fix_summary, run_translation_quality_fix
+
+        payload = run_translation_quality_fix(
+            dataset_id=args.dataset,
+            run_name=args.run or "",
+            config_root=args.config_root,
+            overrides=args.overrides,
+            max_fixes=args.max_fixes,
+            show_progress=not args.no_progress,
+        )
+        print(format_fix_summary(payload))
         return
     if args.command == "upload-datasets":
         payload = run_upload_datasets(

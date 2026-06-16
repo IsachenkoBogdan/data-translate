@@ -6,6 +6,8 @@ from datasets import DatasetDict, load_from_disk
 from data_translate.config.loader import load_workflow_model
 from data_translate.config.models_workflow import ReformatWorkflowConfigModel, TranslateWorkflowConfigModel
 from data_translate.domain.translation_quality import QualityReport, QualityRule, audit_translation_quality
+from data_translate.domain.translation_quality_reporting import build_quality_metrics, render_quality_html
+from data_translate.engine.jsonl import write_jsonl
 from data_translate.engine.reports import write_json_report
 from data_translate.services.datasets import load_source_dataset
 
@@ -111,6 +113,14 @@ def _path_quality_inputs(path: str) -> tuple[None, DatasetDict, list[QualityRule
     return None, translated, [], None, {"mode": "path", "translated_path": path}, []
 
 
+def _effective_summary_path(summary_path: Path | None, max_rows_per_split: int) -> Path | None:
+    if summary_path is None or max_rows_per_split <= 0:
+        return summary_path
+    report_dir = summary_path.parent
+    sampled_dir = report_dir.with_name(f"{report_dir.name}-sample-{max_rows_per_split}")
+    return sampled_dir / summary_path.name
+
+
 def run_translation_quality_check(
     *,
     dataset_id: str = "",
@@ -120,6 +130,7 @@ def run_translation_quality_check(
     overrides: list[str] | None = None,
     max_issues: int = 50,
     max_rows_per_split: int = 0,
+    show_progress: bool = False,
 ) -> dict[str, Any]:
     if not dataset_id and not path:
         raise ValueError("check-translation requires --dataset or --path")
@@ -135,6 +146,7 @@ def run_translation_quality_check(
         )
     else:
         source, translated, rules, summary_path, context, allowed_extra_splits = _path_quality_inputs(path)
+    summary_path = _effective_summary_path(summary_path, max_rows_per_split)
 
     report = audit_translation_quality(
         source=source,
@@ -142,6 +154,7 @@ def run_translation_quality_check(
         rules=rules,
         max_rows_per_split=max_rows_per_split,
         allowed_extra_splits=allowed_extra_splits,
+        show_progress=show_progress,
     )
     payload = {
         "workflow": "check-translation",
@@ -150,11 +163,34 @@ def run_translation_quality_check(
         "splits": {split: len(translated[split]) for split in translated},
         **report.to_dict(),
     }
-    if max_issues >= 0:
-        payload["issues"] = payload["issues"][:max_issues]
+    metrics = build_quality_metrics(payload)
     if summary_path is not None:
+        report_dir = summary_path.parent
+        issues_path = report_dir / "issues.jsonl"
+        suppressed_path = report_dir / "suppressed.jsonl"
+        metrics_path = report_dir / "metrics.json"
+        html_report_path = report_dir / "report.html"
+        full_suppressed = [dict(item) for item in payload.get("suppressed", [])]
+        payload["issues_path"] = str(issues_path)
+        payload["suppressed_path"] = str(suppressed_path)
+        payload["metrics_path"] = str(metrics_path)
+        payload["html_report_path"] = str(html_report_path)
+        if len(full_suppressed) > 200:
+            payload["suppressed"] = full_suppressed[:200]
+            payload["suppressed_truncated"] = True
+        else:
+            payload["suppressed"] = full_suppressed
+            payload["suppressed_truncated"] = False
         write_json_report(summary_path, payload)
+        write_jsonl(issues_path, [dict(issue) for issue in payload["issues"]])
+        write_jsonl(suppressed_path, full_suppressed)
+        write_json_report(metrics_path, metrics)
+        html_report_path.write_text(render_quality_html(payload, metrics), encoding="utf-8")
         payload["summary_path"] = str(summary_path)
+    display_issues = payload["issues"] if max_issues < 0 else payload["issues"][:max_issues]
+    payload["display_issues"] = display_issues
+    payload["issue_display_limit"] = max_issues
+    payload["issue_count_truncated"] = max_issues >= 0 and len(display_issues) < len(payload["issues"])
     return payload
 
 
@@ -167,7 +203,7 @@ def format_quality_summary(payload: dict[str, Any]) -> str:
     ]
     if payload.get("summary_path"):
         lines.append(f"summary: {payload['summary_path']}")
-    issues = payload.get("issues", [])
+    issues = payload.get("display_issues", payload.get("issues", []))
     if issues:
         lines.append("issues:")
         for issue in issues:
@@ -175,4 +211,6 @@ def format_quality_summary(payload: dict[str, Any]) -> str:
                 f"- {issue['severity']} {issue['code']} {issue['split']}[{issue['row_idx']}] "
                 f"{issue['field']}: {issue['message']}"
             )
+        if payload.get("issue_count_truncated"):
+            lines.append(f"... truncated; full issue list is in {payload.get('issues_path') or payload.get('summary_path')}")
     return "\n".join(lines)

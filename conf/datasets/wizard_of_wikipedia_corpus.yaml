@@ -14,7 +14,8 @@ translation:
       target: title_fr
       strategy: text
       cache: true
-      options: {}
+      options:
+        allow_unchanged_title_like: true
     - source: text
       target: text_fr
       strategy: text

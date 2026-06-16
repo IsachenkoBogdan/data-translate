@@ -317,9 +317,14 @@ def test_settings_and_cli_entrypoints(monkeypatch, capsys) -> None:
     parser = build_parser()
     args = parser.parse_args(["translate", "--dataset", "faithdial"])
     assert args.command == "translate"
-    args = parser.parse_args(["check-translation", "--dataset", "faithdial"])
+    args = parser.parse_args(["check-translation", "--dataset", "faithdial", "--no-progress"])
     assert args.command == "check-translation"
     assert args.dataset == "faithdial"
+    assert args.no_progress is True
+    args = parser.parse_args(["check-translation-fix", "--dataset", "faithdial", "--max-fixes", "3", "--no-progress"])
+    assert args.command == "check-translation-fix"
+    assert args.max_fixes == 3
+    assert args.no_progress is True
     args = parser.parse_args(["config-show", "--workflow", "translate"])
     assert args.command == "config-show"
 
@@ -368,7 +373,31 @@ def test_settings_and_cli_entrypoints(monkeypatch, capsys) -> None:
             overrides=[],
             max_issues=50,
             max_rows_per_split=0,
+            no_progress=True,
         )
         cli_main()
     check_mock.assert_called_once()
     assert "check-translation" in capsys.readouterr().out
+
+    with patch("data_translate.cli.main.build_parser") as parser_builder, patch(
+        "data_translate.services.translation_quality_fix.run_translation_quality_fix",
+        return_value={
+            "dataset_id": "faithdial",
+            "selected_issue_count": 1,
+            "suggestion_count": 1,
+            "suggestions_path": "fix_suggestions.jsonl",
+            "suggestions_html_path": "fix_suggestions.html",
+        },
+    ) as fix_mock:
+        parser_builder.return_value.parse_args.return_value = SimpleNamespace(
+            command="check-translation-fix",
+            config_root="conf",
+            dataset="faithdial",
+            run="",
+            overrides=[],
+            max_fixes=50,
+            no_progress=True,
+        )
+        cli_main()
+    fix_mock.assert_called_once()
+    assert "check-translation-fix" in capsys.readouterr().out

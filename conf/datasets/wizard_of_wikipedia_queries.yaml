@@ -56,7 +56,8 @@ translation:
       target: topic_fr
       strategy: text
       cache: true
-      options: {}
+      options:
+        allow_unchanged_title_like: true
 evaluation:
   source_lang: English
   target_lang: French
