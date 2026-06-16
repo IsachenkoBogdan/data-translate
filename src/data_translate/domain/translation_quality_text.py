@@ -102,10 +102,18 @@ _DECADE_SUFFIX_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d{1,4})s\b")
 _ATTACHED_UNIT_RE = re.compile(
     r"(?i)(?<![A-Za-z0-9])(\d+(?:[.,]\d+)?|\.\d+)(?:mm|cm|m|km|mph|sq\s*ft|sqft|sq\s*feet|square\s*feet|yd|yards?|in|inch|inches|ft|feet|lbs?|pounds?|oz|ounces?|l|liters?|litres?|meters?|metres?)\b"
 )
-_ERA_SUFFIX_RE = re.compile(rf"(?i)(?<![A-Za-z0-9])({_GROUPED_OR_PLAIN_NUMBER})\s*(?:b\.?c\.?e?\.?|c\.?e\.?|a\.?d\.?)\b")
+_ERA_SUFFIX_RE = re.compile(
+    rf"(?<![A-Za-z0-9])({_GROUPED_OR_PLAIN_NUMBER})\s*(?:[bB]\.?[cC]\.?[eE]?\.?|[cC]\.[eE]\.|CE\b|[aA]\.?[dD]\.?)\b"
+)
 _LOOSE_NUMERIC_SUFFIX_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d+(?:[.,]\d+)?|\.\d+)(?:ish|approx(?:imately)?)\b")
 _ATTACHED_WORD_NUMBER_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d+(?:[.,]\d+)?)(?=[A-Za-z]{2,})")
 _WORD_ATTACHED_NUMBER_RE = re.compile(r"(?i)(?<=[A-Za-z])(\d+(?:[.,]\d+)?)\b")
+_DIGIT_TYPO_PERCENT_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d+)[A-Za-z]\s*percent\b")
+_TYPO_THOUSANDS_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d{1,3})[,\u00a0 ]o{3}(?![A-Za-z0-9])")
+_COMMA_DIGIT_LIST_RE = re.compile(r"(?<!\d)(\d(?:\s*,\s*\d){2,})(?!\d)")
+_SPACED_COMMA_NUMBER_RE = re.compile(r"(?<!\d)(\d+)\s+,\s*(\d+)(?!\d)")
+_DECADE_WITH_TRAILING_NUMBER_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d{1,4})s\.(\d+)\b")
+_AROUND_THE_CLOCK_RE = re.compile(r"(?i)\b(?:around|round)\s+the\s+clock\b")
 _APOSTROPHE_YEAR_RE = re.compile(r"(?<!\d)['’](\d{2})\b")
 _TRAILING_APOSTROPHE_YEAR_RE = re.compile(r"(?<!\d)(\d{2})['’](?!\d)")
 _TWELVE_HOUR_TIME_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\b")
@@ -192,6 +200,11 @@ _NUMBER_WORD_EQUIVALENTS = {
     "ninety": "90",
     "ninetieth": "90",
     "nineties": "90",
+}
+_CENTURY_WORD_EQUIVALENTS = {
+    "eighteen": 1800,
+    "nineteen": 1900,
+    "twenty": 2000,
 }
 
 
@@ -462,6 +475,7 @@ def digit_sequences(value: str) -> list[str]:
         _LOOSE_NUMERIC_SUFFIX_RE,
         _ATTACHED_WORD_NUMBER_RE,
         _WORD_ATTACHED_NUMBER_RE,
+        _DIGIT_TYPO_PERCENT_RE,
         _MONTH_ATTACHED_DAY_RE,
         _NUMBER_WITH_MULTIPLIER_RE,
     ):
@@ -489,6 +503,39 @@ def _decimal_int_string(value: Decimal) -> str | None:
     if value == value.to_integral_value():
         return str(int(value))
     return None
+
+
+def _numeric_typo_equivalents(source_text: str) -> set[str]:
+    equivalents: set[str] = set()
+    for match in _TYPO_THOUSANDS_RE.finditer(source_text):
+        equivalents.add(match.group(1) + "000")
+    for match in _COMMA_DIGIT_LIST_RE.finditer(source_text):
+        equivalents.update(part.strip() for part in match.group(1).split(",") if part.strip())
+    for match in _SPACED_COMMA_NUMBER_RE.finditer(source_text):
+        equivalents.add(f"{match.group(1)}.{match.group(2)}")
+    for match in _DECADE_WITH_TRAILING_NUMBER_RE.finditer(source_text):
+        equivalents.add(f"{match.group(1)}.{match.group(2)}")
+    return equivalents
+
+
+def _number_word_phrase_equivalents(source_text: str) -> set[str]:
+    equivalents: set[str] = set()
+    tokens = text_tokens(source_text)
+    for idx in range(len(tokens) - 1):
+        century = _CENTURY_WORD_EQUIVALENTS.get(tokens[idx])
+        tens = _NUMBER_WORD_EQUIVALENTS.get(tokens[idx + 1])
+        if century is None or tens is None:
+            continue
+        value = int(tens)
+        if value < 20:
+            continue
+        year = century + value
+        if idx + 2 < len(tokens):
+            unit = _NUMBER_WORD_EQUIVALENTS.get(tokens[idx + 2])
+            if unit is not None and int(unit) < 10:
+                year += int(unit)
+        equivalents.add(str(year))
+    return equivalents
 
 
 def _multiplied_number_equivalents(source_text: str) -> set[str]:
@@ -608,6 +655,8 @@ def _duration_equivalents(source_text: str, translated_text: str = "") -> set[st
     equivalents: set[str] = set()
     for match in _DECADE_COUNT_RE.finditer(source_text):
         equivalents.add(str(int(match.group(1)) * 10))
+    if _AROUND_THE_CLOCK_RE.search(source_text):
+        equivalents.add("24")
     if translated_text and _TRANSLATED_HALF_RE.search(translated_text):
         for match in re.finditer(r"(?<!\d)(\d+)\.5(?!\d)", source_text):
             equivalents.add(match.group(1))
@@ -624,6 +673,9 @@ def digit_equivalence_set(values: list[str], source_text: str = "", translated_t
             integer, fraction = value.split(".", maxsplit=1)
             if integer.isdigit() and fraction.isdigit() and len(fraction) == 3:
                 equivalents.add(integer + fraction)
+            if fraction and set(fraction) == {"0"}:
+                equivalents.add(fraction)
+                equivalents.add("0")
         if value.isdigit() and len(value) == 4 and value.endswith("0"):
             equivalents.add(str(int(value[2:])))
     equivalents.update(_multiplied_number_equivalents(source_text))
@@ -631,7 +683,9 @@ def digit_equivalence_set(values: list[str], source_text: str = "", translated_t
     equivalents.update(_short_year_equivalents(source_text))
     equivalents.update(_unit_conversion_equivalents(source_text))
     equivalents.update(_duration_equivalents(source_text, translated_text))
-    return equivalents
+    equivalents.update(_numeric_typo_equivalents(source_text))
+    equivalents.update(_number_word_phrase_equivalents(source_text))
+    return equivalents | {_canonical_digit_value(value) for value in equivalents}
 
 
 def digit_sequences_changed(source_values: list[str], translation_values: list[str], source_text: str = "", translated_text: str = "") -> bool:

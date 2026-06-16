@@ -391,6 +391,17 @@ def test_quality_checker_keeps_common_numeric_rewrites_quiet() -> None:
         "Still on history, in1516, Habsburg Spain unified kingdoms; the constitution dates to 1978.",
         "I tried to ride all 16 roller coasters, but only could get on like8 before the day was over.",
         "It's hard to believe there have been eleven generations. I still have a 6s and heard good things about the 8.",
+        "When I started it was $8 an hour. Now it's probably $11. They get around the clock care.",
+        "Red hair is only common to 1 to 2f percent of the population.",
+        "Mauna Loa has been erupting for at least 700,00 years.",
+        "Don't you think there may be chanced that out of 10 ,1 could last?",
+        "Hamburgers were later added for .10 a piece.",
+        "I am fairly certain it was worth about $.50.",
+        "There were almost 900,ooo americans who relied on internet.",
+        "A mile run is exactly 1,609.344 metres.",
+        "It was published on 17 August 1945 four years before Nineteen Eighty-Four.",
+        "The body has a density of 0.98 which allows it to float.",
+        "5,6,7,8 What makes it so special.",
     ]
     translated_texts = [
         "Le groupe a vendu plus de 50 millions d'albums au début des années 2000.",
@@ -437,6 +448,17 @@ def test_quality_checker_keeps_common_numeric_rewrites_quiet() -> None:
         "Toujours sur l'histoire, en 1516, l'Espagne des Habsbourg a unifié des royaumes ; la constitution date de 1978.",
         "J'ai essayé de monter les 16 montagnes russes, mais je n'ai pu monter que comme 8 avant la fin de la journée.",
         "Il est difficile de croire qu'il existe onze générations. J'ai toujours un 6s et entendu de bonnes choses sur les 8.",
+        "Quand j'ai commencé, c'était 8 $ de l'heure. Maintenant, c'est probablement 11 $. Ils reçoivent des soins 24 heures sur 24.",
+        "Les cheveux roux ne concernent que 1 à 2% de la population.",
+        "Le Mauna Loa est en éruption depuis au moins 700 00 ans.",
+        "Ne pensez-vous pas qu'il y a une chance que sur 10,1 puisse durer ?",
+        "Des hamburgers ont ensuite été ajoutés pour 0,10 pièce.",
+        "Je suis presque certain qu'elle valait environ 0,50 $.",
+        "Près de 900 000 Américains dépendaient fortement d'Internet.",
+        "Un mile run fait exactement 1 609,344 mètres.",
+        "Il a été publié le 17 août 1945, quatre ans avant 1984.",
+        "Le corps a une densité de 0,98 ce qui lui permet de flotter.",
+        "5,6,7,8 Ce qui le rend si spécial.",
     ]
     source = DatasetDict({"train": Dataset.from_dict({"text": source_texts})})
     translated = DatasetDict({"train": Dataset.from_dict({"text": source_texts, "text_fr": translated_texts})})
@@ -448,6 +470,42 @@ def test_quality_checker_keeps_common_numeric_rewrites_quiet() -> None:
     )
 
     assert [issue.code for issue in report.issues] == []
+
+
+def test_quality_checker_keeps_suspicious_numeric_rewrites() -> None:
+    source = DatasetDict(
+        {
+            "train": Dataset.from_dict(
+                {
+                    "text": [
+                        "I usually stay up until 1 but never until dawn.",
+                        "My parents are both 5'4\" but my siblings are all taller than them.",
+                    ]
+                }
+            )
+        }
+    )
+    translated = DatasetDict(
+        {
+            "train": Dataset.from_dict(
+                {
+                    "text": source["train"]["text"],
+                    "text_fr": [
+                        "Je reste généralement debout jusqu'à 13 heures, mais jamais jusqu'à l'aube.",
+                        "Mes parents mesurent tous les deux 1,70 m, mais mes frères et sœurs sont tous plus grands qu'eux.",
+                    ],
+                }
+            )
+        }
+    )
+
+    report = audit_translation_quality(
+        source=source,
+        translated=translated,
+        rules=[QualityRule(source="text", target="text_fr", strategy="text")],
+    )
+
+    assert [issue.code for issue in report.issues] == ["digit_sequence_changed", "digit_sequence_changed"]
 
 
 def test_quality_checker_reports_repeated_translation_groups() -> None:
