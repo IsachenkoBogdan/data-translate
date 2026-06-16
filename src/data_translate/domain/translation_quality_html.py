@@ -311,9 +311,7 @@ def _base_css() -> str:
     pre { white-space: pre-wrap; word-break: break-word; background: #f7f8f4; border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin: 0; max-height: 260px; overflow: auto; }
     details { margin-top: 8px; }
     summary { cursor: pointer; color: var(--blue); }
-    .section-details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 0; margin-top: 24px; }
-    .section-details > summary { display: flex; justify-content: space-between; gap: 12px; padding: 12px; color: var(--text); font-weight: 800; }
-    .coverage-grid { display: grid; grid-template-columns: 1fr; gap: 14px; padding: 0 12px 12px; }
+    .coverage-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
     .locations { margin: 8px 0 0; padding-left: 18px; color: #39423d; }
     .locations li { margin: 3px 0; }
     .example-list ul { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 8px; }
@@ -401,6 +399,29 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
 
   <section class="section-head">
     <div>
+      <h2>Coverage</h2>
+      <div class="section-note">Where the checker looked and where reported issues are concentrated.</div>
+    </div>
+  </section>
+  <section class="coverage-grid">
+    <section>
+      <h3>Field Coverage</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Checked pairs</th><th>Errors</th><th>Warnings</th><th>Issue rate</th><th>Top rules</th></tr></thead>
+        <tbody>{field_rows}</tbody>
+      </table>
+    </section>
+    <section>
+      <h3>Split Coverage</h3>
+      <table>
+        <thead><tr><th>Split</th><th>Rows</th><th>Checked rows</th><th>Checked pairs</th><th>Errors</th><th>Warnings</th><th>Issue rate</th><th>Top rules</th></tr></thead>
+        <tbody>{split_rows}</tbody>
+      </table>
+    </section>
+  </section>
+
+  <section class="section-head">
+    <div>
       <h2>Triggered Rules</h2>
       <div class="section-note">Only reported errors and warnings are listed here. Technical values such as URLs, IDs, file names, and titles are not treated as translation issues.</div>
     </div>
@@ -434,26 +455,6 @@ def render_quality_html(payload: dict[str, Any], metrics: dict[str, Any]) -> str
     </div>
   </section>
   <section id="issues"><div class="empty">Loading issues...</div></section>
-
-  <details class="section-details">
-    <summary><span>Coverage by field and split</span><span class="muted">{len(metrics["fields"])} fields · {len(metrics["splits"])} splits</span></summary>
-    <div class="coverage-grid">
-      <section>
-        <h3>Field Coverage</h3>
-        <table>
-          <thead><tr><th>Field</th><th>Checked pairs</th><th>Errors</th><th>Warnings</th><th>Issue rate</th><th>Top rules</th></tr></thead>
-          <tbody>{field_rows}</tbody>
-        </table>
-      </section>
-      <section>
-        <h3>Split Coverage</h3>
-        <table>
-          <thead><tr><th>Split</th><th>Rows</th><th>Checked rows</th><th>Checked pairs</th><th>Errors</th><th>Warnings</th><th>Issue rate</th><th>Top rules</th></tr></thead>
-          <tbody>{split_rows}</tbody>
-        </table>
-      </section>
-    </div>
-  </details>
 
 </main>
 <script>
