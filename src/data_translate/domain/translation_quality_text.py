@@ -727,39 +727,6 @@ def _duration_equivalents(source_text: str, translated_text: str = "") -> set[st
     return equivalents
 
 
-def digit_equivalence_set(values: list[str], source_text: str = "", translated_text: str = "") -> set[str]:
-    equivalents = set(values)
-    for value in values:
-        equivalents.add(_canonical_digit_value(value))
-        if value in {"00", "000"}:
-            equivalents.add("2000")
-        if "." in value:
-            integer, fraction = value.split(".", maxsplit=1)
-            if integer.isdigit() and fraction.isdigit() and len(fraction) == 3:
-                equivalents.add(integer + fraction)
-            if fraction and set(fraction) == {"0"}:
-                equivalents.add(fraction)
-                equivalents.add("0")
-        if value.isdigit() and len(value) == 4 and value.endswith("0"):
-            equivalents.add(str(int(value[2:])))
-    equivalents.update(_multiplied_number_equivalents(source_text))
-    equivalents.update(_time_equivalents(source_text))
-    equivalents.update(_short_year_equivalents(source_text))
-    equivalents.update(_unit_conversion_equivalents(source_text))
-    equivalents.update(_duration_equivalents(source_text, translated_text))
-    equivalents.update(_numeric_typo_equivalents(source_text))
-    equivalents.update(_number_word_phrase_equivalents(source_text))
-    return equivalents | {_canonical_digit_value(value) for value in equivalents}
-
-
-def digit_sequences_changed(source_values: list[str], translation_values: list[str], source_text: str = "", translated_text: str = "") -> bool:
-    if not source_values or not translation_values:
-        return False
-    source_equivalents = digit_equivalence_set(source_values, source_text, translated_text)
-    translation_set = {_canonical_digit_value(value) for value in translation_values}
-    return not translation_set <= source_equivalents
-
-
 def _normalize_marker(value: str) -> str:
     return value.replace("–", "-").replace("—", "-").replace(" ", "")
 

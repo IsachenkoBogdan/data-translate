@@ -11,7 +11,6 @@ from data_translate.domain.translation_quality_text import (
     LENGTH_RATIO_MIN_ALPHA,
     REPEATED_TRANSLATION_MAX_TEXT_CHARS,
     REPEATED_TRANSLATION_MIN_DISTINCT_SOURCES,
-    digit_sequences_changed,
     empty_translated,
     has_english_signal,
     html_entities,
@@ -159,30 +158,6 @@ def check_text_pair(
                 row_idx,
                 field,
                 "HTML entity appears in translation",
-                sample,
-                diagnostics,
-            )
-        )
-
-    if (
-        content_heuristics_enabled
-        and diagnostics["source_digit_sequences"]
-        and digit_sequences_changed(
-            diagnostics["source_digit_sequences"],
-            diagnostics["translation_digit_sequences"],
-            source_text,
-            translated_text,
-        )
-        and not source_is_technical
-    ):
-        issues.append(
-            issue(
-                "warning",
-                "digit_sequence_changed",
-                split,
-                row_idx,
-                field,
-                "digit sequences changed between source and translation",
                 sample,
                 diagnostics,
             )

@@ -69,13 +69,6 @@ ISSUE_GUIDANCE: dict[str, dict[str, str]] = {
         "meaning": "Several English signal words remain in the translated text.",
         "action": "Inspect examples; this often catches partially untranslated fragments.",
     },
-    "digit_sequence_changed": {
-        "rule": "Number changed",
-        "priority": "sample",
-        "label": "Sample audit",
-        "meaning": "Numbers differ after translation.",
-        "action": "Review a sample. Some are formatting differences, but this catches hallucinated counts, dates, and IDs.",
-    },
     "placeholder_or_marker_changed": {
         "rule": "Placeholder changed",
         "priority": "review",

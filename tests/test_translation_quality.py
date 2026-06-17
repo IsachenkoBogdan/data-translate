@@ -353,7 +353,6 @@ def test_quality_checker_reports_diagnostics_and_heuristic_warnings() -> None:
     assert "length_ratio_low" in codes
     assert "length_ratio_high" in codes
     assert "english_residue" in codes
-    assert "digit_sequence_changed" in codes
     assert "html_entity_leak" in codes
     assert "placeholder_or_marker_changed" in codes
     assert report.checked_pairs == 6
@@ -504,7 +503,7 @@ def test_quality_checker_keeps_common_numeric_rewrites_quiet() -> None:
     assert [issue.code for issue in report.issues] == []
 
 
-def test_quality_checker_keeps_suspicious_numeric_rewrites() -> None:
+def test_quality_checker_does_not_report_numeric_rewrites() -> None:
     source = DatasetDict(
         {
             "train": Dataset.from_dict(
@@ -537,7 +536,7 @@ def test_quality_checker_keeps_suspicious_numeric_rewrites() -> None:
         rules=[QualityRule(source="text", target="text_fr", strategy="text")],
     )
 
-    assert [issue.code for issue in report.issues] == ["digit_sequence_changed", "digit_sequence_changed"]
+    assert report.issues == []
 
 
 def test_quality_checker_reports_repeated_translation_groups() -> None:
@@ -665,12 +664,12 @@ def test_issue_guide_sorts_by_count_and_marks_priority() -> None:
         issues.append(
             {
                 "severity": "warning",
-                "code": "digit_sequence_changed",
+                "code": "length_ratio_low",
                 "split": "train",
                 "row_idx": idx,
                 "field": "text_fr",
-                "message": "digit sequences changed between source and translation",
-                "sample": {"source": "I need 2 rooms.", "translation": "J'ai besoin de 3 chambres."},
+                "message": "translation is much shorter than source",
+                "sample": {"source": "This source text contains a full sentence.", "translation": "Court."},
                 "diagnostics": {},
             }
         )
@@ -719,11 +718,11 @@ def test_issue_guide_sorts_by_count_and_marks_priority() -> None:
     html = render_quality_html(payload, metrics)
 
     assert [row["code"] for row in metrics["issue_guide"]] == [
-        "digit_sequence_changed",
+        "length_ratio_low",
         "english_residue",
         "empty_translation",
     ]
-    assert html.index("Number changed") < html.index("English residue") < html.index("Empty field")
+    assert html.index("Translation too short") < html.index("English residue") < html.index("Empty field")
     assert "rule-priority-sample" in html
     assert "rule-count-sample" in html
     assert "rule-priority-fix" in html
@@ -781,12 +780,12 @@ def test_field_metrics_group_indexed_dialog_turns() -> None:
         "issues": [
             {
                 "severity": "warning",
-                "code": "digit_sequence_changed",
+                "code": "length_ratio_low",
                 "split": "train",
                 "row_idx": 3,
                 "field": "text_fr[0].content",
-                "message": "digit sequences changed between source and translation",
-                "sample": {"source": "I need 2 rooms.", "translation": "J'ai besoin de 3 chambres."},
+                "message": "translation is much shorter than source",
+                "sample": {"source": "This source text contains a full sentence.", "translation": "Court."},
                 "diagnostics": {},
             },
             {
@@ -818,7 +817,7 @@ def test_field_metrics_group_indexed_dialog_turns() -> None:
             "issue_rate": 0.1,
             "warning_rate": 0.1,
             "error_rate": 0.0,
-            "top_codes": {"digit_sequence_changed": 1, "english_residue": 1},
+            "top_codes": {"length_ratio_low": 1, "english_residue": 1},
         }
     ]
     assert "text_fr[].content" in html
