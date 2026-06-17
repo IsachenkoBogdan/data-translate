@@ -66,6 +66,10 @@ class DatasetResolver:
                 )
             config = configs[0]
 
+        parquet_dataset = self._load_hf_source_from_viewer_parquet(source, config)
+        if parquet_dataset is not None:
+            return parquet_dataset
+
         datasets: dict[str, Dataset] = {}
         for split_item in split_rows:
             if str(split_item.get("config", "")) != config:
@@ -98,6 +102,28 @@ class DatasetResolver:
                 offset += len(page_rows)
             datasets[split] = Dataset.from_list(rows)
         return DatasetDict(datasets)
+
+    def _load_hf_source_from_viewer_parquet(self, source: SourceSpecModel, config: str) -> DatasetDict | None:
+        payload = self._viewer_json(
+            "parquet",
+            {
+                "dataset": source.hf_dataset_id,
+                "config": config,
+                **({"revision": source.hf_revision} if source.hf_revision else {}),
+            },
+        )
+        parquet_files = list(payload.get("parquet_files") or [])
+        if not parquet_files:
+            return None
+        data_files: dict[str, list[str]] = {}
+        for item in parquet_files:
+            split = str(item.get("split", ""))
+            url = str(item.get("url", ""))
+            if split and url:
+                data_files.setdefault(split, []).append(url)
+        if not data_files:
+            return None
+        return load_dataset("parquet", data_files=data_files)
 
     def load_source(self, source: SourceSpecModel, *, max_rows_per_split: int = 0) -> DatasetDict:
         disk_path = self.resolve_source_path(source)

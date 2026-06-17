@@ -71,6 +71,8 @@ def test_source_falls_back_to_dataset_viewer_for_script_datasets() -> None:
         assert params["revision"] == "main"
         if endpoint == "splits":
             return {"splits": [{"config": "plain_text", "split": "train"}]}
+        if endpoint == "parquet":
+            return {"parquet_files": []}
         if endpoint == "rows":
             assert params["config"] == "plain_text"
             assert params["split"] == "train"
