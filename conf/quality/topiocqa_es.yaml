@@ -28,10 +28,6 @@ rules:
   - source: Context
     target: Context
     strategy: text
-  - source: Additional_answers
-    target: Additional_answers
-    strategy: deep_map_texts
-    options:
-      allow_unchanged_title_like: true
 notes:
   - Source is loaded through Hugging Face Dataset Viewer fallback because the original repository uses an old dataset script.
+  - Additional_answers is intentionally excluded from static translation quality checks because DialogMTEB uses the main QA/context fields; the original validation split contains optional alternate answers, while translated artifacts keep this optional field empty.
