@@ -166,7 +166,7 @@ hf auth whoami
 - `air_dialog_fr`: создает или обновляет `DeepPavlov/air_dialog_fr`;
 - `canard_fr`: создает или обновляет `DeepPavlov/canard_fr` с `corpus`, `queries` и `qrels`;
 - `clarqa_fr`: создает или обновляет `DeepPavlov/clarqa_fr` с `multi_turn` и `single_turn`;
-- `multiwoz_fr`: создает или обновляет `DeepPavlov/multiwoz_fr`;
+- `multiwoz_fr`: создает или обновляет `DeepPavlov/multiwoz_fr`; текущий опубликованный внешний French-кандидат требует ревизии по итогам полного HF-аудита;
 - `statcan_dialog_fr`: создает или обновляет `DeepPavlov/statcan_dialog_fr` с `queries` и `corpus`;
 - `weblinx_fr`: создает или обновляет `DeepPavlov/weblinx_fr`;
 - `faithdial_fr`: создает или обновляет `DeepPavlov/faithdial_fr`; текущий локальный результат содержит `history_fr` и `knowledge_fr`.

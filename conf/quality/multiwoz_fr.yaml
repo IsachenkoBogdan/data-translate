@@ -11,3 +11,4 @@ rules_from:
   run: ff
 notes:
   - Compares published French MultiWOZ against the original DeepPavlov/MultiWOZ-2.1 default config.
+  - DeepPavlov/MultiWOZ-2.1 is non-empty and aligned by split/row count, but the published French artifact has a high warning rate and should be reviewed before being marked ready.

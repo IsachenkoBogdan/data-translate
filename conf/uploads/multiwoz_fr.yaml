@@ -31,4 +31,4 @@ validation:
     expected_warnings: 0
 notes:
   - Matches DeepPavlov/multiwoz_es layout.
-
+  - Published artifact is based on an external GlobalWOZ French candidate and requires revision before it should be considered ready.
