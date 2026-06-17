@@ -45,6 +45,14 @@ make check-translation DATASET=globalwoz RUN=ff MAX_ROWS_PER_SPLIT=1000
 make evaluate DATASET=globalwoz RUN=ff
 ```
 
+MultiWOZ, прямой перевод вместо внешнего кандидата:
+
+```bash
+make translate DATASET=multiwoz_direct SET="runtime.concurrency=16"
+make check-translation DATASET=multiwoz_direct
+make upload-datasets-push UPLOAD=multiwoz_fr_direct
+```
+
 Подготовка parquet-выгрузки для Hugging Face:
 
 ```bash
@@ -167,6 +175,7 @@ hf auth whoami
 - `canard_fr`: создает или обновляет `DeepPavlov/canard_fr` с `corpus`, `queries` и `qrels`;
 - `clarqa_fr`: создает или обновляет `DeepPavlov/clarqa_fr` с `multi_turn` и `single_turn`;
 - `multiwoz_fr`: создает или обновляет `DeepPavlov/multiwoz_fr`; текущий опубликованный внешний French-кандидат требует ревизии по итогам полного HF-аудита;
+- `multiwoz_fr_direct`: создает или обновляет `DeepPavlov/multiwoz_fr` после прямого перевода `DeepPavlov/MultiWOZ-2.1`; этот путь должен заменить внешний кандидат после успешной проверки;
 - `statcan_dialog_fr`: создает или обновляет `DeepPavlov/statcan_dialog_fr` с `queries` и `corpus`;
 - `weblinx_fr`: создает или обновляет `DeepPavlov/weblinx_fr`;
 - `faithdial_fr`: создает или обновляет `DeepPavlov/faithdial_fr`; текущий локальный результат содержит `history_fr` и `knowledge_fr`.
@@ -219,6 +228,7 @@ make translate DATASET=faithdial RUN=deepl_fast
 
 - `airdialog`, `faithdial`, `weblinx`: исходные данные загружаются с Hugging Face;
 - `globalwoz`: источник берется из Hugging Face `MultiWOZ-2.1`, готовый внешний перевод - из `data/external/globalwoz`;
+- `multiwoz_direct`: источник берется из Hugging Face `DeepPavlov/MultiWOZ-2.1`, переводятся только `text` и `history[].content`;
 - переводы сохраняются в `data/translated/...`;
 - parquet-выгрузки сохраняются в `data/hf_exports/...`;
 - отчеты и контрольные точки сохраняются в `results/...`.

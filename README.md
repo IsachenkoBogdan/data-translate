@@ -92,6 +92,10 @@ make reformat DATASET=globalwoz RUN=ff
 make check-translation DATASET=globalwoz RUN=ff
 make evaluate DATASET=globalwoz RUN=ff
 
+make translate DATASET=multiwoz_direct SET="runtime.concurrency=16"
+make check-translation DATASET=multiwoz_direct
+make upload-datasets-push UPLOAD=multiwoz_fr_direct
+
 make check-translation QUALITY=multiwoz_fr
 make check-translation QUALITY=topiocqa_fr MAX_ROWS_PER_SPLIT=1000
 uv run python scripts/audit_hf_translation_quality.py --reset --exclude FaithDial:fr
@@ -103,6 +107,7 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 Примечания:
 - наборы данных загружаются с Hugging Face, если в настройках задан `source.hf_dataset_id`
 - `globalwoz` - основное исключение с внешним источником перевода; для него используется `reformat`, а не `translate`
+- `multiwoz_direct` - прямой перевод `DeepPavlov/MultiWOZ-2.1`, который должен заменить внешний French-кандидат после успешной проверки
 - `check-translation` - проверка перед загрузкой: схема, число строк, длины списков, пустые переводы, подозрительный непереведенный английский текст и сохранение последовательностей действий WebLINX
 - `conf/quality/*.yaml` - проверки для опубликованных или внешних переводов, где нужно явно сравнить исходный и целевой Hugging Face dataset без локального `data/translated/...`
 - технические значения вроде ссылок, имен файлов, вложений, путей, почтовых адресов и похожих на хеши идентификаторов игнорируются в предупреждениях о неизмененном тексте
@@ -122,7 +127,7 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 | statcan-dialogue-dataset-retrieval | `statcan-dialogue-dataset-retrieval` | [DeepPavlov/statcan_dialog_fr](https://huggingface.co/datasets/DeepPavlov/statcan_dialog_fr) | Переведен и загружен |
 | WebLINX | `weblinx` | [DeepPavlov/weblinx_fr](https://huggingface.co/datasets/DeepPavlov/weblinx_fr) | Переведен и загружен |
 | FaithDial | `faithdial` | [DeepPavlov/faithdial_fr](https://huggingface.co/datasets/DeepPavlov/faithdial_fr) | Требует полной перезаливки: текущий Hub-артефакт содержит только `test`; конфиг ожидает `train/dev/test` и поля `history_fr`, `knowledge_fr` |
-| Multi2WOZ / MultiWOZ | `globalwoz` | [DeepPavlov/multiwoz_fr](https://huggingface.co/datasets/DeepPavlov/multiwoz_fr) | Загружен, требует ревизии: внешний French-кандидат дает высокий процент предупреждений при сравнении с `DeepPavlov/MultiWOZ-2.1` |
+| Multi2WOZ / MultiWOZ | `globalwoz`, `multiwoz_direct` | [DeepPavlov/multiwoz_fr](https://huggingface.co/datasets/DeepPavlov/multiwoz_fr) | Загружен, требует ревизии: внешний French-кандидат дает высокий процент предупреждений; для исправления подготовлен прямой перевод `multiwoz_direct` |
 | air-dialogue | `airdialog` | [DeepPavlov/air_dialog_fr](https://huggingface.co/datasets/DeepPavlov/air_dialog_fr) | Переведен и загружен |
 | CANARD | `canard_queries` | [DeepPavlov/canard_fr](https://huggingface.co/datasets/DeepPavlov/canard_fr) | Переведен и загружен |
 | ClarQA | `clarqa_multi_turn`, `clarqa_single_turn` | [DeepPavlov/clarqa_fr](https://huggingface.co/datasets/DeepPavlov/clarqa_fr) | Переведен и загружен |

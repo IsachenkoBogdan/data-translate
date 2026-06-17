@@ -65,7 +65,7 @@
 | StatCan Dialogue | [DeepPavlov/statcan_dialog_fr](https://huggingface.co/datasets/DeepPavlov/statcan_dialog_fr) | Переведен и загружен |
 | WebLINX | [DeepPavlov/weblinx_fr](https://huggingface.co/datasets/DeepPavlov/weblinx_fr) | Переведен и загружен |
 | FaithDial | [DeepPavlov/faithdial_fr](https://huggingface.co/datasets/DeepPavlov/faithdial_fr) | Требует полной перезаливки: текущий Hub-артефакт содержит только `test`; конфиг ожидает `train/dev/test` и поля `history_fr`, `knowledge_fr` |
-| MultiWOZ / Multi2WOZ | [DeepPavlov/multiwoz_fr](https://huggingface.co/datasets/DeepPavlov/multiwoz_fr) | Загружен, требует ревизии: внешний French-кандидат дает высокий процент предупреждений при сравнении с `DeepPavlov/MultiWOZ-2.1` |
+| MultiWOZ / Multi2WOZ | [DeepPavlov/multiwoz_fr](https://huggingface.co/datasets/DeepPavlov/multiwoz_fr) | Загружен, требует ревизии: внешний French-кандидат дает высокий процент предупреждений; для исправления подготовлен прямой перевод `multiwoz_direct` |
 | AirDialog | [DeepPavlov/air_dialog_fr](https://huggingface.co/datasets/DeepPavlov/air_dialog_fr) | Переведен и загружен |
 | CANARD | [DeepPavlov/canard_fr](https://huggingface.co/datasets/DeepPavlov/canard_fr) | Переведен и загружен |
 | ClarQA | [DeepPavlov/clarqa_fr](https://huggingface.co/datasets/DeepPavlov/clarqa_fr) | Переведен и загружен |
@@ -74,7 +74,7 @@
 | Wizard of Wikipedia / WoW | [DeepPavlov/wizard_of_wikipedia_fr](https://huggingface.co/datasets/DeepPavlov/wizard_of_wikipedia_fr) | Переведен и загружен |
 | Coral | [DeepPavlov/coral_fr](https://huggingface.co/datasets/DeepPavlov/coral_fr) | Требует финальной материализации `coral_queries` и загрузки |
 
-Во французской части большинство наборов данных опубликовано в Hugging Face. Для крупных поисковых наборов `WoW` и `Coral` подготовлены отдельные конфиги загрузки `wizard_of_wikipedia_fr` и `coral_fr`, повторяющие структуру соответствующих наборов в организации `DeepPavlov`; `Coral` требует финальной материализации и загрузки. `FaithDial` требует повторной загрузки после полного перевода `train/dev/test`. `MultiWOZ` опубликован, но требует отдельной ревизии внешнего French-кандидата.
+Во французской части большинство наборов данных опубликовано в Hugging Face. Для крупных поисковых наборов `WoW` и `Coral` подготовлены отдельные конфиги загрузки `wizard_of_wikipedia_fr` и `coral_fr`, повторяющие структуру соответствующих наборов в организации `DeepPavlov`; `Coral` требует финальной материализации и загрузки. `FaithDial` требует повторной загрузки после полного перевода `train/dev/test`. `MultiWOZ` опубликован, но требует замены внешнего French-кандидата прямым переводом исходного `DeepPavlov/MultiWOZ-2.1`.
 
 Дополнительные публичные артефакты:
 

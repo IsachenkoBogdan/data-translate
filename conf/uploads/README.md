@@ -40,6 +40,26 @@ make check-translation DATASET=faithdial
 make upload-datasets-push UPLOAD=faithdial_fr
 ```
 
+## MultiWOZ
+
+`multiwoz_fr` исторически был собран из внешнего кандидата GlobalWOZ через
+`globalwoz` и `reformat`. Полный аудит против `DeepPavlov/MultiWOZ-2.1`
+показал, что кандидат не является строгим построчным переводом: в нем меняются
+значения слотов, времена, сущности и иногда сами реплики.
+
+Для исправления подготовлен прямой путь `multiwoz_direct`: он переводит только
+`text` и `history[].content` из исходного `DeepPavlov/MultiWOZ-2.1`, а все
+служебные поля и слоты оставляет без изменений.
+
+```bash
+make translate DATASET=multiwoz_direct SET="runtime.concurrency=16"
+make check-translation DATASET=multiwoz_direct
+make upload-datasets-push UPLOAD=multiwoz_fr_direct
+```
+
+Пока новый перевод не загружен, `multiwoz_fr` остается опубликованным внешним
+кандидатом и должен считаться требующим ревизии.
+
 ## Команды воспроизводимости для WoW и Coral
 
 WoW публикуется одним upload-конфигом `wizard_of_wikipedia_fr`. Для полной

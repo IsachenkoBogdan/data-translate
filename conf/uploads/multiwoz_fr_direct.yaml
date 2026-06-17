@@ -1,0 +1,29 @@
+upload_id: multiwoz_fr_direct
+dataset_id: multiwoz_direct
+language: fr
+hub:
+  repo_id: DeepPavlov/multiwoz_fr
+  type: dataset
+  visibility: public
+  mode: create_or_update
+source:
+  path: data/translated/fr/DeepPavlov_MultiWOZ-2.1/default
+export:
+  local_dir: data/hf_exports/multiwoz_fr_direct
+  layout: single_config
+  config_name: default
+  data_dir: data
+  splits:
+    train: train
+    dev: dev
+    test: test
+  transforms: []
+validation:
+  check_translation:
+    dataset: multiwoz_direct
+    expected_errors: 0
+    expected_warnings: 0
+notes:
+  - Direct translation of DeepPavlov/MultiWOZ-2.1 text and history[].content.
+  - Intended to replace the external GlobalWOZ French candidate after check-translation passes.
+  - Slot columns, dialogue ids, domains, and metadata remain unchanged from the source dataset.

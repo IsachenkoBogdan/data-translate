@@ -1,0 +1,57 @@
+dataset_id: multiwoz_direct
+source:
+  hf_dataset_id: DeepPavlov/MultiWOZ-2.1
+  hf_config: default
+  source_kind: hf
+artifacts:
+  translated_basename: DeepPavlov_MultiWOZ-2.1
+translation:
+  source_lang: en
+  target_lang: fr
+  backend:
+    provider: google
+  rules:
+    - source: text
+      target: text
+      strategy: text
+      cache: true
+      options:
+        max_chunk_chars: 2500
+    - source: history
+      target: history
+      strategy: nested_text_fields
+      cache: true
+      options:
+        paths:
+          - "[].content"
+        max_chunk_chars: 2500
+evaluation:
+  source_lang: English
+  target_lang: French
+  domain: task-oriented dialogue; slot values, ids, entity names, and service metadata must stay aligned with the original MultiWOZ columns
+  split: all
+  seed: 42
+  inputs:
+    source:
+      kind: source
+    translation:
+      kind: translated
+  sampling:
+    strategy: per_split_random
+    dataset: source
+    samples_per_split: 50
+  field_pairs:
+    - name: text
+      source_dataset: source
+      source_field: text
+      source_format: text
+      translation_dataset: translation
+      translation_field: text
+      translation_format: text
+    - name: history
+      source_dataset: source
+      source_field: history
+      source_format: raw
+      translation_dataset: translation
+      translation_field: history
+      translation_format: raw
