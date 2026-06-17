@@ -96,11 +96,13 @@ uv run data-translate check-translation --quality topiocqa_fr --max-rows-per-spl
 план `conf/quality/hf_audit_plan.csv`:
 
 ```bash
-uv run python scripts/audit_hf_translation_quality.py --reset --exclude FaithDial:fr
+uv run python scripts/audit_hf_translation_quality.py --reset
 ```
 
 Эта команда пишет `quality_tasks.jsonl`, `quality_summary.csv` и
-`quality_summary.json` в `reports/translation_coverage/`. В плане нет режима
+`quality_summary.json` в `reports/translation_coverage/`. Сейчас план временно
+не включает французские `FaithDial`, `Multi2WOZ` и `Coral`, потому что эти
+артефакты еще нужно доперевести или заменить. В плане нет режима
 проверки без оригинала: переводимые поля сравниваются с исходным набором данных
 или с исходной колонкой внутри того же опубликованного набора; служебные данные
 без переводимого текста помечаются как `no_text_pairs`.

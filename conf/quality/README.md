@@ -17,12 +17,13 @@ uv run data-translate check-translation --quality topiocqa_fr --max-rows-per-spl
 семплирования:
 
 ```bash
-uv run python scripts/audit_hf_translation_quality.py --reset --exclude FaithDial:fr
+uv run python scripts/audit_hf_translation_quality.py --reset
 ```
 
-Флаг `--exclude` нужен только для временного исключения конкретных пар
-`DATASET:LANG`, например когда перевод уже частично опубликован, но еще не
-перезалит во всех split'ах. Результаты пишутся в `reports/translation_coverage/`.
+План временно не включает французские `FaithDial`, `Multi2WOZ` и `Coral`: эти
+артефакты еще нужно доперевести или заменить перед итоговым аудитом. Флаг
+`--exclude` нужен только для разового исключения дополнительных пар
+`DATASET:LANG`. Результаты пишутся в `reports/translation_coverage/`.
 
 Поля конфига:
 
