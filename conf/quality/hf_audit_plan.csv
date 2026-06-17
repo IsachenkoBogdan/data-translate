@@ -30,20 +30,20 @@ WebLINX,ru,self_suffix,DeepPavlov/WebLINX-ru,default,test_cat,query->query_ru,De
 WebLINX,ru,self_suffix,DeepPavlov/WebLINX-ru,default,test_geo,query->query_ru,DeepPavlov/WebLINX-ru,default,test_geo,
 WebLINX,ru,self_suffix,DeepPavlov/WebLINX-ru,default,test_vis,query->query_ru,DeepPavlov/WebLINX-ru,default,test_vis,
 WebLINX,ru,self_suffix,DeepPavlov/WebLINX-ru,default,test_web,query->query_ru,DeepPavlov/WebLINX-ru,default,test_web,
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,corpus,validation,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,corpus,test_iid,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,corpus,test_cat,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,corpus,test_geo,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,corpus,test_vis,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,corpus,test_web,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,qrels,,,,,,no auditable text columns inferred
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,queries,validation,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,queries,test_iid,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,queries,test_cat,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,queries,test_geo,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,queries,test_vis,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,queries,test_web,,,,,support retrieval export copied from original; translated query_ru is audited in default config
-WebLINX,ru,no_text_pairs,DeepPavlov/WebLINX-ru,top_ranked,,,,,,no auditable text columns inferred
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,corpus,validation,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,corpus,test_iid,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,corpus,test_cat,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,corpus,test_geo,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,corpus,test_vis,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,corpus,test_web,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,qrels,,,,,,no auditable text columns inferred
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,queries,validation,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,queries,test_iid,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,queries,test_cat,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,queries,test_geo,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,queries,test_vis,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,queries,test_web,,,,,support retrieval export copied from original; translated query_ru is audited in default config
+WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,top_ranked,,,,,,no auditable text columns inferred
 WebLINX,es,missing,DeepPavlov/WebLINX_es,,,,,,,public Hugging Face repo is empty in Dataset Viewer (EmptyDatasetError); no uploaded translation data to audit
 WebLINX,fr,source_compare,DeepPavlov/weblinx_fr,default,validation,query->query,McGill-NLP/WebLINX,reranking,validation,
 WebLINX,fr,source_compare,DeepPavlov/weblinx_fr,default,test_iid,query->query,McGill-NLP/WebLINX,reranking,test_iid,
@@ -70,21 +70,21 @@ air-dialogue,fr,source_compare,DeepPavlov/air_dialog_fr,default,test,text->text,
 CANARD,ru,self_suffix,DeepPavlov/canard_ru,corpus,train,text->text_ru,DeepPavlov/canard_ru,corpus,train,
 CANARD,ru,self_suffix,DeepPavlov/canard_ru,corpus,validation,text->text_ru,DeepPavlov/canard_ru,corpus,validation,
 CANARD,ru,self_suffix,DeepPavlov/canard_ru,corpus,test,text->text_ru,DeepPavlov/canard_ru,corpus,test,
-CANARD,ru,no_text_pairs,DeepPavlov/canard_ru,qrels,,,,,,no auditable text columns inferred
+CANARD,ru,metadata_only,DeepPavlov/canard_ru,qrels,,,,,,no auditable text columns inferred
 CANARD,ru,self_suffix,DeepPavlov/canard_ru,queries,train,text->text_ru; history->history_ru,DeepPavlov/canard_ru,queries,train,
 CANARD,ru,self_suffix,DeepPavlov/canard_ru,queries,validation,text->text_ru; history->history_ru,DeepPavlov/canard_ru,queries,validation,
 CANARD,ru,self_suffix,DeepPavlov/canard_ru,queries,test,text->text_ru; history->history_ru,DeepPavlov/canard_ru,queries,test,
 CANARD,es,source_compare,DeepPavlov/canard_es,corpus,train,text->text,DeepPavlov/canard,corpus,train,
 CANARD,es,source_compare,DeepPavlov/canard_es,corpus,validation,text->text,DeepPavlov/canard,corpus,validation,
 CANARD,es,source_compare,DeepPavlov/canard_es,corpus,test,text->text,DeepPavlov/canard,corpus,test,
-CANARD,es,no_text_pairs,DeepPavlov/canard_es,qrels,,,,,,no auditable text columns inferred
+CANARD,es,metadata_only,DeepPavlov/canard_es,qrels,,,,,,no auditable text columns inferred
 CANARD,es,source_compare,DeepPavlov/canard_es,queries,train,text->text; history->history,DeepPavlov/canard,queries,train,
 CANARD,es,source_compare,DeepPavlov/canard_es,queries,validation,text->text; history->history,DeepPavlov/canard,queries,validation,
 CANARD,es,source_compare,DeepPavlov/canard_es,queries,test,text->text; history->history,DeepPavlov/canard,queries,test,
 CANARD,fr,source_compare,DeepPavlov/canard_fr,corpus,train,text->text,DeepPavlov/canard,corpus,train,
 CANARD,fr,source_compare,DeepPavlov/canard_fr,corpus,validation,text->text,DeepPavlov/canard,corpus,validation,
 CANARD,fr,source_compare,DeepPavlov/canard_fr,corpus,test,text->text,DeepPavlov/canard,corpus,test,
-CANARD,fr,no_text_pairs,DeepPavlov/canard_fr,qrels,,,,,,no auditable text columns inferred
+CANARD,fr,metadata_only,DeepPavlov/canard_fr,qrels,,,,,,no auditable text columns inferred
 CANARD,fr,source_compare,DeepPavlov/canard_fr,queries,train,text->text; history->history,DeepPavlov/canard,queries,train,
 CANARD,fr,source_compare,DeepPavlov/canard_fr,queries,validation,text->text; history->history,DeepPavlov/canard,queries,validation,
 CANARD,fr,source_compare,DeepPavlov/canard_fr,queries,test,text->text; history->history,DeepPavlov/canard,queries,test,
@@ -100,21 +100,21 @@ MANtIS,fr,source_compare,DeepPavlov/mantis_fr,default,test,dialog->dialog; title
 WoW,ru,self_suffix,DeepPavlov/wizard_of_wikipedia_ru,corpus,train,title->title_ru; text->text_ru,DeepPavlov/wizard_of_wikipedia_ru,corpus,train,
 WoW,ru,self_suffix,DeepPavlov/wizard_of_wikipedia_ru,corpus,valid,title->title_ru; text->text_ru,DeepPavlov/wizard_of_wikipedia_ru,corpus,valid,
 WoW,ru,self_suffix,DeepPavlov/wizard_of_wikipedia_ru,corpus,test,title->title_ru; text->text_ru,DeepPavlov/wizard_of_wikipedia_ru,corpus,test,
-WoW,ru,no_text_pairs,DeepPavlov/wizard_of_wikipedia_ru,qrels,,,,,,no auditable text columns inferred
+WoW,ru,metadata_only,DeepPavlov/wizard_of_wikipedia_ru,qrels,,,,,,no auditable text columns inferred
 WoW,ru,self_suffix,DeepPavlov/wizard_of_wikipedia_ru,queries,train,topic->topic_ru; text->text_ru; persona->persona_ru,DeepPavlov/wizard_of_wikipedia_ru,queries,train,
 WoW,ru,self_suffix,DeepPavlov/wizard_of_wikipedia_ru,queries,valid,topic->topic_ru; text->text_ru; persona->persona_ru,DeepPavlov/wizard_of_wikipedia_ru,queries,valid,
 WoW,ru,self_suffix,DeepPavlov/wizard_of_wikipedia_ru,queries,test,topic->topic_ru; text->text_ru; persona->persona_ru,DeepPavlov/wizard_of_wikipedia_ru,queries,test,
 WoW,es,source_compare,DeepPavlov/wizard_of_wikipedia_es,corpus,train,title->title; text->text,DeepPavlov/wizard_of_wikipedia,corpus,train,
 WoW,es,source_compare,DeepPavlov/wizard_of_wikipedia_es,corpus,validation,title->title; text->text,DeepPavlov/wizard_of_wikipedia,corpus,valid,
 WoW,es,source_compare,DeepPavlov/wizard_of_wikipedia_es,corpus,test,title->title; text->text,DeepPavlov/wizard_of_wikipedia,corpus,test,
-WoW,es,no_text_pairs,DeepPavlov/wizard_of_wikipedia_es,qrels,,,,,,no auditable text columns inferred
+WoW,es,metadata_only,DeepPavlov/wizard_of_wikipedia_es,qrels,,,,,,no auditable text columns inferred
 WoW,es,source_compare,DeepPavlov/wizard_of_wikipedia_es,queries,train,text->text; persona->persona; topic->topic,DeepPavlov/wizard_of_wikipedia,queries,train,
 WoW,es,source_compare,DeepPavlov/wizard_of_wikipedia_es,queries,validation,text->text; persona->persona; topic->topic,DeepPavlov/wizard_of_wikipedia,queries,valid,
 WoW,es,source_compare,DeepPavlov/wizard_of_wikipedia_es,queries,test,text->text; persona->persona; topic->topic,DeepPavlov/wizard_of_wikipedia,queries,test,
 WoW,fr,source_compare,DeepPavlov/wizard_of_wikipedia_fr,corpus,train,title->title; text->text,DeepPavlov/wizard_of_wikipedia,corpus,train,
 WoW,fr,source_compare,DeepPavlov/wizard_of_wikipedia_fr,corpus,valid,title->title; text->text,DeepPavlov/wizard_of_wikipedia,corpus,valid,
 WoW,fr,source_compare,DeepPavlov/wizard_of_wikipedia_fr,corpus,test,title->title; text->text,DeepPavlov/wizard_of_wikipedia,corpus,test,
-WoW,fr,no_text_pairs,DeepPavlov/wizard_of_wikipedia_fr,qrels,,,,,,ranking labels only; no translated text columns
+WoW,fr,metadata_only,DeepPavlov/wizard_of_wikipedia_fr,qrels,,,,,,ranking labels only; no translated text columns
 WoW,fr,source_compare,DeepPavlov/wizard_of_wikipedia_fr,queries,train,text->text; persona->persona; topic->topic,DeepPavlov/wizard_of_wikipedia,queries,train,
 WoW,fr,source_compare,DeepPavlov/wizard_of_wikipedia_fr,queries,valid,text->text; persona->persona; topic->topic,DeepPavlov/wizard_of_wikipedia,queries,valid,
 WoW,fr,source_compare,DeepPavlov/wizard_of_wikipedia_fr,queries,test,text->text; persona->persona; topic->topic,DeepPavlov/wizard_of_wikipedia,queries,test,
@@ -158,26 +158,26 @@ Abg-CoQA,fr,source_compare,DeepPavlov/coqa_abg_fr,default,train,story->story; ta
 Abg-CoQA,fr,source_compare,DeepPavlov/coqa_abg_fr,default,val,story->story; target_turn->target_turn; history_turns->history_turns; clarification_turn->clarification_turn; clarification_turn_2->clarification_turn_2,DeepPavlov/coqa_abg,default,val,
 Abg-CoQA,fr,source_compare,DeepPavlov/coqa_abg_fr,default,test,story->story; target_turn->target_turn; history_turns->history_turns; clarification_turn->clarification_turn; clarification_turn_2->clarification_turn_2,DeepPavlov/coqa_abg,default,test,
 Coral,ru,self_suffix,DeepPavlov/coral_ru,corpus,train,text->text_ru,DeepPavlov/coral_ru,corpus,train,
-Coral,ru,no_text_pairs,DeepPavlov/coral_ru,qrels,,,,,,no auditable text columns inferred
+Coral,ru,metadata_only,DeepPavlov/coral_ru,qrels,,,,,,no auditable text columns inferred
 Coral,ru,self_suffix,DeepPavlov/coral_ru,queries,train,text->text_ru,DeepPavlov/coral_ru,queries,train,
 Coral,ru,self_suffix,DeepPavlov/coral_ru,queries,test,text->text_ru,DeepPavlov/coral_ru,queries,test,
 Coral,es,source_compare,DeepPavlov/coral_es,corpus,train,text->text,DeepPavlov/coral,corpus,train,
-Coral,es,no_text_pairs,DeepPavlov/coral_es,qrels,,,,,,no auditable text columns inferred
+Coral,es,metadata_only,DeepPavlov/coral_es,qrels,,,,,,no auditable text columns inferred
 Coral,es,source_compare,DeepPavlov/coral_es,queries,train,text->text,DeepPavlov/coral,queries,train,
 Coral,es,source_compare,DeepPavlov/coral_es,queries,test,text->text,DeepPavlov/coral,queries,test,
 TREC iKAT 2023,ru,self_suffix,DeepPavlov/iKAT_2023_ru,corpus,train,text->text_ru,DeepPavlov/iKAT_2023_ru,corpus,train,
 TREC iKAT 2023,ru,self_suffix,DeepPavlov/iKAT_2023_ru,corpus,test,text->text_ru,DeepPavlov/iKAT_2023_ru,corpus,test,
-TREC iKAT 2023,ru,no_text_pairs,DeepPavlov/iKAT_2023_ru,qrels,,,,,,no auditable text columns inferred
+TREC iKAT 2023,ru,metadata_only,DeepPavlov/iKAT_2023_ru,qrels,,,,,,no auditable text columns inferred
 TREC iKAT 2023,ru,self_suffix,DeepPavlov/iKAT_2023_ru,queries,train,utterance->utterance_ru; text->text_ru,DeepPavlov/iKAT_2023_ru,queries,train,
 TREC iKAT 2023,ru,self_suffix,DeepPavlov/iKAT_2023_ru,queries,test,utterance->utterance_ru; text->text_ru,DeepPavlov/iKAT_2023_ru,queries,test,
 TREC iKAT 2023,es,source_compare,DeepPavlov/ikat_es,corpus,train,text->text,DeepPavlov/iKAT_2023,corpus,train,
 TREC iKAT 2023,es,source_compare,DeepPavlov/ikat_es,corpus,test,text->text,DeepPavlov/iKAT_2023,corpus,test,
-TREC iKAT 2023,es,no_text_pairs,DeepPavlov/ikat_es,qrels,,,,,,no auditable text columns inferred
+TREC iKAT 2023,es,metadata_only,DeepPavlov/ikat_es,qrels,,,,,,no auditable text columns inferred
 TREC iKAT 2023,es,source_compare,DeepPavlov/ikat_es,queries,train,utterance->utterance; text->text,DeepPavlov/iKAT_2023,queries,train,
 TREC iKAT 2023,es,source_compare,DeepPavlov/ikat_es,queries,test,utterance->utterance; text->text,DeepPavlov/iKAT_2023,queries,test,
 TREC iKAT 2023,fr,source_compare,DeepPavlov/iKAT_2023_fr,corpus,train,text->text,DeepPavlov/iKAT_2023,corpus,train,
 TREC iKAT 2023,fr,source_compare,DeepPavlov/iKAT_2023_fr,corpus,test,text->text,DeepPavlov/iKAT_2023,corpus,test,
-TREC iKAT 2023,fr,no_text_pairs,DeepPavlov/iKAT_2023_fr,qrels,,,,,,no auditable text columns inferred
+TREC iKAT 2023,fr,metadata_only,DeepPavlov/iKAT_2023_fr,qrels,,,,,,no auditable text columns inferred
 TREC iKAT 2023,fr,source_compare,DeepPavlov/iKAT_2023_fr,queries,train,utterance->utterance; text->text,DeepPavlov/iKAT_2023,queries,train,
 TREC iKAT 2023,fr,source_compare,DeepPavlov/iKAT_2023_fr,queries,test,utterance->utterance; text->text,DeepPavlov/iKAT_2023,queries,test,
 DialogSum,ru,self_suffix,DeepPavlov/dialogsum_ru,test,train,dialogue->dialogue_ru; summary->summary_ru; topic->topic_ru; dialog->dialog_ru,DeepPavlov/dialogsum_ru,test,train,
