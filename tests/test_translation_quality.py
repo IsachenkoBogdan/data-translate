@@ -9,6 +9,7 @@ from data_translate.domain.translation_quality_reporting import build_quality_me
 from data_translate.domain.translation_quality import QualityRule, audit_translation_quality
 from data_translate.engine.jsonl import load_jsonl
 from data_translate.services.translation_quality import run_translation_quality_check
+from data_translate.services.translation_quality_configs import apply_upload_target_mapping
 from data_translate.services.translation_quality_fix import run_translation_quality_fix
 
 
@@ -918,6 +919,70 @@ def test_translation_quality_service_writes_sample_artifacts_separately(tmp_path
     assert payload["summary_path"].endswith("/default-sample-1/summary.json")
     assert not summary_path.exists()
     assert (summary_path.parent.parent / "default-sample-1" / "report.html").exists()
+
+
+def test_translation_quality_service_reads_quality_config(tmp_path, monkeypatch) -> None:
+    source_path = tmp_path / "source"
+    translated_path = tmp_path / "translated"
+    config_root = tmp_path / "conf"
+    quality_dir = config_root / "quality"
+    source = DatasetDict({"validation": Dataset.from_dict({"text": ["Hello there"]})})
+    translated = DatasetDict({"dev": Dataset.from_dict({"text_fr": ["Bonjour"]})})
+    source.save_to_disk(str(source_path))
+    translated.save_to_disk(str(translated_path))
+    quality_dir.mkdir(parents=True)
+    (quality_dir / "demo.yaml").write_text(
+        f"""
+quality_id: demo
+source:
+  disk_path: {source_path}
+  source_kind: disk
+translation:
+  disk_path: {translated_path}
+  source_kind: disk
+split_map:
+  validation: dev
+rules:
+  - source: text
+    target: text_fr
+    strategy: text
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    payload = run_translation_quality_check(
+        quality_id="demo",
+        config_root=str(config_root),
+        max_rows_per_split=1,
+    )
+
+    assert payload["mode"] == "quality"
+    assert payload["quality_id"] == "demo"
+    assert payload["checked_rows_by_split"] == {"validation": 1}
+    assert payload["error_count"] == 0
+    assert payload["summary_path"] == "results/demo/check-translation/default-sample-1/summary.json"
+
+
+def test_quality_rules_can_follow_upload_replace_columns() -> None:
+    rules = [
+        QualityRule(source="text", target="text_fr", strategy="text"),
+        QualityRule(source="topic", target="topic_fr", strategy="text"),
+    ]
+    mapped = apply_upload_target_mapping(
+        rules,
+        [
+            {
+                "name": "replace_columns",
+                "columns": {
+                    "text": "text_fr",
+                    "topic": "topic_fr",
+                },
+            }
+        ],
+    )
+
+    assert [rule.target for rule in mapped] == ["text", "topic"]
 
 
 class FakeFixAdapter:

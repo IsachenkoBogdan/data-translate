@@ -68,6 +68,22 @@ make check-translation DATASET=globalwoz RUN=ff
 make check-translation DATASET=airdialog MAX_ROWS_PER_SPLIT=1000
 ```
 
+Если перевод уже опубликован в Hugging Face или был подготовлен вне локального
+`data/translated/...` layout, используйте конфиг из `conf/quality`:
+
+```bash
+make check-translation QUALITY=multiwoz_fr MAX_ROWS_PER_SPLIT=1000
+make check-translation QUALITY=wizard_of_wikipedia_fr_queries MAX_ROWS_PER_SPLIT=1000
+uv run data-translate check-translation --quality topiocqa_fr --max-rows-per-split 1000
+```
+
+Такой конфиг явно задает исходный набор данных, перевод, соответствие split'ов и
+правила сравнения полей. Для наборов, которые уже есть в `conf/datasets`, можно
+не дублировать правила: `rules_from` переиспользует существующую логику перевода
+или `reformat`. Если перевод был опубликован после `upload-datasets`, `upload_id`
+позволяет учесть переименование колонок из `conf/uploads`, например сравнивать
+исходное `text` с опубликованным `text`, хотя локально перевод лежал в `text_fr`.
+
 Проверка смотрит:
 
 - совпадение разбиений и числа строк в исходном и переведенном варианте;
@@ -79,7 +95,12 @@ make check-translation DATASET=airdialog MAX_ROWS_PER_SPLIT=1000
 
 Технические строки, которые должны оставаться стабильными, не считаются ошибками: ссылки, имена файлов, вложения, пути, почтовые адреса и похожие на хеши идентификаторы.
 
-Отчет сохраняется в `results/<dataset>/check-translation/<run>/summary.json`. Команда завершится с кодом `1`, если найдены ошибки. Предупреждения, например подозрительно неизмененный текст, показываются в отчете, но сами по себе не ломают запуск.
+Отчет сохраняется в `results/<dataset>/check-translation/<run>/summary.json`
+для обычных dataset-проверок и в
+`results/<quality>/check-translation/<run>/summary.json` для `QUALITY=...`.
+Команда завершится с кодом `1`, если найдены ошибки. Предупреждения, например
+подозрительно неизмененный текст, показываются в отчете, но сами по себе не
+ломают запуск.
 
 ## Загрузка в Hugging Face
 

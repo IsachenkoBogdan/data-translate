@@ -1,0 +1,37 @@
+quality_id: topiocqa_fr
+source:
+  hf_dataset_id: McGill-NLP/TopiOCQA
+  hf_config: plain_text
+translation:
+  hf_dataset_id: DeepPavlov/topiocqa_fr
+  hf_config: default
+rules:
+  - source: Question
+    target: Question
+    strategy: text
+  - source: Answer
+    target: Answer
+    strategy: text
+  - source: Topic
+    target: Topic
+    strategy: text
+    options:
+      allow_unchanged_title_like: true
+  - source: Topic_section
+    target: Topic_section
+    strategy: text
+    options:
+      allow_unchanged_title_like: true
+  - source: Rationale
+    target: Rationale
+    strategy: text
+  - source: Context
+    target: Context
+    strategy: text
+  - source: Additional_answers
+    target: Additional_answers
+    strategy: deep_map_texts
+    options:
+      allow_unchanged_title_like: true
+notes:
+  - Source is loaded through Hugging Face Dataset Viewer fallback because the original repository uses an old dataset script.

@@ -7,6 +7,7 @@ UV ?= uv
 CLI := $(UV) run data-translate
 CONFIG_ROOT ?= conf
 DATASET ?=
+QUALITY ?=
 RUN ?=
 WORKFLOW ?=
 SET ?=
@@ -15,6 +16,7 @@ MAX_FIXES ?=
 UPLOAD ?=
 
 dataset_arg = $(if $(strip $(DATASET)),--dataset $(DATASET),)
+quality_arg = $(if $(strip $(QUALITY)),--quality $(QUALITY),)
 run_arg = $(if $(strip $(RUN)),--run $(RUN),)
 max_rows_arg = $(if $(strip $(MAX_ROWS_PER_SPLIT)),--max-rows-per-split $(MAX_ROWS_PER_SPLIT),)
 max_fixes_arg = $(if $(strip $(MAX_FIXES)),--max-fixes $(MAX_FIXES),)
@@ -43,6 +45,7 @@ help:
 	'' \
 	'Optional variables:' \
 	'  DATASET=<dataset_id>' \
+	'  QUALITY=<quality_config_id>' \
 	'  RUN=<run_preset>' \
 	'  MAX_ROWS_PER_SPLIT=<row_limit_for_check_translation>' \
 	'  MAX_FIXES=<issue_limit_for_check_translation_fix>' \
@@ -77,8 +80,8 @@ benchmark-judge:
 	$(CLI) benchmark-judge $(dataset_arg) $(run_arg) --config-root $(CONFIG_ROOT) $(set_args)
 
 check-translation:
-	@test -n "$(DATASET)" || (echo "DATASET is required, e.g. make check-translation DATASET=faithdial" && exit 1)
-	$(CLI) check-translation --dataset $(DATASET) $(run_arg) --config-root $(CONFIG_ROOT) $(max_rows_arg) $(set_args)
+	@test -n "$(DATASET)$(QUALITY)" || (echo "DATASET or QUALITY is required, e.g. make check-translation DATASET=faithdial or QUALITY=multiwoz_fr" && exit 1)
+	$(CLI) check-translation $(dataset_arg) $(quality_arg) $(run_arg) --config-root $(CONFIG_ROOT) $(max_rows_arg) $(set_args)
 
 check-translation-fix:
 	@test -n "$(DATASET)" || (echo "DATASET is required, e.g. make check-translation-fix DATASET=faithdial" && exit 1)

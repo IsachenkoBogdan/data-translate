@@ -1,0 +1,36 @@
+quality_id: topiocqa_ru
+source:
+  hf_dataset_id: McGill-NLP/TopiOCQA
+  hf_config: plain_text
+translation:
+  hf_dataset_id: DeepPavlov/topiocqa_ru
+  hf_config: default
+split_map:
+  train: train
+  validation: dev
+rules:
+  - source: Question
+    target: Question
+    strategy: text
+  - source: Answer
+    target: Answer
+    strategy: text
+  - source: Topic
+    target: Topic
+    strategy: text
+    options:
+      allow_unchanged_title_like: true
+  - source: Topic_section
+    target: Topic_section
+    strategy: text
+    options:
+      allow_unchanged_title_like: true
+  - source: Rationale
+    target: Rationale
+    strategy: text
+  - source: Context
+    target: Context
+    strategy: text
+notes:
+  - Russian target uses dev where the source uses validation.
+  - Source is loaded through Hugging Face Dataset Viewer fallback because the original repository uses an old dataset script.

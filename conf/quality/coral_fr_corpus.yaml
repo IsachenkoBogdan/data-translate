@@ -1,0 +1,14 @@
+quality_id: coral_fr_corpus
+source:
+  hf_dataset_id: DeepPavlov/coral
+  hf_config: corpus
+translation:
+  hf_dataset_id: DeepPavlov/coral_fr
+  hf_config: corpus
+rules_from:
+  dataset_id: coral_corpus
+  workflow: translate
+  upload_id: coral_fr
+  upload_config: corpus
+notes:
+  - Intended for the published French Coral corpus config after upload.

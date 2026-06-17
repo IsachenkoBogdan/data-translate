@@ -10,42 +10,11 @@ from data_translate.domain.translation_quality_reporting import build_quality_me
 from data_translate.engine.jsonl import write_jsonl
 from data_translate.engine.reports import write_json_report
 from data_translate.services.datasets import load_source_dataset
-
-
-def _translation_rules(config: TranslateWorkflowConfigModel) -> list[QualityRule]:
-    translation = config.dataset.translation
-    if translation is None:
-        return []
-    return [
-        QualityRule(
-            source=rule.source,
-            target=str(rule.target or rule.source),
-            strategy=rule.strategy,
-            options=dict(rule.options),
-        )
-        for rule in translation.rules
-    ]
-
-
-def _reformat_rules(config: ReformatWorkflowConfigModel) -> list[QualityRule]:
-    reformat = config.dataset.reformat
-    if reformat is None:
-        return []
-    rules = reformat.rules
-    return [
-        QualityRule(
-            source=rules.source_text_field,
-            target=rules.target_text_field,
-            strategy="text",
-            options={},
-        ),
-        QualityRule(
-            source=rules.source_history_field,
-            target=rules.target_history_field,
-            strategy="dialog_turns_content",
-            options={"content_field": rules.history_content_field},
-        ),
-    ]
+from data_translate.services.translation_quality_configs import (
+    quality_config_inputs,
+    reformat_rules,
+    translation_rules,
+)
 
 
 def _dataset_quality_inputs(
@@ -81,7 +50,7 @@ def _dataset_quality_inputs(
         translated_path = Path(config.artifacts.materialized_output_path) / candidate
         translated = load_from_disk(str(translated_path))
         summary_path = Path("results") / dataset_id / "check-translation" / (run_name or "default") / "summary.json"
-        return source, translated, _reformat_rules(config), summary_path, {
+        return source, translated, reformat_rules(config), summary_path, {
             "mode": "dataset",
             "workflow": "reformat",
             "dataset_id": dataset_id,
@@ -97,7 +66,7 @@ def _dataset_quality_inputs(
     summary_path = Path("results") / dataset_id / "check-translation" / (run_name or "default") / "summary.json"
     translation = config.dataset.translation
     passthrough_splits = [split.output_split for split in (translation.passthrough_splits if translation else [])]
-    return source, translated, _translation_rules(config), summary_path, {
+    return source, translated, translation_rules(config), summary_path, {
         "mode": "dataset",
         "workflow": "translate",
         "dataset_id": dataset_id,
@@ -124,6 +93,7 @@ def _effective_summary_path(summary_path: Path | None, max_rows_per_split: int) 
 def run_translation_quality_check(
     *,
     dataset_id: str = "",
+    quality_id: str = "",
     path: str = "",
     run_name: str = "",
     config_root: str = "conf",
@@ -132,14 +102,20 @@ def run_translation_quality_check(
     max_rows_per_split: int = 0,
     show_progress: bool = False,
 ) -> dict[str, Any]:
-    if not dataset_id and not path:
-        raise ValueError("check-translation requires --dataset or --path")
-    if dataset_id and path:
-        raise ValueError("check-translation accepts either --dataset or --path, not both")
+    selectors = [bool(dataset_id), bool(quality_id), bool(path)]
+    if sum(selectors) != 1:
+        raise ValueError("check-translation requires exactly one of --dataset, --quality, or --path")
 
     if dataset_id:
         source, translated, rules, summary_path, context, allowed_extra_splits = _dataset_quality_inputs(
             dataset_id=dataset_id,
+            run_name=run_name,
+            config_root=config_root,
+            overrides=list(overrides or []),
+        )
+    elif quality_id:
+        source, translated, rules, summary_path, context, allowed_extra_splits = quality_config_inputs(
+            quality_id=quality_id,
             run_name=run_name,
             config_root=config_root,
             overrides=list(overrides or []),
@@ -196,7 +172,7 @@ def run_translation_quality_check(
 
 def format_quality_summary(payload: dict[str, Any]) -> str:
     lines = [
-        f"check-translation: {payload.get('dataset_id') or payload.get('translated_path')}",
+        f"check-translation: {payload.get('dataset_id') or payload.get('quality_id') or payload.get('translated_path')}",
         f"checked_rows: {payload['checked_rows']}",
         f"errors: {payload['error_count']}",
         f"warnings: {payload['warning_count']}",

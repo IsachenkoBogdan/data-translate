@@ -1,0 +1,14 @@
+quality_id: wizard_of_wikipedia_fr_queries
+source:
+  hf_dataset_id: DeepPavlov/wizard_of_wikipedia
+  hf_config: queries
+translation:
+  hf_dataset_id: DeepPavlov/wizard_of_wikipedia_fr
+  hf_config: queries
+rules_from:
+  dataset_id: wizard_of_wikipedia_queries
+  workflow: translate
+  upload_id: wizard_of_wikipedia_fr
+  upload_config: queries
+notes:
+  - Reuses query translation rules and maps published fields through the upload config.

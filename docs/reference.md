@@ -170,6 +170,52 @@ options:
 - реализовать функцию перевода;
 - реализовать проверку входной формы и зарегистрировать оба имени.
 
+## Quality-конфиги
+
+`conf/quality/<id>.yaml` нужен для проверки переводов, которые уже опубликованы
+или были подготовлены вне локального workflow. В отличие от `DATASET=...`, такой
+конфиг явно задает и исходный, и переведенный набор данных.
+
+Минимальный пример:
+
+```yaml
+quality_id: multiwoz_fr
+source:
+  hf_dataset_id: DeepPavlov/MultiWOZ-2.1
+  hf_config: default
+translation:
+  hf_dataset_id: DeepPavlov/multiwoz_fr
+  hf_config: default
+rules_from:
+  dataset_id: globalwoz
+  workflow: reformat
+  run: ff
+```
+
+Для переводов, опубликованных после `upload-datasets`, можно добавить
+`upload_id` и `upload_config`. Тогда проверка переиспользует `replace_columns` из
+`conf/uploads` и сравнит исходное поле с опубликованным именем колонки:
+
+```yaml
+rules_from:
+  dataset_id: wizard_of_wikipedia_queries
+  workflow: translate
+  upload_id: wizard_of_wikipedia_fr
+  upload_config: queries
+```
+
+Если перевод делался вне этого репозитория, используйте явные пары:
+
+```yaml
+rules:
+  - source: Question
+    target: Question
+    strategy: text
+  - source: Context
+    target: Context
+    strategy: text
+```
+
 ## Переводчики
 
 Переводчик настраивается в разделе `translation.backend`.

@@ -1,0 +1,14 @@
+quality_id: coral_fr_queries
+source:
+  hf_dataset_id: DeepPavlov/coral
+  hf_config: queries
+translation:
+  hf_dataset_id: DeepPavlov/coral_fr
+  hf_config: queries
+rules_from:
+  dataset_id: coral_queries
+  workflow: translate
+  upload_id: coral_fr
+  upload_config: queries
+notes:
+  - Intended for the published French Coral queries config after upload.

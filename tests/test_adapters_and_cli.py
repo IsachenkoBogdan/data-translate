@@ -321,6 +321,9 @@ def test_settings_and_cli_entrypoints(monkeypatch, capsys) -> None:
     assert args.command == "check-translation"
     assert args.dataset == "faithdial"
     assert args.no_progress is True
+    args = parser.parse_args(["check-translation", "--quality", "multiwoz_fr"])
+    assert args.command == "check-translation"
+    assert args.quality == "multiwoz_fr"
     args = parser.parse_args(["check-translation-fix", "--dataset", "faithdial", "--max-fixes", "3", "--no-progress"])
     assert args.command == "check-translation-fix"
     assert args.max_fixes == 3
@@ -368,6 +371,7 @@ def test_settings_and_cli_entrypoints(monkeypatch, capsys) -> None:
             command="check-translation",
             config_root="conf",
             dataset="faithdial",
+            quality="",
             path="",
             run="",
             overrides=[],

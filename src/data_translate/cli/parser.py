@@ -26,6 +26,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     check_parser = subparsers.add_parser("check-translation")
     check_parser.add_argument("--dataset", default="", help="Dataset id from conf/datasets")
+    check_parser.add_argument("--quality", default="", help="Quality config id from conf/quality")
     check_parser.add_argument("--path", default="", help="Path to a load_from_disk translation artifact")
     check_parser.add_argument("--run", default="", help="Optional run preset from conf/runs/<workflow>")
     check_parser.add_argument("--config-root", default="conf", help="Hydra config root directory")

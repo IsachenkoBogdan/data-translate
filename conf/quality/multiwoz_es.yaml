@@ -1,0 +1,13 @@
+quality_id: multiwoz_es
+source:
+  hf_dataset_id: DeepPavlov/MultiWOZ-2.1
+  hf_config: default
+translation:
+  hf_dataset_id: DeepPavlov/multiwoz_es
+  hf_config: default
+rules_from:
+  dataset_id: globalwoz
+  workflow: reformat
+  run: ff
+notes:
+  - Compares published Spanish MultiWOZ against the original DeepPavlov/MultiWOZ-2.1 default config.

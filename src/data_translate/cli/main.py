@@ -39,6 +39,7 @@ def main() -> None:
     if args.command == "check-translation":
         payload = run_translation_quality_check(
             dataset_id=args.dataset or "",
+            quality_id=args.quality or "",
             path=args.path or "",
             run_name=args.run or "",
             config_root=args.config_root,

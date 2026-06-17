@@ -1,0 +1,13 @@
+quality_id: multiwoz_fr
+source:
+  hf_dataset_id: DeepPavlov/MultiWOZ-2.1
+  hf_config: default
+translation:
+  hf_dataset_id: DeepPavlov/multiwoz_fr
+  hf_config: default
+rules_from:
+  dataset_id: globalwoz
+  workflow: reformat
+  run: ff
+notes:
+  - Compares published French MultiWOZ against the original DeepPavlov/MultiWOZ-2.1 default config.
