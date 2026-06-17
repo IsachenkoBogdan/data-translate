@@ -12,6 +12,7 @@
 - код и воспроизводимый конвейер перевода: этот репозиторий
 - текстовое описание проекта для Talent Track: [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md)
 - загруженные французские наборы данных: репозитории Hugging Face из таблицы статуса ниже
+- сводная таблица статусов и качества переводов: [DialogMTEB Translation Quality Summary](https://docs.google.com/spreadsheets/d/1pEty3fUN-vzVPmuRXX1CnMP1XCBG85Qn7nBf0nS9qiQ/edit)
 - презентация и видео-питч: отдельные артефакты для Talent Track
 
 ## Команда и распределение задач
@@ -111,6 +112,8 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 Статус наборов данных:
 
 Актуально на 17 июня 2026 года: большинство французских версий опубликовано в организации `DeepPavlov` на Hugging Face. Для `FaithDial` текущий Hub-артефакт содержит только `test`; конфиг уже подготовлен для полной перезаливки `train/dev/test`. `Coral` подготовлен конфигом, но требует финальной материализации и загрузки.
+
+Сводная таблица по русским, испанским и французским переводам доступна в Google Sheets: [DialogMTEB Translation Quality Summary](https://docs.google.com/spreadsheets/d/1pEty3fUN-vzVPmuRXX1CnMP1XCBG85Qn7nBf0nS9qiQ/edit).
 
 | Исходный набор данных | Локальный идентификатор | Французский репозиторий Hugging Face | Статус |
 | --- | --- | --- | --- |

@@ -80,6 +80,7 @@
 
 - репозиторий французского конвейера перевода: [IsachenkoBogdan/data-translate](https://github.com/IsachenkoBogdan/data-translate);
 - репозиторий русскоязычной части: [interpparietes/DialogMTEB](https://github.com/interpparietes/DialogMTEB);
+- сводная таблица статусов и статических проверок переводов: [DialogMTEB Translation Quality Summary](https://docs.google.com/spreadsheets/d/1pEty3fUN-vzVPmuRXX1CnMP1XCBG85Qn7nBf0nS9qiQ/edit);
 - Slidev-презентация: [`presentation/slides.md`](presentation/slides.md);
 - PDF для защиты: [`presentation/DialogMTEB_project_practice.pdf`](presentation/DialogMTEB_project_practice.pdf).
 
