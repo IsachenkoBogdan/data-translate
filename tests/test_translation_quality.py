@@ -403,6 +403,14 @@ def test_quality_checker_keeps_common_numeric_rewrites_quiet() -> None:
         "It was published on 17 August 1945 four years before Nineteen Eighty-Four.",
         "The body has a density of 0.98 which allows it to float.",
         "5,6,7,8 What makes it so special.",
+        "Yes. Please get this memo typed up and distributed to all employees before 4 pm.",
+        "I'd be very glad to show you around. Could you come back about 3 thirty?",
+        "I worked in the private sector but was on call 24x7.",
+        "I like the 1169 cc transverse engine.",
+        "Google bought the site in November 2006 for US$1.65 billion.",
+        "can you mention two of her works during 2010 to 15?",
+        "The band performed the song in the 81st Macy's Thanksgiving Day Parade in 2007.",
+        "I need to find a train that is leaving after 14,30.",
     ]
     translated_texts = [
         "Le groupe a vendu plus de 50 millions d'albums au début des années 2000.",
@@ -460,6 +468,14 @@ def test_quality_checker_keeps_common_numeric_rewrites_quiet() -> None:
         "Il a été publié le 17 août 1945, quatre ans avant 1984.",
         "Le corps a une densité de 0,98 ce qui lui permet de flotter.",
         "5,6,7,8 Ce qui le rend si spécial.",
+        "Oui. Veuillez faire taper cette note et la distribuer à tous les employés avant 16h00.",
+        "Je serais ravi de vous faire visiter. Pourriez-vous revenir vers 15h30 ?",
+        "J'ai travaillé dans le secteur privé mais j'étais disponible 24h/24 et 7j/7.",
+        "J'aime le moteur transversal de 1 169 cm3.",
+        "Google a acheté le site en novembre 2006 pour 1 650 millions de dollars.",
+        "pouvez-vous mentionner deux de ses œuvres entre 2010 et 2015 ?",
+        "Le groupe a interprété la chanson lors du 81e défilé de Thanksgiving de Macy en 2007.",
+        "Je dois trouver un train qui part après 14:30.",
     ]
     source = DatasetDict({"train": Dataset.from_dict({"text": source_texts})})
     translated = DatasetDict({"train": Dataset.from_dict({"text": source_texts, "text_fr": translated_texts})})

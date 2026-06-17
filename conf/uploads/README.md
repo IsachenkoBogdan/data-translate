@@ -26,6 +26,20 @@
 репозиторий Hub собирается из нескольких локальных артефактов, например из
 `multi_turn` и `single_turn` для ClarQAv1.
 
+## FaithDial
+
+`faithdial_fr` должен публиковаться полным набором `train/dev/test`, как
+`DeepPavlov/faithdial_es`. Источник для перевода - `DeepPavlov/faithdial_es`:
+он содержит исходные английские поля и уже нормализованную схему разбиений.
+Текущий старый Hub-артефакт `DeepPavlov/faithdial_fr` содержит только `test`,
+поэтому перед повторной загрузкой нужно заново материализовать перевод.
+
+```bash
+make translate DATASET=faithdial SET="runtime.concurrency=16"
+make check-translation DATASET=faithdial
+make upload-datasets-push UPLOAD=faithdial_fr
+```
+
 ## Команды воспроизводимости для WoW и Coral
 
 WoW публикуется одним upload-конфигом `wizard_of_wikipedia_fr`. Для полной

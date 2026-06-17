@@ -1,6 +1,8 @@
 dataset_id: faithdial
 source:
-  hf_dataset_id: DeepPavlov/FaithDial-ru
+  hf_dataset_id: DeepPavlov/faithdial_es
+  hf_config: default
+  source_kind: hf
 artifacts:
   translated_basename: DeepPavlov_FaithDial
 translation:
@@ -9,8 +11,12 @@ translation:
   backend:
     provider: google
   drop_columns:
-    - history_ru
-    - knowledge_ru
+    - history_es
+    - knowledge_es
+    - response_es
+    - original_response_es
+    - BEGIN_es
+    - VRM_es
   rules:
     - source: history
       target: history_fr

@@ -20,7 +20,7 @@ def test_dataset_resolver_passes_hf_config_and_trust_remote_code() -> None:
         result = resolver.load_source(source)
     assert result == "hf"
     load_dataset_mock.assert_called_once_with(
-        path="DeepPavlov/FaithDial-ru",
+        path="DeepPavlov/faithdial_es",
         name="default",
         revision="main",
         trust_remote_code=True,

@@ -97,10 +97,10 @@ _DIGIT_SEQUENCE_RE = re.compile(
 _PLACEHOLDER_OR_MARKER_RE = re.compile(r"\[[^\[\]\n]{1,120}\]|\{[^{}\n]{1,120}\}|<[/]?[A-Za-z][^>\n]{0,120}>")
 _HTML_ENTITY_RE = re.compile(r"&(?:[A-Za-z]{2,16}|#[0-9]{2,7}|#x[0-9A-Fa-f]{2,6});")
 _GROUPED_OR_PLAIN_NUMBER = r"\d{1,3}(?:[,\u00a0 ]\d{3})+|\d+"
-_ORDINAL_SUFFIX_RE = re.compile(rf"(?i)(?<![A-Za-z0-9])({_GROUPED_OR_PLAIN_NUMBER})(?:st|nd|rd|th)\b")
+_ORDINAL_SUFFIX_RE = re.compile(rf"(?i)(?<![A-Za-z0-9])({_GROUPED_OR_PLAIN_NUMBER})(?:st|nd|rd|th|e|o|º|ª)\b")
 _DECADE_SUFFIX_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d{1,4})s\b")
 _ATTACHED_UNIT_RE = re.compile(
-    r"(?i)(?<![A-Za-z0-9])(\d+(?:[.,]\d+)?|\.\d+)(?:mm|cm|m|km|mph|sq\s*ft|sqft|sq\s*feet|square\s*feet|yd|yards?|in|inch|inches|ft|feet|lbs?|pounds?|oz|ounces?|l|liters?|litres?|meters?|metres?)\b"
+    r"(?i)(?<![A-Za-z0-9])(\d+(?:[.,]\d+)?|\.\d+)(?:cc|mm|cm|m|km|mph|sq\s*ft|sqft|sq\s*feet|square\s*feet|yd|yards?|in|inch|inches|ft|feet|lbs?|pounds?|oz|ounces?|l|liters?|litres?|meters?|metres?)\b"
 )
 _ERA_SUFFIX_RE = re.compile(
     rf"(?<![A-Za-z0-9])({_GROUPED_OR_PLAIN_NUMBER})\s*(?:[bB]\.?[cC]\.?[eE]?\.?|[cC]\.[eE]\.|CE\b|[aA]\.?[dD]\.?)\b"
@@ -117,6 +117,22 @@ _AROUND_THE_CLOCK_RE = re.compile(r"(?i)\b(?:around|round)\s+the\s+clock\b")
 _APOSTROPHE_YEAR_RE = re.compile(r"(?<!\d)['’](\d{2})\b")
 _TRAILING_APOSTROPHE_YEAR_RE = re.compile(r"(?<!\d)(\d{2})['’](?!\d)")
 _TWELVE_HOUR_TIME_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\b")
+_TWELVE_HOUR_TIME_SPACED_RE = re.compile(
+    r"(?i)(?<![A-Za-z0-9])(\d{1,2})(?::(\d{2}))?\s*(a|p)\s*\.\s*m\s*\.?"
+)
+_TWENTY_FOUR_HOUR_TIME_RE = re.compile(r"(?<![A-Za-z0-9])([01]?\d|2[0-3])[:h](\d{2})(?![A-Za-z0-9])")
+_COMMA_TIME_RE = re.compile(r"(?i)(?<![A-Za-z0-9])([01]?\d|2[0-3]),([0-5]\d)(?![A-Za-z0-9])")
+_SPOKEN_TIME_RE = re.compile(
+    r"(?i)(?<![A-Za-z0-9])(\d{1,2})\s+"
+    r"(twenty|thirty|fourty|forty|fifty|oh)\s*"
+    r"(\d)?"
+    r"(?:\s*(a\.?\s*m\.?|p\.?\s*m\.?|am|pm|morning|afternoon|evening))?"
+)
+_TWENTY_FOUR_SEVEN_RE = re.compile(r"(?i)(?<![A-Za-z0-9])24\s*(?:x|/)\s*7(?![A-Za-z0-9])")
+_UNIT_EXPONENT_RE = re.compile(r"(?i)\b(?:mm|cm|m|km|ft|in|yd|mi)\s*[23]\b")
+_FULL_YEAR_TO_SHORT_YEAR_RE = re.compile(
+    r"(?i)(?<!\d)((?:18|19|20)\d{2})\s*(?:to|-|–|—)\s*(\d{2})(?!\d)"
+)
 _FRACTIONAL_MILES_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d+)\s*/\s*(\d+)\s*miles?\b")
 _MILES_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d+(?:[.,]\d+)?)\s*miles?\b")
 _MPH_RE = re.compile(r"(?i)(?<![A-Za-z0-9])(\d+(?:[.,]\d+)?)\s*mph\b")
@@ -125,7 +141,8 @@ _MONTH_ATTACHED_DAY_RE = re.compile(
     r"(?i)\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)(\d{1,2})(?:st|nd|rd|th)?\b"
 )
 _NUMBER_WITH_MULTIPLIER_RE = re.compile(
-    r"(?i)(?<!\d)(\d+(?:[.,]\d+)?|\.\d+)\s*(k|grand|thousand|million|billion|trillion)s?\b"
+    r"(?i)(?<!\d)(?<!\d )(?<!\d,)(?<!\d\u00a0)(\d+(?:[.,]\d+)?|\.\d+)\s*"
+    r"(k|grand|thousand|million|billion|trillion)s?\b"
 )
 _YEAR_RANGE_RE = re.compile(
     r"(?i)(?<!\d)(\d{2})\s*[-–—]\s*(\d{2})(?=\s*(?:year|season|school|academic|rowers?|athletes?))"
@@ -410,6 +427,10 @@ def _compact_number_group_spaces(value: str) -> str:
     return re.sub(r"(?<=\d),\s+(?=\d{3}(?:\D|$))", ",", value)
 
 
+def _strip_unit_exponents(value: str) -> str:
+    return _UNIT_EXPONENT_RE.sub(lambda match: re.sub(r"[23]\b", "", match.group(0)), value)
+
+
 def _normalize_number_token(number_text: str) -> str:
     token = number_text.strip().replace("\u00a0", " ")
     if token.startswith("."):
@@ -447,7 +468,8 @@ def digit_sequences(value: str) -> list[str]:
         if normalized not in values:
             values.append(normalized)
 
-    normalized_value = _compact_number_group_spaces(value)
+    scan_value = _strip_unit_exponents(value)
+    normalized_value = _compact_number_group_spaces(scan_value)
     for match in _DIGIT_SEQUENCE_RE.finditer(normalized_value):
         token = match.group(0)
         if "," in token and "\u00a0" not in token and " " not in token:
@@ -479,7 +501,7 @@ def digit_sequences(value: str) -> list[str]:
         _MONTH_ATTACHED_DAY_RE,
         _NUMBER_WITH_MULTIPLIER_RE,
     ):
-        for match in regex.finditer(value):
+        for match in regex.finditer(scan_value):
             append_unique(match.group(1))
     return values
 
@@ -552,6 +574,10 @@ def _multiplied_number_equivalents(source_text: str) -> set[str]:
         multiplied_text = _decimal_int_string(multiplied)
         if multiplied_text is not None:
             equivalents.add(multiplied_text)
+        if unit == "billion":
+            as_millions = _decimal_int_string(number * Decimal("1000"))
+            if as_millions is not None:
+                equivalents.add(as_millions)
         if unit == "trillion":
             as_billions = _decimal_int_string(number * Decimal("1000"))
             if as_billions is not None:
@@ -575,7 +601,7 @@ def _multiplied_number_equivalents(source_text: str) -> set[str]:
 
 def _time_equivalents(source_text: str) -> set[str]:
     equivalents: set[str] = set()
-    for match in _TWELVE_HOUR_TIME_RE.finditer(source_text):
+    for match in list(_TWELVE_HOUR_TIME_RE.finditer(source_text)) + list(_TWELVE_HOUR_TIME_SPACED_RE.finditer(source_text)):
         hour = int(match.group(1))
         minute = match.group(2)
         marker = match.group(3).lower()
@@ -586,8 +612,41 @@ def _time_equivalents(source_text: str) -> set[str]:
         elif marker.startswith("a") and hour == 12:
             hour = 0
         equivalents.add(str(hour))
+        equivalents.add(f"{hour}.0")
+        equivalents.add("0")
+        equivalents.add("00")
         if minute:
             equivalents.add(f"{hour}.{minute}")
+            equivalents.add(minute.lstrip("0") or "0")
+            equivalents.add(minute)
+    for match in _TWENTY_FOUR_HOUR_TIME_RE.finditer(source_text):
+        hour = str(int(match.group(1)))
+        minute = match.group(2)
+        equivalents.update({hour, match.group(1), minute, minute.lstrip("0") or "0", f"{hour}.{minute}"})
+    for match in _COMMA_TIME_RE.finditer(source_text):
+        hour = str(int(match.group(1)))
+        minute = match.group(2)
+        equivalents.update({hour, match.group(1), minute, minute.lstrip("0") or "0", f"{hour}.{minute}"})
+    for match in _SPOKEN_TIME_RE.finditer(source_text):
+        hour = int(match.group(1))
+        tens = match.group(2).lower()
+        unit = match.group(3) or ""
+        marker = (match.group(4) or "").lower()
+        if not 1 <= hour <= 12:
+            continue
+        minute = {"twenty": 20, "thirty": 30, "fourty": 40, "forty": 40, "fifty": 50, "oh": 0}[tens]
+        if unit:
+            minute += int(unit)
+        equivalents.add(str(hour))
+        equivalents.add(str(minute))
+        equivalents.add(f"{minute:02d}")
+        equivalents.add(f"{hour}.{minute:02d}")
+        if marker.startswith("p") or marker in {"afternoon", "evening"} or not marker:
+            hour_24 = hour + 12 if hour != 12 else 12
+            equivalents.add(str(hour_24))
+            equivalents.add(f"{hour_24}.{minute:02d}")
+    if _TWENTY_FOUR_SEVEN_RE.search(source_text):
+        equivalents.update({"24", "7"})
     return equivalents
 
 
@@ -617,6 +676,11 @@ def _short_year_equivalents(source_text: str) -> set[str]:
                 f"20{end_year}",
             }
         )
+    for match in _FULL_YEAR_TO_SHORT_YEAR_RE.finditer(source_text):
+        start_year = match.group(1)
+        end_year = match.group(2)
+        century = start_year[:2]
+        equivalents.update({start_year, end_year, f"{century}{end_year}"})
     return equivalents
 
 

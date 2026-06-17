@@ -110,14 +110,14 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 
 Статус наборов данных:
 
-Актуально на 10 июня 2026 года: французские версии всех запланированных наборов опубликованы в организации `DeepPavlov` на Hugging Face.
+Актуально на 17 июня 2026 года: большинство французских версий опубликовано в организации `DeepPavlov` на Hugging Face. Для `FaithDial` текущий Hub-артефакт содержит только `test`; конфиг уже подготовлен для полной перезаливки `train/dev/test`. `Coral` подготовлен конфигом, но требует финальной материализации и загрузки.
 
 | Исходный набор данных | Локальный идентификатор | Французский репозиторий Hugging Face | Статус |
 | --- | --- | --- | --- |
 | DailyDialog Manually Labelled Multi-turn Dialogue Dataset | `daily_dialog` | [DeepPavlov/daily_dialog_fr](https://huggingface.co/datasets/DeepPavlov/daily_dialog_fr) | Переведен и загружен |
 | statcan-dialogue-dataset-retrieval | `statcan-dialogue-dataset-retrieval` | [DeepPavlov/statcan_dialog_fr](https://huggingface.co/datasets/DeepPavlov/statcan_dialog_fr) | Переведен и загружен |
 | WebLINX | `weblinx` | [DeepPavlov/weblinx_fr](https://huggingface.co/datasets/DeepPavlov/weblinx_fr) | Переведен и загружен |
-| FaithDial | `faithdial` | [DeepPavlov/faithdial_fr](https://huggingface.co/datasets/DeepPavlov/faithdial_fr) | Переведен и загружен; текущий результат содержит `history_fr` и `knowledge_fr` |
+| FaithDial | `faithdial` | [DeepPavlov/faithdial_fr](https://huggingface.co/datasets/DeepPavlov/faithdial_fr) | Требует полной перезаливки: текущий Hub-артефакт содержит только `test`; конфиг ожидает `train/dev/test` и поля `history_fr`, `knowledge_fr` |
 | Multi2WOZ / MultiWOZ | `globalwoz` | [DeepPavlov/multiwoz_fr](https://huggingface.co/datasets/DeepPavlov/multiwoz_fr) | Переведен и загружен |
 | air-dialogue | `airdialog` | [DeepPavlov/air_dialog_fr](https://huggingface.co/datasets/DeepPavlov/air_dialog_fr) | Переведен и загружен |
 | CANARD | `canard_queries` | [DeepPavlov/canard_fr](https://huggingface.co/datasets/DeepPavlov/canard_fr) | Переведен и загружен |
@@ -125,7 +125,7 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 | MANtIS | `mantis` | [DeepPavlov/mantis_fr](https://huggingface.co/datasets/DeepPavlov/mantis_fr) | Переведен и загружен; `check-translation`: 0 ошибок, 0 предупреждений |
 | Wizard of Wikipedia / WoW | `wizard_of_wikipedia` | [DeepPavlov/wizard_of_wikipedia_fr](https://huggingface.co/datasets/DeepPavlov/wizard_of_wikipedia_fr) | Переведен и загружен |
 | Abg-CoQA | `coqa_abg` | [DeepPavlov/coqa_abg_fr](https://huggingface.co/datasets/DeepPavlov/coqa_abg_fr) | Переведен и загружен |
-| Coral | `coral_*` | [DeepPavlov/coral_fr](https://huggingface.co/datasets/DeepPavlov/coral_fr) | Переведен и загружен |
+| Coral | `coral_*` | [DeepPavlov/coral_fr](https://huggingface.co/datasets/DeepPavlov/coral_fr) | Требует финальной материализации `coral_queries` и загрузки |
 
 План дальнейших улучшений:
 - добавить `mt-metrics-eval` как внешний набор для калибровки качества моделей-оценщиков на стандартных данных машинного перевода с человеческими оценками
