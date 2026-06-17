@@ -84,6 +84,19 @@ uv run data-translate check-translation --quality topiocqa_fr --max-rows-per-spl
 позволяет учесть переименование колонок из `conf/uploads`, например сравнивать
 исходное `text` с опубликованным `text`, хотя локально перевод лежал в `text_fr`.
 
+Для полной сводной проверки опубликованных переводов по всем строкам используется
+план `conf/quality/hf_audit_plan.csv`:
+
+```bash
+uv run python scripts/audit_hf_translation_quality.py --reset --exclude FaithDial:fr
+```
+
+Эта команда пишет `quality_tasks.jsonl`, `quality_summary.csv` и
+`quality_summary.json` в `reports/translation_coverage/`. В плане нет режима
+проверки без оригинала: переводимые поля сравниваются с исходным набором данных
+или с исходной колонкой внутри того же опубликованного набора; служебные данные
+без переводимого текста помечаются как `no_text_pairs`.
+
 Проверка смотрит:
 
 - совпадение разбиений и числа строк в исходном и переведенном варианте;

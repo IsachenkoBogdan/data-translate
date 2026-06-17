@@ -94,6 +94,7 @@ make evaluate DATASET=globalwoz RUN=ff
 
 make check-translation QUALITY=multiwoz_fr
 make check-translation QUALITY=topiocqa_fr MAX_ROWS_PER_SPLIT=1000
+uv run python scripts/audit_hf_translation_quality.py --reset --exclude FaithDial:fr
 
 make upload-datasets UPLOAD=daily_dialog_fr
 make upload-datasets-push UPLOAD=daily_dialog_fr

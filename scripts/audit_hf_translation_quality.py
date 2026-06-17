@@ -273,7 +273,7 @@ def parse_pairs(value: str) -> list[tuple[str, str]]:
     return pairs
 
 
-def read_existing_tasks(path: Path) -> set[tuple[str, str, str, str, str]]:
+def read_existing_tasks(path: Path) -> set[tuple[str, ...]]:
     if not path.exists():
         return set()
     completed = set()
@@ -294,14 +294,52 @@ def read_existing_tasks(path: Path) -> set[tuple[str, str, str, str, str]]:
     return completed
 
 
-def task_key(row: dict[str, str]) -> tuple[str, str, str, str, str]:
+def task_key(row: dict[str, str]) -> tuple[str, ...]:
     return (
         row.get("dataset", ""),
         row.get("lang", ""),
         row.get("target_repo", ""),
         row.get("target_config", ""),
         row.get("target_split", ""),
+        row.get("mode", ""),
+        row.get("pairs", ""),
+        row.get("source_repo", ""),
+        row.get("source_config", ""),
+        row.get("source_split", ""),
     )
+
+
+def parse_exclusions(values: list[str]) -> set[tuple[str, str]]:
+    exclusions = set()
+    for value in values:
+        for item in value.split(","):
+            item = item.strip()
+            if not item:
+                continue
+            if ":" not in item:
+                raise ValueError(f"expected DATASET:LANG exclusion, got {item!r}")
+            dataset, lang = item.split(":", maxsplit=1)
+            exclusions.add((dataset.strip(), lang.strip()))
+    return exclusions
+
+
+def apply_exclusions(plan_rows: list[dict[str, str]], exclusions: set[tuple[str, str]]) -> list[dict[str, str]]:
+    if not exclusions:
+        return plan_rows
+    updated = []
+    for row in plan_rows:
+        if (row.get("dataset", ""), row.get("lang", "")) not in exclusions:
+            updated.append(row)
+            continue
+        note = row.get("note", "")
+        updated.append(
+            {
+                **row,
+                "mode": "excluded",
+                "note": "excluded by --exclude" if not note else f"{note} | excluded by --exclude",
+            }
+        )
+    return updated
 
 
 def audit_task(reader: ParquetReader, row: dict[str, str]) -> dict:
@@ -401,12 +439,15 @@ def audit_task(reader: ParquetReader, row: dict[str, str]) -> dict:
 
 def rebuild_summary(plan_rows: list[dict[str, str]], task_path: Path, output_dir: Path) -> None:
     task_rows = []
+    active_task_keys = {task_key(row) for row in plan_rows if row["mode"] in AUDITABLE_MODES}
     if task_path.exists():
         with task_path.open(encoding="utf-8") as file:
             latest = {}
             for line in file:
                 row = json.loads(line)
-                latest[task_key(row)] = row
+                key = task_key(row)
+                if key in active_task_keys:
+                    latest[key] = row
             task_rows = list(latest.values())
 
     summary: dict[tuple[str, str], dict] = {}
@@ -505,9 +546,15 @@ def rebuild_summary(plan_rows: list[dict[str, str]], task_path: Path, output_dir
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--plan", default="reports/translation_coverage/audit_plan.csv")
+    parser.add_argument("--plan", default="conf/quality/hf_audit_plan.csv")
     parser.add_argument("--output-dir", default="reports/translation_coverage")
     parser.add_argument("--cache-dir", default=".cache/hf_parquet")
+    parser.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        help="Skip DATASET:LANG pairs, for example --exclude FaithDial:fr. Can be repeated or comma-separated.",
+    )
     parser.add_argument("--limit-tasks", type=int, default=0)
     parser.add_argument("--reset", action="store_true")
     args = parser.parse_args()
@@ -520,6 +567,7 @@ def main() -> None:
 
     with Path(args.plan).open(encoding="utf-8") as file:
         plan_rows = list(csv.DictReader(file))
+    plan_rows = apply_exclusions(plan_rows, parse_exclusions(args.exclude))
     work = [row for row in plan_rows if row["mode"] in AUDITABLE_MODES]
     completed = read_existing_tasks(task_path)
     reader = ParquetReader(Path(args.cache_dir))
