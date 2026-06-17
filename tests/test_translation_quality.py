@@ -61,6 +61,21 @@ def test_quality_checker_reports_list_length_and_unchanged_translation() -> None
     assert "unchanged_translation" in codes
 
 
+def test_quality_checker_handles_serialized_text_lists() -> None:
+    source = DatasetDict({"train": Dataset.from_dict({"history": ['["hello","bye"]']})})
+    translated = DatasetDict({"train": Dataset.from_dict({"history_fr": ['["bonjour"]']})})
+
+    report = audit_translation_quality(
+        source=source,
+        translated=translated,
+        rules=[QualityRule(source="history", target="history_fr", strategy="serialized_text_list")],
+    )
+
+    codes = [issue.code for issue in report.issues]
+    assert "list_length_mismatch" in codes
+    assert report.checked_pairs == 1
+
+
 def test_quality_checker_reports_weblinx_action_changes() -> None:
     source = DatasetDict(
         {

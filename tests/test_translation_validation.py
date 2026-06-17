@@ -232,6 +232,27 @@ def test_serialized_dialog_turns_content_requires_json_string() -> None:
         anyio.run(run)
 
 
+def test_serialized_text_list_translates_json_array() -> None:
+    rule = TranslationRuleModel(source="history", target="history_fr", strategy="serialized_text_list")
+
+    async def run() -> dict[str, object]:
+        return await translate_row(0, {"history": '["hello","bye"]'}, [rule], DummyAdapter())
+
+    record = anyio.run(run)
+    assert record["status"] == "ok"
+    assert record["history_fr"] == '["fr:hello", "fr:bye"]'
+
+
+def test_serialized_text_list_requires_json_string() -> None:
+    rule = TranslationRuleModel(source="history", target="history_fr", strategy="serialized_text_list")
+
+    async def run() -> None:
+        await translate_row(0, {"history": ["hello"]}, [rule], DummyAdapter())
+
+    with pytest.raises(ValueError, match="must be a string"):
+        anyio.run(run)
+
+
 def test_translate_by_rule_rejects_unknown_strategy() -> None:
     rule = TranslationRuleModel.model_construct(source="text", strategy="missing")
 

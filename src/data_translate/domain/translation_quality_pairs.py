@@ -25,6 +25,8 @@ def text_pairs(source_value: Any, translated_value: Any, strategy: str, options:
         return nested_text_pairs(source_value, translated_value, [str(path) for path in options.get("paths", [])])
     if strategy == "serialized_dialog_turns_content":
         return _serialized_dialog_pairs(source_value, translated_value, options)
+    if strategy == "serialized_text_list":
+        return _serialized_text_list_pairs(source_value, translated_value)
     if strategy == "dialog_turns_content":
         return _dialog_pairs(source_value, translated_value, options)
     if isinstance(source_value, list) or isinstance(translated_value, list):
@@ -42,6 +44,24 @@ def _list_pairs(source_value: Any, translated_value: Any) -> tuple[list[TextPair
     errors = []
     if len(source_value) != len(translated_value):
         errors.append(f"length mismatch: {len(source_value)} -> {len(translated_value)}")
+    return pairs, errors
+
+
+def _serialized_text_list_pairs(source_value: Any, translated_value: Any) -> tuple[list[TextPair], list[str]]:
+    try:
+        source_payload = json.loads(str(source_value or "[]"))
+        translated_payload = json.loads(str(translated_value or "[]"))
+    except json.JSONDecodeError as exc:
+        return [], [f"json parse failed: {exc}"]
+    if not isinstance(source_payload, list) or not isinstance(translated_payload, list):
+        return [], ["serialized value must decode to lists"]
+    pairs = [
+        (f"[{idx}]", str(source_item or ""), str(translated_item or ""))
+        for idx, (source_item, translated_item) in enumerate(zip(source_payload, translated_payload, strict=False))
+    ]
+    errors = []
+    if len(source_payload) != len(translated_payload):
+        errors.append(f"length mismatch: {len(source_payload)} -> {len(translated_payload)}")
     return pairs, errors
 
 

@@ -9,7 +9,7 @@ from datasets import Dataset
 from data_translate.adapters.translation_base import TranslationResult
 from data_translate.config.models_dataset_translation import TranslationRuleModel
 from data_translate.domain.languages import extract_language_pair, language_code, language_label, language_names
-from data_translate.domain.renderers import action_sequence, dialog_turns, numbered_list, render_value
+from data_translate.domain.renderers import action_sequence, dialog_turns, numbered_list, render_value, serialized_numbered_list
 from data_translate.domain.text_processing.guards import should_skip_translation
 from data_translate.domain.text_processing.chunking import chunk_text
 from data_translate.domain.text_processing.parsers import extract_quoted_value, split_structured_entity
@@ -43,6 +43,11 @@ def test_translation_markers_roundtrip() -> None:
     text = build_marked_text(["hello", "world"])
     assert text == "@@0@@ hello\n@@1@@ world"
     assert parse_marked_translation("@@0@@ bonjour\n@@1@@ monde", 2) == ["bonjour", "monde"]
+
+
+def test_serialized_numbered_list_renderer() -> None:
+    assert serialized_numbered_list('["hello","bye"]') == "1. hello\n2. bye"
+    assert render_value('["hello"]', "serialized_text_list") == "1. hello"
 
 
 def test_translation_markers_reject_duplicate_and_empty_values() -> None:

@@ -12,7 +12,9 @@ from data_translate.domain.translation_strategies.nested import (
 )
 from data_translate.domain.translation_strategies.serialized import (
     translate_serialized_dialog_turns_content,
+    translate_serialized_text_list,
     validate_serialized_dialog_turns_content_input,
+    validate_serialized_text_list_input,
 )
 from data_translate.domain.translation_strategies.structured import (
     translate_structured_entity,
@@ -32,6 +34,7 @@ STRATEGIES = {
     "text_list": translate_text_list,
     "dialog_turns_content": translate_dialog_turns_content,
     "serialized_dialog_turns_content": translate_serialized_dialog_turns_content,
+    "serialized_text_list": translate_serialized_text_list,
     "structured_entity": translate_structured_entity,
     "nested_text_fields": translate_nested_text_fields,
     "deep_map_texts": translate_deep_map,
@@ -43,6 +46,7 @@ INPUT_VALIDATORS = {
     "text_list": validate_text_list_input,
     "dialog_turns_content": validate_dialog_turns_content_input,
     "serialized_dialog_turns_content": validate_serialized_dialog_turns_content_input,
+    "serialized_text_list": validate_serialized_text_list_input,
     "structured_entity": validate_structured_entity_input,
     "nested_text_fields": validate_nested_text_fields_input,
     "deep_map_texts": validate_deep_map_input,
