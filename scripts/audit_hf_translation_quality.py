@@ -342,6 +342,27 @@ def apply_exclusions(plan_rows: list[dict[str, str]], exclusions: set[tuple[str,
     return updated
 
 
+def plan_mode_counts(plan_rows: list[dict[str, str]]) -> Counter[str]:
+    return Counter(str(row.get("mode", "")) for row in plan_rows)
+
+
+def format_plan_status(*, plan_rows: list[dict[str, str]], work: list[dict[str, str]], completed: int, remaining: int) -> str:
+    mode_counts = plan_mode_counts(plan_rows)
+    skipped = len(plan_rows) - len(work)
+    skipped_modes = {
+        mode: count
+        for mode, count in sorted(mode_counts.items())
+        if mode not in AUDITABLE_MODES
+    }
+    skipped_suffix = ""
+    if skipped_modes:
+        skipped_suffix = " (" + ", ".join(f"{mode}={count}" for mode, count in skipped_modes.items()) + ")"
+    return (
+        f"plan rows={len(plan_rows)} auditable_tasks={len(work)} skipped={skipped}{skipped_suffix} "
+        f"completed={completed} remaining={remaining}"
+    )
+
+
 def audit_task(reader: ParquetReader, row: dict[str, str]) -> dict:
     pairs = parse_pairs(row["pairs"])
     if row["mode"] == "self_suffix":
@@ -576,7 +597,15 @@ def main() -> None:
     if args.limit_tasks:
         remaining = remaining[: args.limit_tasks]
     start = time.time()
-    print(f"tasks total={len(work)} completed={len(completed)} remaining={len(remaining)}", flush=True)
+    print(
+        format_plan_status(
+            plan_rows=plan_rows,
+            work=work,
+            completed=len(completed),
+            remaining=len(remaining),
+        ),
+        flush=True,
+    )
     with task_path.open("a", encoding="utf-8") as file:
         for idx, row in enumerate(remaining, start=1):
             label = f"{row['dataset']} {row['lang']} {row['target_config']}/{row['target_split']}"
