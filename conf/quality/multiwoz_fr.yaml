@@ -6,9 +6,8 @@ translation:
   hf_dataset_id: DeepPavlov/multiwoz_fr
   hf_config: default
 rules_from:
-  dataset_id: globalwoz
-  workflow: reformat
-  run: ff
+  dataset_id: multiwoz_direct
+  workflow: translate
 notes:
   - Compares published French MultiWOZ against the original DeepPavlov/MultiWOZ-2.1 default config.
-  - DeepPavlov/MultiWOZ-2.1 is non-empty and aligned by split/row count, but the published French artifact has a high warning rate and should be reviewed before being marked ready.
+  - Published artifact is the direct French translation of DeepPavlov/MultiWOZ-2.1 text and history[].content.
