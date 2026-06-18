@@ -1,0 +1,14 @@
+quality_id: faithdial_fr
+source:
+  hf_dataset_id: DeepPavlov/faithdial_es
+  hf_config: default
+translation:
+  hf_dataset_id: DeepPavlov/faithdial_fr
+  hf_config: default
+rules_from:
+  dataset_id: faithdial
+  workflow: translate
+  upload_id: faithdial_fr
+notes:
+  - Compares the published full French FaithDial artifact against the original English fields copied in DeepPavlov/faithdial_es.
+  - Expected splits are train, dev, and test; translated fields are history_fr and knowledge_fr.

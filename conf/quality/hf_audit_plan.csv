@@ -171,6 +171,10 @@ Coral,es,source_compare,DeepPavlov/coral_es,corpus,train,text->text,DeepPavlov/c
 Coral,es,metadata_only,DeepPavlov/coral_es,qrels,,,,,,no auditable text columns inferred
 Coral,es,source_compare,DeepPavlov/coral_es,queries,train,text->text,DeepPavlov/coral,queries,train,
 Coral,es,source_compare,DeepPavlov/coral_es,queries,test,text->text,DeepPavlov/coral,queries,test,
+Coral,fr,source_compare,DeepPavlov/coral_fr,corpus,train,text->text,DeepPavlov/coral,corpus,train,
+Coral,fr,metadata_only,DeepPavlov/coral_fr,qrels,,,,,,no auditable text columns inferred
+Coral,fr,source_compare,DeepPavlov/coral_fr,queries,train,text->text,DeepPavlov/coral,queries,train,
+Coral,fr,source_compare,DeepPavlov/coral_fr,queries,test,text->text,DeepPavlov/coral,queries,test,
 TREC iKAT 2023,ru,self_suffix,DeepPavlov/iKAT_2023_ru,corpus,train,text->text_ru,DeepPavlov/iKAT_2023_ru,corpus,train,
 TREC iKAT 2023,ru,self_suffix,DeepPavlov/iKAT_2023_ru,corpus,test,text->text_ru,DeepPavlov/iKAT_2023_ru,corpus,test,
 TREC iKAT 2023,ru,metadata_only,DeepPavlov/iKAT_2023_ru,qrels,,,,,,no auditable text columns inferred

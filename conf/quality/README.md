@@ -20,9 +20,11 @@ uv run data-translate check-translation --quality topiocqa_fr --max-rows-per-spl
 uv run python scripts/audit_hf_translation_quality.py --reset
 ```
 
-План временно не включает французские `FaithDial`, `Multi2WOZ` и `Coral`: эти
-артефакты еще нужно доперевести или заменить перед итоговым аудитом. Флаг
-`--exclude` нужен только для разового исключения дополнительных пар
+План включает французские `FaithDial`, `Multi2WOZ` и `Coral`. Для `Coral`
+ожидается опубликованный набор `DeepPavlov/coral_fr` с конфигурациями `corpus`,
+`qrels` и `queries`; если репозиторий еще не виден в Hugging Face Dataset
+Viewer, соответствующие строки аудита будут помечены как `missing_split`.
+Флаг `--exclude` нужен только для разового исключения дополнительных пар
 `DATASET:LANG`. Результаты пишутся в `reports/translation_coverage/`.
 
 Строки со статусом `missing` считаются проблемными: ожидаемый перевод не найден,

@@ -117,7 +117,7 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 
 Статус наборов данных:
 
-Актуально на 17 июня 2026 года: большинство французских версий опубликовано в организации `DeepPavlov` на Hugging Face. Для `FaithDial` текущий Hub-артефакт содержит только `test`; конфиг уже подготовлен для полной перезаливки `train/dev/test`. `MultiWOZ` опубликован, но требует ревизии внешнего French-кандидата: полный HF-аудит против `DeepPavlov/MultiWOZ-2.1` показывает высокий процент предупреждений. `Coral` подготовлен конфигом, но требует финальной материализации и загрузки.
+Актуально на 18 июня 2026 года: большинство французских версий опубликовано в организации `DeepPavlov` на Hugging Face. `FaithDial` перезагружен полным набором `train/dev/test`. `MultiWOZ` заменен прямым переводом `multiwoz_direct` исходного `DeepPavlov/MultiWOZ-2.1` и проверяется конфигом `multiwoz_fr`. Для `Coral` подготовлены upload- и quality-конфиги под ожидаемый репозиторий `DeepPavlov/coral_fr`; перед финальным аудитом нужно убедиться, что этот repo id доступен в Hugging Face.
 
 Сводная таблица по русским, испанским и французским переводам доступна в Google Sheets: [DialogMTEB Translation Quality Summary](https://docs.google.com/spreadsheets/d/1pEty3fUN-vzVPmuRXX1CnMP1XCBG85Qn7nBf0nS9qiQ/edit).
 
@@ -126,15 +126,15 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 | DailyDialog Manually Labelled Multi-turn Dialogue Dataset | `daily_dialog` | [DeepPavlov/daily_dialog_fr](https://huggingface.co/datasets/DeepPavlov/daily_dialog_fr) | Переведен и загружен |
 | statcan-dialogue-dataset-retrieval | `statcan-dialogue-dataset-retrieval` | [DeepPavlov/statcan_dialog_fr](https://huggingface.co/datasets/DeepPavlov/statcan_dialog_fr) | Переведен и загружен |
 | WebLINX | `weblinx` | [DeepPavlov/weblinx_fr](https://huggingface.co/datasets/DeepPavlov/weblinx_fr) | Переведен и загружен |
-| FaithDial | `faithdial` | [DeepPavlov/faithdial_fr](https://huggingface.co/datasets/DeepPavlov/faithdial_fr) | Требует полной перезаливки: текущий Hub-артефакт содержит только `test`; конфиг ожидает `train/dev/test` и поля `history_fr`, `knowledge_fr` |
-| Multi2WOZ / MultiWOZ | `globalwoz`, `multiwoz_direct` | [DeepPavlov/multiwoz_fr](https://huggingface.co/datasets/DeepPavlov/multiwoz_fr) | Загружен, требует ревизии: внешний French-кандидат дает высокий процент предупреждений; для исправления подготовлен прямой перевод `multiwoz_direct` |
+| FaithDial | `faithdial` | [DeepPavlov/faithdial_fr](https://huggingface.co/datasets/DeepPavlov/faithdial_fr) | Переведен и загружен; `check-translation`: 0 ошибок, 1 предупреждение |
+| Multi2WOZ / MultiWOZ | `multiwoz_direct` | [DeepPavlov/multiwoz_fr](https://huggingface.co/datasets/DeepPavlov/multiwoz_fr) | Переведен и загружен прямым переводом; `check-translation`: 0 ошибок, 645 предупреждений / 0,72% строк |
 | air-dialogue | `airdialog` | [DeepPavlov/air_dialog_fr](https://huggingface.co/datasets/DeepPavlov/air_dialog_fr) | Переведен и загружен |
 | CANARD | `canard_queries` | [DeepPavlov/canard_fr](https://huggingface.co/datasets/DeepPavlov/canard_fr) | Переведен и загружен |
 | ClarQA | `clarqa_multi_turn`, `clarqa_single_turn` | [DeepPavlov/clarqa_fr](https://huggingface.co/datasets/DeepPavlov/clarqa_fr) | Переведен и загружен |
 | MANtIS | `mantis` | [DeepPavlov/mantis_fr](https://huggingface.co/datasets/DeepPavlov/mantis_fr) | Переведен и загружен; `check-translation`: 0 ошибок, 0 предупреждений |
 | Wizard of Wikipedia / WoW | `wizard_of_wikipedia` | [DeepPavlov/wizard_of_wikipedia_fr](https://huggingface.co/datasets/DeepPavlov/wizard_of_wikipedia_fr) | Переведен и загружен |
 | Abg-CoQA | `coqa_abg` | [DeepPavlov/coqa_abg_fr](https://huggingface.co/datasets/DeepPavlov/coqa_abg_fr) | Переведен и загружен |
-| Coral | `coral_*` | [DeepPavlov/coral_fr](https://huggingface.co/datasets/DeepPavlov/coral_fr) | Требует финальной материализации `coral_queries` и загрузки |
+| Coral | `coral_*` | [DeepPavlov/coral_fr](https://huggingface.co/datasets/DeepPavlov/coral_fr) | Upload- и quality-конфиги готовы; перед итоговым аудитом проверить доступность `DeepPavlov/coral_fr` на Hugging Face |
 
 План дальнейших улучшений:
 - добавить `mt-metrics-eval` как внешний набор для калибровки качества моделей-оценщиков на стандартных данных машинного перевода с человеческими оценками

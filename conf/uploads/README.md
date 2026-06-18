@@ -28,11 +28,11 @@
 
 ## FaithDial
 
-`faithdial_fr` должен публиковаться полным набором `train/dev/test`, как
+`faithdial_fr` публикуется полным набором `train/dev/test`, как
 `DeepPavlov/faithdial_es`. Источник для перевода - `DeepPavlov/faithdial_es`:
 он содержит исходные английские поля и уже нормализованную схему разбиений.
-Текущий старый Hub-артефакт `DeepPavlov/faithdial_fr` содержит только `test`,
-поэтому перед повторной загрузкой нужно заново материализовать перевод.
+Текущий upload-конфиг выгружает поля `history_fr` и `knowledge_fr`; остальные
+исходные поля сохраняются для совместимости.
 
 ```bash
 make translate DATASET=faithdial SET="runtime.concurrency=16"
@@ -47,7 +47,7 @@ make upload-datasets-push UPLOAD=faithdial_fr
 показал, что кандидат не является строгим построчным переводом: в нем меняются
 значения слотов, времена, сущности и иногда сами реплики.
 
-Для исправления подготовлен прямой путь `multiwoz_direct`: он переводит только
+Для исправления используется прямой путь `multiwoz_direct`: он переводит только
 `text` и `history[].content` из исходного `DeepPavlov/MultiWOZ-2.1`, а все
 служебные поля и слоты оставляет без изменений.
 
@@ -57,8 +57,9 @@ make check-translation DATASET=multiwoz_direct
 make upload-datasets-push UPLOAD=multiwoz_fr_direct
 ```
 
-Пока новый перевод не загружен, `multiwoz_fr` остается опубликованным внешним
-кандидатом и должен считаться требующим ревизии.
+После загрузки `multiwoz_fr_direct` репозиторий `DeepPavlov/multiwoz_fr`
+содержит прямой перевод, а `conf/quality/multiwoz_fr.yaml` проверяет именно эту
+схему.
 
 ## Команды воспроизводимости для WoW и Coral
 
@@ -75,11 +76,15 @@ make upload-datasets-push UPLOAD=wizard_of_wikipedia_fr
 
 Coral публикуется upload-конфигом `coral_fr`; он собирает `corpus`, `qrels`
 и `queries`, как уже опубликованные версии `DeepPavlov/coral_ru` и
-`DeepPavlov/coral_es`. Команды ниже воспроизводят перевод и загрузку.
+`DeepPavlov/coral_es`. Команды ниже воспроизводят перевод и загрузку; после
+публикации `DeepPavlov/coral_fr` проверяется quality-конфигами
+`coral_fr_corpus` и `coral_fr_queries`.
 
 ```bash
 make translate DATASET=coral_corpus SET="runtime.concurrency=16"
 make translate DATASET=coral_queries SET="runtime.concurrency=16"
 make check-translation DATASET=coral_queries
 make upload-datasets-push UPLOAD=coral_fr
+make check-translation QUALITY=coral_fr_corpus
+make check-translation QUALITY=coral_fr_queries
 ```
