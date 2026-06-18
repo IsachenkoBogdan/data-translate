@@ -2,7 +2,9 @@ dataset,lang,mode,target_repo,target_config,target_split,pairs,source_repo,sourc
 X-RiSAWOZ,ru,source_compare,DeepPavlov/XRISAWOZRu,default,test,text->text; history->history,DeepPavlov/XRISAWOZ,en,test,
 X-RiSAWOZ,ru,source_compare,DeepPavlov/XRISAWOZRu,default,valid,text->text; history->history,DeepPavlov/XRISAWOZ,en,valid,
 X-RiSAWOZ,ru,source_compare,DeepPavlov/XRISAWOZRu,default,train,text->text; history->history,DeepPavlov/XRISAWOZ,en,train,
-X-RiSAWOZ,es,missing,DeepPavlov/XRISAWOZ_es,,,,,,,public Hugging Face repo is empty in Dataset Viewer (EmptyDatasetError); no uploaded translation data to audit
+X-RiSAWOZ,es,source_compare,DeepPavlov/XRISAWOZ_es,default,test,text->text; history->history,DeepPavlov/XRISAWOZ,en,test,
+X-RiSAWOZ,es,source_compare,DeepPavlov/XRISAWOZ_es,default,val,text->text; history->history,DeepPavlov/XRISAWOZ,en,valid,
+X-RiSAWOZ,es,source_compare,DeepPavlov/XRISAWOZ_es,default,train,text->text; history->history,DeepPavlov/XRISAWOZ,en,train,
 X-RiSAWOZ,fr,source_compare,DeepPavlov/XRISAWOZ_fr,default,test,text->text; history->history,DeepPavlov/XRISAWOZ,en,test,
 X-RiSAWOZ,fr,source_compare,DeepPavlov/XRISAWOZ_fr,default,valid,text->text; history->history,DeepPavlov/XRISAWOZ,en,valid,
 X-RiSAWOZ,fr,source_compare,DeepPavlov/XRISAWOZ_fr,default,train,text->text; history->history,DeepPavlov/XRISAWOZ,en,train,
@@ -19,7 +21,10 @@ StatCan,ru,self_suffix,DeepPavlov/statcan-dialogue-dataset-retrieval-ru,corpus,r
 StatCan,ru,self_suffix,DeepPavlov/statcan-dialogue-dataset-retrieval-ru,queries_russian,train,query->query_ru,DeepPavlov/statcan-dialogue-dataset-retrieval-ru,queries_russian,train,
 StatCan,ru,self_suffix,DeepPavlov/statcan-dialogue-dataset-retrieval-ru,queries_russian,dev,query->query_ru,DeepPavlov/statcan-dialogue-dataset-retrieval-ru,queries_russian,dev,
 StatCan,ru,self_suffix,DeepPavlov/statcan-dialogue-dataset-retrieval-ru,queries_russian,test,query->query_ru,DeepPavlov/statcan-dialogue-dataset-retrieval-ru,queries_russian,test,
-StatCan,es,missing,DeepPavlov/statcan_dialog_es,,,,,,,public Hugging Face repo is empty in Dataset Viewer (EmptyDatasetError); no uploaded translation data to audit
+StatCan,es,source_compare,DeepPavlov/statcan_dialog_es,corpus,spanish,title->title; doc->doc,McGill-NLP/statcan-dialogue-dataset-retrieval,corpus,english,
+StatCan,es,source_compare,DeepPavlov/statcan_dialog_es,queries_es,train,query->query,McGill-NLP/statcan-dialogue-dataset-retrieval,queries_english,train,
+StatCan,es,source_compare,DeepPavlov/statcan_dialog_es,queries_es,dev,query->query,McGill-NLP/statcan-dialogue-dataset-retrieval,queries_english,dev,
+StatCan,es,source_compare,DeepPavlov/statcan_dialog_es,queries_es,test,query->query,McGill-NLP/statcan-dialogue-dataset-retrieval,queries_english,test,
 StatCan,fr,source_compare,DeepPavlov/statcan_dialog_fr,corpus,corpus,title->title; doc->doc,McGill-NLP/statcan-dialogue-dataset-retrieval,corpus,english,
 StatCan,fr,source_compare,DeepPavlov/statcan_dialog_fr,queries,train,query->query,McGill-NLP/statcan-dialogue-dataset-retrieval,queries_english,train,
 StatCan,fr,source_compare,DeepPavlov/statcan_dialog_fr,queries,dev,query->query,McGill-NLP/statcan-dialogue-dataset-retrieval,queries_english,dev,
@@ -44,7 +49,12 @@ WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,queries,test_geo,,,,,support retr
 WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,queries,test_vis,,,,,support retrieval export copied from original; translated query_ru is audited in default config
 WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,queries,test_web,,,,,support retrieval export copied from original; translated query_ru is audited in default config
 WebLINX,ru,metadata_only,DeepPavlov/WebLINX-ru,top_ranked,,,,,,no auditable text columns inferred
-WebLINX,es,missing,DeepPavlov/WebLINX_es,,,,,,,public Hugging Face repo is empty in Dataset Viewer (EmptyDatasetError); no uploaded translation data to audit
+WebLINX,es,self_suffix,DeepPavlov/WebLINX_es,default,validation,query->query_es,DeepPavlov/WebLINX_es,default,validation,
+WebLINX,es,self_suffix,DeepPavlov/WebLINX_es,default,test,query->query_es,DeepPavlov/WebLINX_es,default,test,
+WebLINX,es,self_suffix,DeepPavlov/WebLINX_es,default,test_cat,query->query_es,DeepPavlov/WebLINX_es,default,test_cat,
+WebLINX,es,self_suffix,DeepPavlov/WebLINX_es,default,test_geo,query->query_es,DeepPavlov/WebLINX_es,default,test_geo,
+WebLINX,es,self_suffix,DeepPavlov/WebLINX_es,default,test_vis,query->query_es,DeepPavlov/WebLINX_es,default,test_vis,
+WebLINX,es,self_suffix,DeepPavlov/WebLINX_es,default,test_web,query->query_es,DeepPavlov/WebLINX_es,default,test_web,
 WebLINX,fr,source_compare,DeepPavlov/weblinx_fr,default,validation,query->query,McGill-NLP/WebLINX,reranking,validation,
 WebLINX,fr,source_compare,DeepPavlov/weblinx_fr,default,test_iid,query->query,McGill-NLP/WebLINX,reranking,test_iid,
 WebLINX,fr,source_compare,DeepPavlov/weblinx_fr,default,test_cat,query->query,McGill-NLP/WebLINX,reranking,test_cat,
