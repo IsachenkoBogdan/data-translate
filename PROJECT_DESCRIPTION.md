@@ -72,9 +72,9 @@
 | MANtIS | [DeepPavlov/mantis_fr](https://huggingface.co/datasets/DeepPavlov/mantis_fr) | Переведен и загружен; проверка показала 0 ошибок и 0 предупреждений |
 | Abg-CoQA | [DeepPavlov/coqa_abg_fr](https://huggingface.co/datasets/DeepPavlov/coqa_abg_fr) | Переведен и загружен |
 | Wizard of Wikipedia / WoW | [DeepPavlov/wizard_of_wikipedia_fr](https://huggingface.co/datasets/DeepPavlov/wizard_of_wikipedia_fr) | Переведен и загружен |
-| Coral | [DeepPavlov/coral_fr](https://huggingface.co/datasets/DeepPavlov/coral_fr) | Upload- и quality-конфиги готовы; перед итоговым аудитом проверить доступность `DeepPavlov/coral_fr` на Hugging Face |
+| Coral | [DeepPavlov/coral_fr](https://huggingface.co/datasets/DeepPavlov/coral_fr) | Переведен и загружен |
 
-Во французской части большинство наборов данных опубликовано в Hugging Face. Для крупных поисковых наборов `WoW` и `Coral` подготовлены отдельные конфиги загрузки `wizard_of_wikipedia_fr` и `coral_fr`, повторяющие структуру соответствующих наборов в организации `DeepPavlov`. `FaithDial` перезагружен полным набором `train/dev/test`, а `MultiWOZ` заменен прямым переводом исходного `DeepPavlov/MultiWOZ-2.1`.
+Во французской части наборы данных опубликованы в Hugging Face. Для крупных поисковых наборов `WoW` и `Coral` подготовлены отдельные конфиги загрузки `wizard_of_wikipedia_fr` и `coral_fr`, повторяющие структуру соответствующих наборов в организации `DeepPavlov`. `FaithDial` перезагружен полным набором `train/dev/test`, а `MultiWOZ` заменен прямым переводом исходного `DeepPavlov/MultiWOZ-2.1`.
 
 Дополнительные публичные артефакты:
 

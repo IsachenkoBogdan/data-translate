@@ -117,7 +117,7 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 
 Статус наборов данных:
 
-Актуально на 18 июня 2026 года: большинство французских версий опубликовано в организации `DeepPavlov` на Hugging Face. `FaithDial` перезагружен полным набором `train/dev/test`. `MultiWOZ` заменен прямым переводом `multiwoz_direct` исходного `DeepPavlov/MultiWOZ-2.1` и проверяется конфигом `multiwoz_fr`. Для `Coral` подготовлены upload- и quality-конфиги под ожидаемый репозиторий `DeepPavlov/coral_fr`; перед финальным аудитом нужно убедиться, что этот repo id доступен в Hugging Face.
+Актуально на 18 июня 2026 года: французские версии опубликованы в организации `DeepPavlov` на Hugging Face. `FaithDial` перезагружен полным набором `train/dev/test`. `MultiWOZ` заменен прямым переводом `multiwoz_direct` исходного `DeepPavlov/MultiWOZ-2.1` и проверяется конфигом `multiwoz_fr`. `Coral` опубликован как `DeepPavlov/coral_fr` и добавлен в общий план аудита.
 
 Сводная таблица по русским, испанским и французским переводам доступна в Google Sheets: [DialogMTEB Translation Quality Summary](https://docs.google.com/spreadsheets/d/1pEty3fUN-vzVPmuRXX1CnMP1XCBG85Qn7nBf0nS9qiQ/edit).
 
@@ -134,7 +134,7 @@ make upload-datasets-push UPLOAD=daily_dialog_fr
 | MANtIS | `mantis` | [DeepPavlov/mantis_fr](https://huggingface.co/datasets/DeepPavlov/mantis_fr) | Переведен и загружен; `check-translation`: 0 ошибок, 0 предупреждений |
 | Wizard of Wikipedia / WoW | `wizard_of_wikipedia` | [DeepPavlov/wizard_of_wikipedia_fr](https://huggingface.co/datasets/DeepPavlov/wizard_of_wikipedia_fr) | Переведен и загружен |
 | Abg-CoQA | `coqa_abg` | [DeepPavlov/coqa_abg_fr](https://huggingface.co/datasets/DeepPavlov/coqa_abg_fr) | Переведен и загружен |
-| Coral | `coral_*` | [DeepPavlov/coral_fr](https://huggingface.co/datasets/DeepPavlov/coral_fr) | Upload- и quality-конфиги готовы; перед итоговым аудитом проверить доступность `DeepPavlov/coral_fr` на Hugging Face |
+| Coral | `coral_*` | [DeepPavlov/coral_fr](https://huggingface.co/datasets/DeepPavlov/coral_fr) | Переведен и загружен |
 
 План дальнейших улучшений:
 - добавить `mt-metrics-eval` как внешний набор для калибровки качества моделей-оценщиков на стандартных данных машинного перевода с человеческими оценками
