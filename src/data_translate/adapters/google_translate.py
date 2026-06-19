@@ -91,6 +91,7 @@ class GoogleTranslateAdapter:
         )
         self._local = local()
         self._cache = Cache(str(Path(cache_dir)))
+        self._cache_locks = [anyio.Lock() for _ in range(256)]
         self._thread_limiter = anyio.CapacityLimiter(max(1, int(thread_limit)))
 
     def _translator(self) -> GoogleTranslator:
@@ -111,6 +112,10 @@ class GoogleTranslateAdapter:
         digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
         return f"{self.source_lang}:{self.target_lang}:{digest}"
 
+    def _cache_lock(self, cache_key: str) -> anyio.Lock:
+        stripe = int(hashlib.sha256(cache_key.encode("utf-8")).hexdigest()[:8], 16)
+        return self._cache_locks[stripe % len(self._cache_locks)]
+
     async def translate(self, text: str, *, use_cache: bool) -> TranslationResult:
         if not text.strip():
             return TranslationResult(text=text, status="empty", attempts=0, error="")
@@ -120,7 +125,15 @@ class GoogleTranslateAdapter:
             cached = self._cache.get(cache_key)
             if cached is not None:
                 return TranslationResult(**cached)
+            async with self._cache_lock(cache_key):
+                cached = self._cache.get(cache_key)
+                if cached is not None:
+                    return TranslationResult(**cached)
+                return await self._translate_and_cache(text, cache_key, use_cache=True)
 
+        return await self._translate_and_cache(text, cache_key, use_cache=False)
+
+    async def _translate_and_cache(self, text: str, cache_key: str, *, use_cache: bool) -> TranslationResult:
         outcome = await run_with_retry(
             lambda: anyio.to_thread.run_sync(
                 self._translate_sync,

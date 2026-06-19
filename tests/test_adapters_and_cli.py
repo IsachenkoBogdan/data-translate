@@ -251,6 +251,43 @@ def test_provider_adapters_and_factories(tmp_path) -> None:
         )
 
 
+def test_google_adapter_serializes_concurrent_duplicate_cache_misses(tmp_path: Path) -> None:
+    google = GoogleTranslateAdapter(
+        source_lang="en",
+        target_lang="fr",
+        timeout_seconds=1.0,
+        max_retries=1,
+        retry_sleep=0,
+        thread_limit=2,
+        cache_dir=str(tmp_path / "g-singleflight"),
+    )
+    calls = 0
+
+    def translate_sync(text: str) -> str:
+        nonlocal calls
+        calls += 1
+        return f"tr:{text}"
+
+    async def run() -> list[str | None]:
+        results: list[str | None] = []
+
+        async def translate_once() -> None:
+            result = await google.translate("same text", use_cache=True)
+            results.append(result.text)
+
+        async with anyio.create_task_group() as task_group:
+            task_group.start_soon(translate_once)
+            task_group.start_soon(translate_once)
+        return results
+
+    with patch.object(google, "_translate_sync", side_effect=translate_sync):
+        results = anyio.run(run)
+
+    assert sorted(results) == ["tr:same text", "tr:same text"]
+    assert calls == 1
+    google.close()
+
+
 def test_litellm_adapter_and_factories() -> None:
     with patch("data_translate.adapters.litellm_adapter.get_env_value", return_value="key"):
         adapter = LiteLLMAdapter(
