@@ -32,7 +32,7 @@ translation:
       cache: true
       options:
         content_field: content
-        max_chunk_chars: 2500
+        max_chunk_chars: 4500
 evaluation:
   source_lang: English
   target_lang: French

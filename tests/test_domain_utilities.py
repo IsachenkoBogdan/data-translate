@@ -70,6 +70,29 @@ def test_translate_sequence_successful_marked_translation() -> None:
     assert adapter.calls == [("@@0@@ hello\n@@1@@ bye", False)]
 
 
+def test_translate_sequence_batches_marked_translation_when_whole_text_exceeds_limit() -> None:
+    items = ["alpha", "bravo", "charlie"]
+    max_chunk_chars = len(build_marked_text(items[:2]))
+    adapter = QueueAdapter(
+        [
+            TranslationResult(text="@@0@@ alfa\n@@1@@ bravo", status="ok", attempts=1, error=""),
+            TranslationResult(text="@@0@@ charlie", status="ok", attempts=1, error=""),
+        ]
+    )
+
+    async def run():
+        return await translate_sequence(items, adapter, use_cache=True, max_chunk_chars=max_chunk_chars)
+
+    translated, attempts, error = anyio.run(run)
+    assert translated == ["alfa", "bravo", "charlie"]
+    assert attempts == 2
+    assert error == ""
+    assert adapter.calls == [
+        (build_marked_text(items[:2]), True),
+        (build_marked_text(items[2:]), True),
+    ]
+
+
 def test_translate_sequence_falls_back_to_item_level_translation() -> None:
     adapter = QueueAdapter(
         [
